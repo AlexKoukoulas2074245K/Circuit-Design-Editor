@@ -53,6 +53,10 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 	private JPanel botPortsPanel   = null;
 	private Map<PortView, JPanel> portViewsToPanels = null;
 	private List<BlackBoxCreationObserver> blackBoxCreationObservers = null;
+	private int numLeftPorts = 0;
+	private int numRightPorts = 0;
+	private int numTopPorts = 0;
+	private int numBotPorts = 0;
 	
 	public BlackBoxBuilderPanel(final MainCanvas canvas, final JDialog ancestor)
 	{
@@ -227,7 +231,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void actionPerformed(ActionEvent __) 
 			{
-				PortView portView = new PortView(PortLocation.LEFT, blackBoxView.getComponentRectangle().width/2, 0.5f, "port");
+				numLeftPorts++;
+				PortView portView = new PortView(PortLocation.LEFT, blackBoxView.getComponentRectangle().width/2, 1.0f/(numLeftPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
 				blackBoxView.portInserted(portView);
 			}		
@@ -256,7 +261,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void actionPerformed(ActionEvent __) 
 			{
-				PortView portView = new PortView(PortLocation.RIGHT, blackBoxView.getComponentRectangle().width/2, 0.5f, "port");
+				numRightPorts++;
+				PortView portView = new PortView(PortLocation.RIGHT, blackBoxView.getComponentRectangle().width/2, 1.0f/(numRightPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
 				blackBoxView.portInserted(portView);
 			}		
@@ -284,7 +290,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void actionPerformed(ActionEvent __) 
 			{
-				PortView portView = new PortView(PortLocation.TOP, blackBoxView.getComponentRectangle().width/2, 0.5f, "port");
+				numTopPorts++;
+				PortView portView = new PortView(PortLocation.TOP, blackBoxView.getComponentRectangle().width/2, 1.0f/(numTopPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
 				blackBoxView.portInserted(portView);
 			}		
@@ -312,7 +319,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void actionPerformed(ActionEvent __) 
 			{
-				PortView portView = new PortView(PortLocation.BOTTOM, blackBoxView.getComponentRectangle().width/2, 0.5f, "port");
+				numBotPorts++;
+				PortView portView = new PortView(PortLocation.BOTTOM, blackBoxView.getComponentRectangle().width/2, 1.0f/(numBotPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
 				blackBoxView.portInserted(portView);
 			}		
@@ -456,6 +464,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void actionPerformed(ActionEvent __) 
 					{
+						numLeftPorts--;
 						blackBoxView.portDeleted(portView);
 						leftPortsPanel.remove(portPanel);
 						validate();
@@ -497,6 +506,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void actionPerformed(ActionEvent __) 
 					{
+						numRightPorts--;
 						blackBoxView.portDeleted(portView);
 						rightPortsPanel.remove(portPanel);
 						validate();
@@ -538,6 +548,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void actionPerformed(ActionEvent __) 
 					{
+						numTopPorts--;
 						blackBoxView.portDeleted(portView);
 						topPortsPanel.remove(portPanel);
 						validate();
@@ -579,6 +590,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void actionPerformed(ActionEvent __) 
 					{
+						numBotPorts--;
 						blackBoxView.portDeleted(portView);
 						botPortsPanel.remove(portPanel);
 						validate();
@@ -602,10 +614,10 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 	{		
 		switch (portView.portLocation)
 		{
-			case LEFT:   leftPortsPanel.remove(portViewsToPanels.get(portView)); break;
-			case RIGHT:  rightPortsPanel.remove(portViewsToPanels.get(portView)); break;
-			case TOP:    topPortsPanel.remove(portViewsToPanels.get(portView)); break;
-			case BOTTOM: botPortsPanel.remove(portViewsToPanels.get(portView)); break;
+			case LEFT:   leftPortsPanel.remove(portViewsToPanels.get(portView)); numLeftPorts--; break;
+			case RIGHT:  rightPortsPanel.remove(portViewsToPanels.get(portView)); numRightPorts--; break;
+			case TOP:    topPortsPanel.remove(portViewsToPanels.get(portView)); numTopPorts--; break;
+			case BOTTOM: botPortsPanel.remove(portViewsToPanels.get(portView)); numBotPorts--; break;
 		}
 		
 		validate();
