@@ -267,7 +267,13 @@ public final class MainFrame
                 if (choice == JFileChooser.APPROVE_OPTION) 
                 {	
                 	File selFile = fc.getSelectedFile();
-                	File adjustedFile = new File(selFile.getName().split("\\.")[0] + ".cde");
+                	File adjustedFile = selFile;
+                	
+                	if (!selFile.getName().endsWith(".cde"))
+                	{
+                		adjustedFile = new File(selFile.getAbsolutePath() + ".cde");
+                	}
+                	                	
                 	selFile.delete();
                 	canvasPanel.saveProjectToFile(adjustedFile);                	
                 }
@@ -284,9 +290,15 @@ public final class MainFrame
                 
                 int choice = fc.showSaveDialog(menuPanel);
                 if (choice == JFileChooser.APPROVE_OPTION) 
-                {	                	
+                {	            
                 	File selFile = fc.getSelectedFile();
-                	File adjustedFile = new File(selFile.getName().split("\\.")[0] + ".svg");
+                	File adjustedFile = selFile;
+                	
+                	if (!selFile.getName().endsWith(".svg"))
+                	{
+                		adjustedFile = new File(selFile.getAbsolutePath() + ".svg");
+                	}
+                	                	
                 	selFile.delete();
                 	
                 	canvasPanel.exportToSVG(adjustedFile);

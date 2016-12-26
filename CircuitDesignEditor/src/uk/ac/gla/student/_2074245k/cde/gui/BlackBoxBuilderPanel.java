@@ -159,8 +159,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 				blackBoxView.setMinimumSize(newCanvasDimension);
 				blackBoxView.setMaximumSize(newCanvasDimension);
 				validate();
-				modalAncestor.pack();
-				modalAncestor.setLocationRelativeTo(null);
+				modalAncestor.pack();				
 				blackBoxView.repaint();
 			}
 		});
@@ -184,8 +183,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 				blackBoxView.setMinimumSize(newCanvasDimension);
 				blackBoxView.setMaximumSize(newCanvasDimension);				
 				validate();
-				modalAncestor.pack();
-				modalAncestor.setLocationRelativeTo(null);
+				modalAncestor.pack();				
 				blackBoxView.repaint();
 			}
 		});
@@ -468,8 +466,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 						blackBoxView.portDeleted(portView);
 						leftPortsPanel.remove(portPanel);
 						validate();
-						modalAncestor.pack();
-						modalAncestor.setLocationRelativeTo(null);
+						modalAncestor.pack();						
 					}					
 				});
 				portPanel.add(deleteButton);
@@ -510,8 +507,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 						blackBoxView.portDeleted(portView);
 						rightPortsPanel.remove(portPanel);
 						validate();
-						modalAncestor.pack();
-						modalAncestor.setLocationRelativeTo(null);
+						modalAncestor.pack();						
 					}					
 				});
 				portPanel.add(deleteButton);
@@ -552,8 +548,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 						blackBoxView.portDeleted(portView);
 						topPortsPanel.remove(portPanel);
 						validate();
-						modalAncestor.pack();
-						modalAncestor.setLocationRelativeTo(null);
+						modalAncestor.pack();						
 					}					
 				});
 				portPanel.add(deleteButton);
@@ -594,8 +589,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 						blackBoxView.portDeleted(portView);
 						botPortsPanel.remove(portPanel);
 						validate();
-						modalAncestor.pack();
-						modalAncestor.setLocationRelativeTo(null);
+						modalAncestor.pack();						
 					}					
 				});
 				portPanel.add(deleteButton);
@@ -605,8 +599,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		}
 		
 		validate();
-		modalAncestor.pack();
-		modalAncestor.setLocationRelativeTo(null);
+		modalAncestor.pack();		
 	}
 
 	@Override
@@ -621,8 +614,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		}
 		
 		validate();
-		modalAncestor.pack();
-		modalAncestor.setLocationRelativeTo(null);
+		modalAncestor.pack();		
 	}
 
 	@Override
