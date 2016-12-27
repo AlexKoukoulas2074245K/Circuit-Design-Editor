@@ -14,11 +14,11 @@ import javax.swing.JOptionPane;
 
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
+import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.GateComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
-import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.gui.PortView;
 
@@ -203,7 +203,7 @@ public final class ProjectPersistenceUtilities
 					}
 				}						
 			}
-			
+						
 			for (Component comp: hingeComponents)
 			{
 				canvas.addNewComponent(comp);
@@ -217,7 +217,7 @@ public final class ProjectPersistenceUtilities
 			for (Component comp: concreteComponents)
 			{
 				canvas.addNewComponent(comp);
-			}
+			}						
 			
 			JOptionPane.showMessageDialog(null, "Loaded project successfully");
 		}

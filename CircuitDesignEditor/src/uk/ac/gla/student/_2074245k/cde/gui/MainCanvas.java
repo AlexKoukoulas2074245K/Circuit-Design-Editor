@@ -29,6 +29,9 @@ import org.apache.batik.svggen.SVGGraphics2D;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
+import uk.ac.gla.student._2074245k.cde.actions.Action;
+import uk.ac.gla.student._2074245k.cde.actions.MoveAction;
+import uk.ac.gla.student._2074245k.cde.actions.MultiMoveAction;
 import uk.ac.gla.student._2074245k.cde.components.AlignedComponentsList;
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
@@ -78,7 +81,12 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private int selectionDx, selectionDy, dragNubX, dragNubY, incidentNubX, incidentNubY;			
 	private AlignedComponentsList alignedComponents, prevAlignedComponents;
-	private boolean isCreatingNub, isNubInContact;
+	private boolean isCreatingNub, isNubInContact, movingComponents;
+	
+	private List<Action> executedActionHistory;
+	private List<Action> undoneActionHistory;
+	private List<int[]> startPositions;
+	private List<int[]> targetPositions;
 	
 	public MainCanvas()
 	{
@@ -354,6 +362,26 @@ public final class MainCanvas extends JPanel implements Runnable,
 			JOptionPane.showMessageDialog(null, "An error has occurred while exporting project to SVG", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}
 	}
+
+	public void undo()
+	{
+		if (executedActionHistory.size() > 0)
+		{
+			Action lastAction = executedActionHistory.remove(executedActionHistory.size() - 1);			
+			lastAction.undo();
+			undoneActionHistory.add(lastAction);
+		}
+	}
+	
+	public void redo()
+	{
+		if (undoneActionHistory.size() > 0)
+		{
+			Action lastUndoneAction = undoneActionHistory.remove(undoneActionHistory.size() - 1);
+			lastUndoneAction.execute();
+			executedActionHistory.add(lastUndoneAction);
+		}
+	}
 	
 	private void inputUpdates()
 	{						
@@ -364,10 +392,21 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{	
 			lineSegmentPath.clear();
 			
+			startPositions.clear();
+			targetPositions.clear();
+			
 			if (componentSelector.getNumberOfSelectedComponents() > 1 && highlightedComponent != null)
 			{				
 				selectionDx = componentSelector.getFirstComponent().getRectangle().x - mouse.getX();
 				selectionDy = componentSelector.getFirstComponent().getRectangle().y - mouse.getY();
+				
+				Iterator<Component> selCompIter = componentSelector.getSelectedComponentsIterator();
+				
+				while (selCompIter.hasNext())
+				{
+					Component comp = selCompIter.next();
+					startPositions.add(new int[]{ comp.getRectangle().x, comp.getRectangle().y });
+				}
 			}
 			else
 			{				
@@ -384,6 +423,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					{
 						constructLinePath(componentSelector.getFirstComponent());
 					}
+					
+					startPositions.add(new int[]{ highlightedComponent.getRectangle().x, highlightedComponent.getRectangle().y });
 				}
 				else
 				{
@@ -405,6 +446,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				if (componentSelector.getNumberOfSelectedComponents() == 1)
 				{
 					alignedComponents = componentSelector.getFirstComponent().moveTo(mouse.getX() + selectionDx, mouse.getY() + selectionDy);
+					movingComponents  = true;
 				}
 				else if (componentSelector.getNumberOfSelectedComponents() > 1)
 				{															
@@ -430,28 +472,26 @@ public final class MainCanvas extends JPanel implements Runnable,
 							continue;
 												
 						component.setPosition(component.getRectangle().x + deltaX, component.getRectangle().y + deltaY);						
-					}					
+					}
+					
+					movingComponents = true;
 				}
 			}
 		}
-		else if (mouse.isButtonJustReleased(Mouse.LEFT_BUTTON))
+		else if (mouse.isButtonJustReleased(Mouse.LEFT_BUTTON) || !mouse.isButtonDown(Mouse.LEFT_BUTTON))
 		{											
 			lineSegmentPath.clear();
 			selectionDx = selectionDy = 0;
-			componentSelector.disable();
-			if (componentSelector.getNumberOfSelectedComponents() == 1)
-			{
-				componentSelector.getFirstComponent().finalizeMovement(alignedComponents);
-				alignedComponents = null;							
-			}															
-		}							
-		else if (!mouse.isButtonDown(Mouse.LEFT_BUTTON))
-		{
-			lineSegmentPath.clear();
+			
+			if (movingComponents)
+			{				
+				finalizeMovementAndCreateActions();
+			}
+			
 			alignedComponents = null;
-			selectionDx = selectionDy = 0;	
+			movingComponents  = false;			
 			componentSelector.disable();
-		}
+		}							
 		
 		if (isCreatingNub)
 		{							
@@ -819,6 +859,38 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 	}
 	
+	private void finalizeMovementAndCreateActions()
+	{			
+		if (componentSelector.getNumberOfSelectedComponents() == 1)
+		{
+			componentSelector.getFirstComponent().finalizeMovement(alignedComponents);
+			alignedComponents = null;
+			
+			Action currentAction = new MoveAction(componentSelector.getFirstComponent(),
+					startPositions.get(0),
+					new int[]{ componentSelector.getFirstComponent().getRectangle().x,
+							componentSelector.getFirstComponent().getRectangle().y });
+			currentAction.execute();
+			executedActionHistory.add(currentAction);				
+		}
+		else if (componentSelector.getNumberOfSelectedComponents() > 1)
+		{				
+			Iterator<Component> selCompIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompIter.hasNext())
+			{
+				Component selComponent = selCompIter.next();
+				targetPositions.add(new int[]{ selComponent.getRectangle().x, selComponent.getRectangle().y });
+			}
+			
+			Action currentAction = new MultiMoveAction(componentSelector.getSelectedComponentsIterator(),
+					startPositions.iterator(), 
+					targetPositions.iterator());
+			
+			currentAction.execute();
+			executedActionHistory.add(currentAction);				
+		}	
+	}
+	
 	private void init()
 	{
 		selectionDx = selectionDy = dragNubX = dragNubY = 0;		
@@ -829,13 +901,18 @@ public final class MainCanvas extends JPanel implements Runnable,
 		components            = new ArrayList<Component>();
 		componentsToAdd       = new ArrayList<Component>();
 		componentsToRemove    = new ArrayList<Component>();
-		componentSelector              = new ComponentSelector(0, 0);
+		componentSelector     = new ComponentSelector(0, 0);
 		mouse                 = new Mouse();
 		keyboard              = new Keyboard();		
-		isCreatingNub = isNubInContact = false;		
+		isCreatingNub = isNubInContact = movingComponents = false;		
 		
 		alignedComponents = prevAlignedComponents = null;
 		domImpl = GenericDOMImplementation.getDOMImplementation();
-		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);		
+		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
+		
+		executedActionHistory = new ArrayList<Action>();
+		undoneActionHistory   = new ArrayList<Action>();
+		startPositions        = new ArrayList<int[]>();
+		targetPositions       = new ArrayList<int[]>();
 	}
 }

@@ -71,19 +71,18 @@ public final class GateComponent extends ConcreteComponent
 	}
 
 	public void constructPortsAutomatically()
-	{
-				
+	{		
 		Component startPointIn1 = new HingeComponent(canvas, componentRect.x - PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, componentRect.y + componentRect.height/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component endPointIn1   = new HingeComponent(canvas, componentRect.x - HingeComponent.HINGE_DIAMETER/2 - 1, componentRect.y + componentRect.height/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component in1Port       = new LineSegmentComponent(canvas, startPointIn1, endPointIn1, false);
 		
 		((HingeComponent)endPointIn1).addInternalHingeInfo(PortLocation.LEFT, "a");
 		addInternalHorHinge(endPointIn1);
-		addPort(in1Port);
+		addPort(in1Port);		
 		canvas.addNewComponent(startPointIn1);
 		canvas.addNewComponent(endPointIn1);
 		canvas.addNewComponent(in1Port);
-						
+		
 		Component startPointIn2 = new HingeComponent(canvas, componentRect.x - PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, componentRect.y + (componentRect.height * 3)/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component endPointIn2   = new HingeComponent(canvas, componentRect.x - HingeComponent.HINGE_DIAMETER/2 - 1, componentRect.y + (componentRect.height * 3)/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component in2Port       = new LineSegmentComponent(canvas, startPointIn2, endPointIn2, false);
@@ -104,7 +103,7 @@ public final class GateComponent extends ConcreteComponent
 		addPort(outPort);
 		canvas.addNewComponent(startPointOut);
 		canvas.addNewComponent(endPointOut);
-		canvas.addNewComponent(outPort);	
+		canvas.addNewComponent(outPort);
 	}
 }
 

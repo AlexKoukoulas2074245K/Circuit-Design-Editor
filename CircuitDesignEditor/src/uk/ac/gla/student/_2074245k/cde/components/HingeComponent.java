@@ -421,10 +421,10 @@ public final class HingeComponent extends Component
 	    	else
 	    	{
 	    		lineSegment = new LineSegmentComponent(canvas, this, endPoint, true);
-	    		canvas.addNewComponent(endPoint);
+	    		canvas.addNewComponent(endPoint);	    		
 	    	}
 	    	
-	    	canvas.addNewComponent(lineSegment);								    					    			   	
+	    	canvas.addNewComponent(lineSegment);	    	
 	    }
 	}
 	

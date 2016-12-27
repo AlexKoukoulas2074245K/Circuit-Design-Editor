@@ -93,9 +93,24 @@ public final class MainFrame
 		fileMenuTab.add(saveProjectItem);
 		fileMenuTab.add(exportProjectItem);
 		
+		JMenu editTab = new JMenu("Edit");
+		editTab.setMnemonic(KeyEvent.VK_E);
+		editTab.getAccessibleContext().setAccessibleDescription("Edit actions");
+		
+		JMenuItem undoItem = new JMenuItem("Undo", KeyEvent.VK_1);
+		undoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+		undoItem.getAccessibleContext().setAccessibleDescription("Undo last action");
+		
+		JMenuItem redoItem = new JMenuItem("Redo", KeyEvent.VK_2);
+		redoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
+		redoItem.getAccessibleContext().setAccessibleDescription("Redo last undone action");
+		
+		editTab.add(undoItem);
+		editTab.add(redoItem);
+		
 		JMenu windowTab = new JMenu("Window");
 		windowTab.setMnemonic(KeyEvent.VK_W);
-		windowTab.getAccessibleContext().setAccessibleDescription("Window related actions");
+		windowTab.getAccessibleContext().setAccessibleDescription("Window related options");
 		
 		JMenuItem changeLF = new JMenuItem("Change look and feel", KeyEvent.VK_1);
 		changeLF.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.SHIFT_MASK | ActionEvent.ALT_MASK));
@@ -104,6 +119,7 @@ public final class MainFrame
 		windowTab.add(changeLF);
 		
     	menuBar.add(fileMenuTab);
+    	menuBar.add(editTab);
     	menuBar.add(windowTab);
     	frame.setJMenuBar(menuBar);
     	    	
@@ -306,6 +322,25 @@ public final class MainFrame
         	}
         });
         
+        undoItem.addActionListener(new ActionListener()
+        {
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				canvasPanel.undo();
+			}
+        	
+        });
+        
+        redoItem.addActionListener(new ActionListener()
+        {
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				canvasPanel.redo();
+			}    
+        });
+        
         changeLF.addActionListener(new ActionListener()
 		{
         	public void actionPerformed(ActionEvent __)
@@ -444,7 +479,7 @@ public final class MainFrame
         			public void actionPerformed(ActionEvent arg0) 
         			{
         				GateComponent gateToAdd = new GateComponent(canvasPanel, GateComponent.GateType.valueOf((String)cb.getSelectedItem()), true, canvasPanel.getWidth()/2, canvasPanel.getHeight()/2);
-                		gateToAdd.constructPortsAutomatically();
+                		gateToAdd.constructPortsAutomatically();                		
                 		canvasPanel.addNewComponent(gateToAdd);
         				jg.dispose();
         			}			
