@@ -383,6 +383,17 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 	}
 	
+	public void selectAll()
+	{
+		componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
+		componentSelector.disable();
+		
+		for (Component component: components)
+		{
+			componentSelector.addComponentToSelectionExternally(component, components);
+		}
+	}
+	
 	private void inputUpdates()
 	{						
 		highlightedComponent = getHoveredComponent(isCreatingNub ? dragNubX : mouse.getX(), isCreatingNub ? dragNubY : mouse.getY());		
@@ -442,7 +453,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				}
 			}
 			else
-			{
+			{				
 				if (componentSelector.getNumberOfSelectedComponents() == 1)
 				{
 					alignedComponents = componentSelector.getFirstComponent().moveTo(mouse.getX() + selectionDx, mouse.getY() + selectionDy);
@@ -464,16 +475,19 @@ public final class MainCanvas extends JPanel implements Runnable,
 					// Move component to old position
 					firstSelComponent.setPosition(prevX, prevY);																
 					
-					Iterator<Component> selIter = componentSelector.getSelectedComponentsIterator();
-					while (selIter.hasNext())
+					synchronized (componentSelector)
 					{
-						Component component = selIter.next();
-						if (component.getComponentType() == ComponentType.HINGE)
-							continue;
-												
-						component.setPosition(component.getRectangle().x + deltaX, component.getRectangle().y + deltaY);						
+						Iterator<Component> selIter = componentSelector.getSelectedComponentsIterator();
+						while (selIter.hasNext())
+						{
+							Component component = selIter.next();
+							if (component.getComponentType() == ComponentType.HINGE)
+								continue;
+													
+							component.setPosition(component.getRectangle().x + deltaX, component.getRectangle().y + deltaY);						
+						}
 					}
-					
+										
 					movingComponents = true;
 				}
 			}
@@ -563,12 +577,15 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		if (keyboard.isKeyTapped(Keyboard.DELETE_KEY))
 		{	
-			Iterator<Component> iter = componentSelector.getSelectedComponentsIterator();
-			while (iter.hasNext())
-			{
-				Component component = iter.next();
-				component.delete();				
-			}			
+			synchronized (componentSelector)
+			{				
+				Iterator<Component> iter = componentSelector.getSelectedComponentsIterator();
+				while (iter.hasNext())
+				{
+					Component component = iter.next();
+					component.delete();				
+				}			
+			}
 		}
 		
 		mouse.updateOnFrameEnd();

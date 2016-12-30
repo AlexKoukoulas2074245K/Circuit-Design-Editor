@@ -105,8 +105,13 @@ public final class MainFrame
 		redoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK));
 		redoItem.getAccessibleContext().setAccessibleDescription("Redo last undone action");
 		
+		JMenuItem selectAllMenuItem = new JMenuItem("Select All Components", KeyEvent.VK_3);
+		selectAllMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
+		selectAllMenuItem.getAccessibleContext().setAccessibleDescription("Selects all components in the canvas");
+		
 		editTab.add(undoItem);
 		editTab.add(redoItem);
+		editTab.add(selectAllMenuItem);
 		
 		JMenu windowTab = new JMenu("Window");
 		windowTab.setMnemonic(KeyEvent.VK_W);
@@ -325,7 +330,7 @@ public final class MainFrame
         undoItem.addActionListener(new ActionListener()
         {
 			@Override
-			public void actionPerformed(ActionEvent e) 
+			public void actionPerformed(ActionEvent __) 
 			{
 				canvasPanel.undo();
 			}
@@ -335,10 +340,19 @@ public final class MainFrame
         redoItem.addActionListener(new ActionListener()
         {
 			@Override
-			public void actionPerformed(ActionEvent e) 
+			public void actionPerformed(ActionEvent __) 
 			{
 				canvasPanel.redo();
 			}    
+        });
+        
+        selectAllMenuItem.addActionListener(new ActionListener()
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		canvasPanel.selectAll();
+        	}
         });
         
         changeLF.addActionListener(new ActionListener()

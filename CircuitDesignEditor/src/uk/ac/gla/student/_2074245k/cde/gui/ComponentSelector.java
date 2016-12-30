@@ -56,7 +56,7 @@ public final class ComponentSelector
 		}
 	}
 	
-	public void addComponentToSelectionExternally(final Component component, final List<Component> allComponents)
+	public synchronized void addComponentToSelectionExternally(final Component component, final List<Component> allComponents)
 	{
 		addComponentToSelection(component, allComponents);
 	}
@@ -76,7 +76,7 @@ public final class ComponentSelector
 		return selectedComponents.contains(component);
 	}
 	
-	public Component getFirstComponent()
+	public synchronized Component getFirstComponent()
 	{
 		return firstSelectedComponent;
 	}
