@@ -395,7 +395,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			startPositions.clear();
 			targetPositions.clear();
 			
-			if (componentSelector.getNumberOfSelectedComponents() > 1 && highlightedComponent != null)
+			if (componentSelector.getNumberOfSelectedComponents() > 1 && highlightedComponent != null && componentSelector.isComponentInSelection(highlightedComponent))
 			{				
 				selectionDx = componentSelector.getFirstComponent().getRectangle().x - mouse.getX();
 				selectionDy = componentSelector.getFirstComponent().getRectangle().y - mouse.getY();
@@ -409,7 +409,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				}
 			}
 			else
-			{				
+			{							
 				componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 				
 				if (highlightedComponent != null)
