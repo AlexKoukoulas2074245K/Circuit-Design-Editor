@@ -139,55 +139,6 @@ public abstract class ConcreteComponent extends Component
 	}
 	
 	@Override
-	public void delete() 
-	{
-		canvas.removeComponent(this);
-		
-		Iterator<Component> portsIter = getPortsIterator();
-		while (portsIter.hasNext())
-		{
-			Component port = portsIter.next();
-			port.delete();
-			portsIter.remove();
-		}
-		
-		Iterator<Component> internalHorHingeIter = getInternalHorHingeIterator();
-		while (internalHorHingeIter.hasNext())
-		{	
-			Component internalHorHinge = internalHorHingeIter.next();
-			internalHorHinge.delete();
-			internalHorHingeIter.remove();
-		}
-		
-		Iterator<Component> internalVerHingeIter = getInternalVerHingeIterator();
-		while (internalVerHingeIter.hasNext())
-		{	
-			Component internalVerHinge = internalVerHingeIter.next();
-			internalVerHinge.delete();
-			internalVerHingeIter.remove();
-		}	
-	}
-	
-	@Override
-	public boolean mouseIntersection(final int mouseX, final int mouseY) 
-	{
-		return getRectangle().contains(mouseX, mouseY);		
-	}
-	
-	@Override
-	public Rectangle getRectangle() 
-	{	
-		return componentRect;
-	}
-
-	@Override
-	public void setPosition(int x, int y) 
-	{
-		componentRect.x = x;
-		componentRect.y = y;
-	}
-	
-	@Override
 	public void finalizeMovement(AlignedComponentsList alignedComponents) 
 	{		
 		int prevBBx = this.componentRect.x;
@@ -249,8 +200,60 @@ public abstract class ConcreteComponent extends Component
 		moveTargetY = componentRect.y;
 		alignmentDx = alignmentDy = 0;		
 	}
+
+	@Override
+	public boolean mouseIntersection(final int mouseX, final int mouseY) 
+	{
+		return getRectangle().contains(mouseX, mouseY);		
+	}
+	
+	@Override
+	public void delete() 
+	{
+		canvas.removeComponent(this);
+		
+		Iterator<Component> portsIter = getPortsIterator();
+		while (portsIter.hasNext())
+		{
+			Component port = portsIter.next();
+			port.delete();
+			portsIter.remove();
+		}
+		
+		Iterator<Component> internalHorHingeIter = getInternalHorHingeIterator();
+		while (internalHorHingeIter.hasNext())
+		{	
+			Component internalHorHinge = internalHorHingeIter.next();
+			internalHorHinge.delete();
+			internalHorHingeIter.remove();
+		}
+		
+		Iterator<Component> internalVerHingeIter = getInternalVerHingeIterator();
+		while (internalVerHingeIter.hasNext())
+		{	
+			Component internalVerHinge = internalVerHingeIter.next();
+			internalVerHinge.delete();
+			internalVerHingeIter.remove();
+		}	
+	}
+	
+	@Override
+	public Rectangle getRectangle() 
+	{	
+		return componentRect;
+	}
+
+	@Override
+	public void setPosition(int x, int y) 
+	{
+		componentRect.x = x;
+		componentRect.y = y;
+	}
 	
 	public boolean hasPort(final Component component) { return ports.contains(component); }
+	public boolean hasInternalHorHinge(final Component component) { return internalHorHinges.contains(component); }
+	public boolean hasInternalVerHinge(final Component component) { return internalVerHinges.contains(component); }
+	
 	public void addPort(final Component port) { ports.add(port); }	
 	public void addInternalHorHinge(final Component component) { internalHorHinges.add(component); }	
 	public void addInternalVerHinge(final Component component) { internalVerHinges.add(component); }
@@ -264,7 +267,12 @@ public abstract class ConcreteComponent extends Component
 	public Iterator<Component> getInternalVerHingeIterator() { return internalVerHinges.iterator(); } 
 	
 	public int indexOfPort(final Component port) { return ports.indexOf(port); }
+	public int indexOfInternalHorHinge(final Component component) { return internalHorHinges.indexOf(component); }
+	public int indexOfInternalVerHinge(final Component component) { return internalVerHinges.indexOf(component); }
+	
 	public void setPort(final int index, final Component port) { ports.set(index, port); }
+	public void setInternalHorHinge(final int index, final Component comp) { internalHorHinges.set(index, comp); }
+	public void setInternalVerHinge(final int index, final Component comp) { internalVerHinges.set(index, comp); }
 	
 	public int getNPorts() { return ports.size(); }
 	public int getNInternalHorHinges() { return internalHorHinges.size(); }

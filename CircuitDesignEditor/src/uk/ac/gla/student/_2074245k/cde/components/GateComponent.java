@@ -1,6 +1,7 @@
 package uk.ac.gla.student._2074245k.cde.components;
 
 import java.awt.Rectangle;
+import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -56,6 +57,16 @@ public final class GateComponent extends ConcreteComponent
 	public void renderAligned(final GraphicsGenerator g)
 	{
 		render(g, false, false, false);
+	}
+	
+	@Override
+	public Component clone(Set<Component> outComponents)
+	{
+		GateComponent clonedComponent = new GateComponent(canvas, gateType, isMovable, getRectangle().x, getRectangle().y);
+		clonedComponent.constructPortsAutomatically();
+		outComponents.add(clonedComponent);
+		
+		return clonedComponent;
 	}
 	
 	@Override

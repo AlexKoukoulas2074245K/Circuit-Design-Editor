@@ -2,6 +2,7 @@ package uk.ac.gla.student._2074245k.cde.components;
 
 import java.awt.Rectangle;
 import java.util.Iterator;
+import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -157,35 +158,6 @@ public final class LineSegmentComponent extends Component
 	}
 	
 	@Override
-	public void delete()
-	{
-		if (isPort(canvas.getComponentsIterator()) != null)
-		{				
-			return;
-		}
-		
-		canvas.removeComponent(this);			
-		startPoint.delete();
-		endPoint.delete();
-	}		
-	
-	public Component isPort(final Iterator<Component> compIter)
-	{
-		while (compIter.hasNext())
-		{
-			Component nextComp = compIter.next();
-			if (nextComp.getComponentType() == ComponentType.BLACK_BOX ||
-				nextComp.getComponentType() == ComponentType.GATE)
-			{
-				if (((ConcreteComponent)nextComp).hasPort(this))
-					return nextComp;
-			}
-		}
-		
-		return null;
-	}
-	
-	@Override
 	public void render(final GraphicsGenerator g, 
 			           final boolean isHighlighted, 
 			           final boolean isSelected, 
@@ -236,6 +208,31 @@ public final class LineSegmentComponent extends Component
 	public void renderAligned(final GraphicsGenerator g)
 	{
 		render(g, false, false, false);
+	}
+	
+	@Override
+	public void delete()
+	{
+		if (isPort(canvas.getComponentsIterator()) != null)
+		{				
+			return;
+		}
+		
+		canvas.removeComponent(this);			
+		startPoint.delete();
+		endPoint.delete();
+	}		
+
+	@Override
+	public Component clone(Set<Component> outClonedComponents)
+	{
+		Component clonedStartPoint = startPoint.clone(outClonedComponents);
+		Component clonedEndPoint   = endPoint.clone(outClonedComponents);
+		
+		LineSegmentComponent clonedComponent = new LineSegmentComponent(canvas, clonedStartPoint, clonedEndPoint, isMovable);
+		outClonedComponents.add(clonedComponent);
+		
+		return clonedComponent;
 	}
 	
 	@Override
@@ -297,6 +294,22 @@ public final class LineSegmentComponent extends Component
 			startPoint.render(g, true, false, false);					
 			endPoint.render(g, true, false, false);			
 		}		
+	}
+	
+	public Component isPort(final Iterator<Component> compIter)
+	{
+		while (compIter.hasNext())
+		{
+			Component nextComp = compIter.next();
+			if (nextComp.getComponentType() == ComponentType.BLACK_BOX ||
+				nextComp.getComponentType() == ComponentType.GATE)
+			{
+				if (((ConcreteComponent)nextComp).hasPort(this))
+					return nextComp;
+			}
+		}
+		
+		return null;
 	}
 	
 	public Component getStartPoint()

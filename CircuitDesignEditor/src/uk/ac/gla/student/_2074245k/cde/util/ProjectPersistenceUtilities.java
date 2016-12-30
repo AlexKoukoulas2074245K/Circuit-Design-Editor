@@ -29,8 +29,27 @@ public final class ProjectPersistenceUtilities
 		HINGE, LINE_SEGMENT, GATE, BLACK_BOX
 	}
 	
-	public static void openProject(final File file, final MainCanvas canvas)
+	public static List<Component> openProjectNonPersistent(final MainCanvas canvas)
+	{
+		File tempFile = new File(".temp");
+		
+		if (tempFile.exists())
+		{			
+			List<Component> loadedComponents = openProject(new File(".temp"), canvas);
+			tempFile.delete();
+			return loadedComponents;		
+		}
+		else
+		{
+			return new ArrayList<Component>();
+		}
+	}
+	
+	public static List<Component> openProject(final File file, final MainCanvas canvas)
 	{		
+		boolean nonPersistMode = file.getName().equals(".temp");
+		
+		List<Component> loadedComponents                 = new ArrayList<Component>();
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
 		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
@@ -206,32 +225,55 @@ public final class ProjectPersistenceUtilities
 						
 			for (Component comp: hingeComponents)
 			{
-				canvas.addNewComponent(comp);
+				if (!nonPersistMode)				
+				{
+					canvas.addNewComponent(comp);					
+				}
+				loadedComponents.add(comp);
 			}
 			
 			for (Component comp: lineSegmentComponents)
 			{
-				canvas.addNewComponent(comp);
+				if (!nonPersistMode)				
+				{
+					canvas.addNewComponent(comp);					
+				}
+				loadedComponents.add(comp);
 			}
 			
 			for (Component comp: concreteComponents)
 			{
-				canvas.addNewComponent(comp);
+				if (!nonPersistMode)				
+				{
+					canvas.addNewComponent(comp);					
+				}
+				loadedComponents.add(comp);
 			}						
 			
-			JOptionPane.showMessageDialog(null, "Loaded project successfully");
+			if (!nonPersistMode)
+			{				
+				JOptionPane.showMessageDialog(null, "Loaded project successfully");
+			}			
 		}
 		catch (Exception e)
 		{
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
+		
+		return loadedComponents;
+	}
+	
+	public static void saveProjectNonPersistent(final List<Component> components)
+	{
+		saveProject(new File(".temp"), components);
 	}
 	
 	public static void saveProject(final File file, final List<Component> components)
 	{
+		boolean nonPersistMode = file.getName().equals(".temp");
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
-		List<ConcreteComponent> concreteComponents           = new ArrayList<ConcreteComponent>();
+		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
 		
 		for (Component component: components)
 		{
@@ -362,7 +404,10 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();				
 			}
 			
-			JOptionPane.showMessageDialog(null, "Saved project successfully");				
+			if (!nonPersistMode)
+			{
+				JOptionPane.showMessageDialog(null, "Saved project successfully");								
+			}
 		}
 		catch (Exception e)
 		{

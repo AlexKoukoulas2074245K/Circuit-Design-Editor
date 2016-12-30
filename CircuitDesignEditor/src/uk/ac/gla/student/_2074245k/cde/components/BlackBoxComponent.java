@@ -3,6 +3,7 @@ package uk.ac.gla.student._2074245k.cde.components;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -70,6 +71,43 @@ public final class BlackBoxComponent extends ConcreteComponent
 		render(g, false, false, false);
 	}
 
+	@Override
+	public Component clone(Set<Component> outClonedComponents)
+	{
+		BlackBoxComponent clonedComponent = new BlackBoxComponent(canvas,
+				                                                  new Rectangle(componentRect),
+				                                                  new String(name),
+				                                                  nameXOffset,
+				                                                  nameYOffset);
+		
+		for (Component port: ports)
+		{
+			Component clonedPort = port.clone(outClonedComponents);						
+			clonedComponent.addPort(clonedPort);
+			
+			if (internalHorHinges.contains(((LineSegmentComponent)port).getStartPoint()))
+			{
+				clonedComponent.addInternalHorHinge(((LineSegmentComponent)clonedPort).getStartPoint());
+			}
+			else if (internalHorHinges.contains(((LineSegmentComponent)port).getEndPoint()))
+			{
+				clonedComponent.addInternalHorHinge(((LineSegmentComponent)clonedPort).getEndPoint());
+			}
+			else if (internalVerHinges.contains(((LineSegmentComponent)port).getStartPoint()))
+			{	
+				clonedComponent.addInternalVerHinge(((LineSegmentComponent)clonedPort).getStartPoint());
+			}
+			else if (internalVerHinges.contains(((LineSegmentComponent)port).getEndPoint()))
+			{
+				clonedComponent.addInternalVerHinge(((LineSegmentComponent)clonedPort).getEndPoint());
+			}
+				
+		}
+		
+		outClonedComponents.add(clonedComponent);
+		return clonedComponent;
+	}
+	
 	@Override
 	public String serialize() 
 	{	

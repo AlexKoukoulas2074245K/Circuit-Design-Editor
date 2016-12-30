@@ -59,7 +59,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	{
 		FREE, AXIS_RESTRICTED
 	}
-	
+			
 	public static Mouse mouse;
 	public static Keyboard keyboard;
 	
@@ -68,7 +68,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private JFrame window;
 	private Thread mainCanvasThread;
-	private List<Component> components;
+	private List<Component> components;	
 	private List<Component> lineSegmentPath;
 	private List<Component> incidentLineSegments;
 	private List<Component> componentsToAdd;
@@ -86,7 +86,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private List<Action> executedActionHistory;
 	private List<Action> undoneActionHistory;
 	private List<int[]> startPositions;
-	private List<int[]> targetPositions;
+	private List<int[]> targetPositions;		
 	
 	public MainCanvas()
 	{
@@ -160,7 +160,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void mouseReleased(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
 	
 	@Override
-	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
+	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); if (eventArgs.getButton() == MouseEvent.BUTTON2) for (Component component: components)
+	{
+		System.out.println("Component " + component.getComponentType() + " at: " + component.getRectangle().x + ", " + component.getRectangle().y);
+	}}
 
 	@Override
 	public void mouseEntered(MouseEvent __) {}
@@ -279,14 +282,17 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	public Iterator<Component> getComponentsIterator()
 	{
-		List<Component> aliveComponents = new ArrayList<Component>();
-		for (Component component: components)
-		{
-			if (componentsToRemove.contains(component))
-				continue;
-			aliveComponents.add(component);
+		synchronized (components)
+		{			
+			List<Component> aliveComponents = new ArrayList<Component>();
+			for (Component component: components)
+			{
+				if (componentsToRemove.contains(component))
+					continue;
+				aliveComponents.add(component);
+			}
+			return aliveComponents.iterator();
 		}
-		return aliveComponents.iterator();
 	}
 	
 	public void finalizeWirePosition(final int x, final int y)
@@ -385,13 +391,58 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	public void selectAll()
 	{
-		componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
-		componentSelector.disable();
-		
-		for (Component component: components)
-		{
-			componentSelector.addComponentToSelectionExternally(component, components);
+		synchronized (componentSelector)
+		{			
+			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
+			componentSelector.disable();
+			
+			for (Component component: components)
+			{
+				componentSelector.addComponentToSelectionExternally(component, components);
+			}
 		}
+	}
+	
+	public void copy()
+	{
+		synchronized (componentSelector)
+		{				
+			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+			componentSelector.enable();
+			while (selCompsIter.hasNext())
+			{													
+				componentSelector.addComponentToSelectionExternally(selCompsIter.next(), components);							
+			}
+			
+			componentSelector.disable();
+			
+			List<Component> selComponents = new ArrayList<Component>();
+			selCompsIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompsIter.hasNext())
+			{
+				selComponents.add(selCompsIter.next());
+			}
+						
+			ProjectPersistenceUtilities.saveProjectNonPersistent(selComponents);
+		}
+	}
+	
+	public void paste()
+	{				
+		List<Component> loadedComponents = ProjectPersistenceUtilities.openProjectNonPersistent(this);
+			
+		componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
+		componentSelector.enable();
+		for (Component comp: loadedComponents)
+		{
+			if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
+			{
+				comp.setPosition(comp.getRectangle().x + 100, comp.getRectangle().y + 100);
+			}
+			componentSelector.addComponentToSelectionExternally(comp, components);
+			addNewComponent(comp);				
+		}
+		componentSelector.disable();
 	}
 	
 	private void inputUpdates()
@@ -401,8 +452,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		// On Left Mouse Button Tap
 		if (mouse.isButtonTapped(Mouse.LEFT_BUTTON))
 		{	
-			lineSegmentPath.clear();
-			
+			lineSegmentPath.clear();	
 			startPositions.clear();
 			targetPositions.clear();
 			
@@ -420,27 +470,30 @@ public final class MainCanvas extends JPanel implements Runnable,
 				}
 			}
 			else
-			{							
-				componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
-				
-				if (highlightedComponent != null)
-				{
-					componentSelector.disable();
-					componentSelector.addComponentToSelectionExternally(highlightedComponent, components);
+			{	
+				synchronized (componentSelector)
+				{					
+					componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 					
-					selectionDx = componentSelector.getFirstComponent().getRectangle().x - mouse.getX();
-					selectionDy = componentSelector.getFirstComponent().getRectangle().y - mouse.getY();					
-					if (componentSelector.getFirstComponent().getComponentType() == ComponentType.LINE_SEGMENT)
+					if (highlightedComponent != null)
 					{
-						constructLinePath(componentSelector.getFirstComponent());
+						componentSelector.disable();
+						componentSelector.addComponentToSelectionExternally(highlightedComponent, components);
+						
+						selectionDx = componentSelector.getFirstComponent().getRectangle().x - mouse.getX();
+						selectionDy = componentSelector.getFirstComponent().getRectangle().y - mouse.getY();					
+						if (componentSelector.getFirstComponent().getComponentType() == ComponentType.LINE_SEGMENT)
+						{
+							constructLinePath(componentSelector.getFirstComponent());
+						}
+						
+						startPositions.add(new int[]{ highlightedComponent.getRectangle().x, highlightedComponent.getRectangle().y });
 					}
-					
-					startPositions.add(new int[]{ highlightedComponent.getRectangle().x, highlightedComponent.getRectangle().y });
+					else
+					{
+						componentSelector.enable();
+					}		
 				}
-				else
-				{
-					componentSelector.enable();
-				}		
 			}
 		}	
 		else if (mouse.isButtonDown(Mouse.LEFT_BUTTON))
@@ -481,7 +534,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 						while (selIter.hasNext())
 						{
 							Component component = selIter.next();
-							if (component.getComponentType() == ComponentType.HINGE)
+							if (component.getComponentType() == ComponentType.LINE_SEGMENT)
 								continue;
 													
 							component.setPosition(component.getRectangle().x + deltaX, component.getRectangle().y + deltaY);						
@@ -498,13 +551,17 @@ public final class MainCanvas extends JPanel implements Runnable,
 			selectionDx = selectionDy = 0;
 			
 			if (movingComponents)
-			{				
+			{								
 				finalizeMovementAndCreateActions();
 			}
 			
 			alignedComponents = null;
-			movingComponents  = false;			
-			componentSelector.disable();
+			movingComponents  = false;
+			
+			synchronized (componentSelector)
+			{
+				componentSelector.disable();				
+			}
 		}							
 		
 		if (isCreatingNub)
@@ -584,7 +641,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 				{
 					Component component = iter.next();
 					component.delete();				
-				}			
+				}
+				
+				componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 			}
 		}
 		
@@ -598,7 +657,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		synchronized (componentSelector)
 		{
-			render(gfx);					
+			synchronized (components)
+			{				
+				render(gfx);					
+			}
 		}
 	}
 	
@@ -718,12 +780,16 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private void checkAndAddNewComponents()
 	{
 		synchronized (componentsToAdd)
-		{			
-			for (Component component: componentsToAdd)
-			{
-				components.add(component);
+		{		
+			synchronized (components)
+			{				
+				for (Component component: componentsToAdd)
+				{
+					components.add(component);
+				}
+				
+				componentsToAdd.clear();
 			}
-			componentsToAdd.clear();
 		}
 	}
 	
@@ -731,12 +797,15 @@ public final class MainCanvas extends JPanel implements Runnable,
 	{
 		synchronized (componentsToRemove)
 		{
-			for (Component component: componentsToRemove)
-			{
-				components.remove(component);
+			synchronized (components)
+			{				
+				for (Component component: componentsToRemove)
+				{
+					components.remove(component);
+				}
+				
+				componentsToRemove.clear();
 			}
-			
-			componentsToRemove.clear();
 		}
 	}
 	
@@ -879,15 +948,15 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private void finalizeMovementAndCreateActions()
 	{			
 		if (componentSelector.getNumberOfSelectedComponents() == 1)
-		{
-			componentSelector.getFirstComponent().finalizeMovement(alignedComponents);
+		{		
+			componentSelector.getFirstComponent().finalizeMovement(alignedComponents);						
 			alignedComponents = null;
 			
 			Action currentAction = new MoveAction(componentSelector.getFirstComponent(),
 					startPositions.get(0),
 					new int[]{ componentSelector.getFirstComponent().getRectangle().x,
-							componentSelector.getFirstComponent().getRectangle().y });
-			currentAction.execute();
+							   componentSelector.getFirstComponent().getRectangle().y });
+			currentAction.execute();				
 			executedActionHistory.add(currentAction);				
 		}
 		else if (componentSelector.getNumberOfSelectedComponents() > 1)
@@ -918,18 +987,19 @@ public final class MainCanvas extends JPanel implements Runnable,
 		components            = new ArrayList<Component>();
 		componentsToAdd       = new ArrayList<Component>();
 		componentsToRemove    = new ArrayList<Component>();
+		executedActionHistory = new ArrayList<Action>();
+		undoneActionHistory   = new ArrayList<Action>();
+		startPositions        = new ArrayList<int[]>();
+		targetPositions       = new ArrayList<int[]>();				
 		componentSelector     = new ComponentSelector(0, 0);
 		mouse                 = new Mouse();
 		keyboard              = new Keyboard();		
+		
 		isCreatingNub = isNubInContact = movingComponents = false;		
 		
 		alignedComponents = prevAlignedComponents = null;
 		domImpl = GenericDOMImplementation.getDOMImplementation();
 		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
 		
-		executedActionHistory = new ArrayList<Action>();
-		undoneActionHistory   = new ArrayList<Action>();
-		startPositions        = new ArrayList<int[]>();
-		targetPositions       = new ArrayList<int[]>();
 	}
 }

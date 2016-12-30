@@ -109,9 +109,19 @@ public final class MainFrame
 		selectAllMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
 		selectAllMenuItem.getAccessibleContext().setAccessibleDescription("Selects all components in the canvas");
 		
+		JMenuItem copyItem = new JMenuItem("Copy", KeyEvent.VK_4);
+		copyItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+		copyItem.getAccessibleContext().setAccessibleDescription("Copies the selected components");
+		
+		JMenuItem pasteItem = new JMenuItem("Paste", KeyEvent.VK_5);
+		pasteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK));
+		pasteItem.getAccessibleContext().setAccessibleDescription("Pastes the copied selection at the location of the mouse pointer");
+		
 		editTab.add(undoItem);
 		editTab.add(redoItem);
 		editTab.add(selectAllMenuItem);
+		editTab.add(copyItem);
+		editTab.add(pasteItem);
 		
 		JMenu windowTab = new JMenu("Window");
 		windowTab.setMnemonic(KeyEvent.VK_W);
@@ -354,6 +364,25 @@ public final class MainFrame
         		canvasPanel.selectAll();
         	}
         });
+        
+        copyItem.addActionListener(new ActionListener()
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		canvasPanel.copy();
+        	}
+        });
+        
+        pasteItem.addActionListener(new ActionListener()
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		canvasPanel.paste();
+        	}
+        });
+        
         
         changeLF.addActionListener(new ActionListener()
 		{

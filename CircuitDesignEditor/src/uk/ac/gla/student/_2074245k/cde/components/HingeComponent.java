@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -43,13 +44,13 @@ public final class HingeComponent extends Component
 	}
 	
 	@Override
-	public AlignedComponentsList moveTo(final int _x, final int _y) 
+	public AlignedComponentsList moveTo(final int targetX, final int targetY) 
 	{		
 		isMousePerformingHorizontalMotion = MainCanvas.mouse.isPerformingHorMotion();
 		shouldFinalizeMovement = true;
 		switch (globalHingeDraggingMode)
 		{
-			case MOVE_UNRES: case MOVE_AXIS_RES: return moveHinge(MainCanvas.mouse.getX(), MainCanvas.mouse.getY());					
+			case MOVE_UNRES: case MOVE_AXIS_RES: return moveHinge(targetX, targetY);					
 			case SPAWN_SEGMENT_UNRES: case SPAWN_SEGMENT_AXIS_RES: return beginSpawnLineSegment();
 		}
 		
@@ -77,15 +78,6 @@ public final class HingeComponent extends Component
 		if (isInternalHinge)
 			return false;
 		return Math.hypot(mouseX - x - HINGE_DIAMETER/2, mouseY - y - HINGE_DIAMETER/2) <= HINGE_DIAMETER/2;
-	}
-	
-	@Override
-	public void delete() 
-	{		
-		if (isEndPoint(canvas.getComponentsIterator()) != null)
-			return;
-		
-		canvas.removeComponent(this);
 	}
 	
 	@Override
@@ -184,6 +176,32 @@ public final class HingeComponent extends Component
 		g.setColor(Colors.DEFAULT_COLOR);
 		g.setStroke(Strokes.BOLD_STROKE);
 		drawCross(g);
+	}
+	
+	@Override
+	public void delete() 
+	{		
+		if (isEndPoint(canvas.getComponentsIterator()) != null)
+			return;
+		
+		canvas.removeComponent(this);
+	}
+	
+	@Override
+	public Component clone(Set<Component> outClonedComponents)
+	{
+		HingeComponent clonedComponent = new HingeComponent(canvas, x, y, isMovable);
+		clonedComponent.setHasNub(hasNub);
+		
+		if (isInternalHinge)
+		{
+			clonedComponent.addInternalHingeInfo(internalHingeLocation, name);			
+		}
+		
+		clonedComponent.setIsInverted(isInverted);		
+		outClonedComponents.add(clonedComponent);
+		
+		return clonedComponent;
 	}
 	
 	@Override
@@ -296,7 +314,7 @@ public final class HingeComponent extends Component
 		if (globalAlignmentEnabled)
 		{			
 			Rectangle hingeMouseDistanceRect = new Rectangle(this.x - HINGE_DIAMETER, this.y - HINGE_DIAMETER, HINGE_DIAMETER * 2, HINGE_DIAMETER * 2);			
-			if (hingeMouseDistanceRect.contains(MainCanvas.mouse.getX(), MainCanvas.mouse.getY()))
+			if (hingeMouseDistanceRect.contains(x, y))
 			{	
 				Iterator<Component> compIter = canvas.getComponentsIterator();
 				while (compIter.hasNext())

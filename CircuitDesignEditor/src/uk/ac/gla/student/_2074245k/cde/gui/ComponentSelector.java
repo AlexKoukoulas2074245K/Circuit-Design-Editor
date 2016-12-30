@@ -1,6 +1,7 @@
 package uk.ac.gla.student._2074245k.cde.gui;
 
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -14,7 +15,7 @@ import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public final class ComponentSelector 
 {
-	private volatile Set<Component> selectedComponents;
+	private Set<Component> selectedComponents;
 	private Component firstSelectedComponent;
 	private int startX, startY, endX, endY;
 	private boolean isEnabled;
@@ -56,9 +57,9 @@ public final class ComponentSelector
 		}
 	}
 	
-	public synchronized void addComponentToSelectionExternally(final Component component, final List<Component> allComponents)
+	public void addComponentToSelectionExternally(final Component component, final List<Component> allComponents)
 	{
-		addComponentToSelection(component, allComponents);
+		addComponentToSelection(component, allComponents);		
 	}
 	
 	public int getNumberOfSelectedComponents()
@@ -76,7 +77,7 @@ public final class ComponentSelector
 		return selectedComponents.contains(component);
 	}
 	
-	public synchronized Component getFirstComponent()
+	public Component getFirstComponent()
 	{
 		return firstSelectedComponent;
 	}
@@ -125,18 +126,20 @@ public final class ComponentSelector
 	{
 		selectedComponents.add(component);
 		
+		List<Component> components = new ArrayList<Component>(allComponents);
+		
 		if (selectedComponents.size() == 1)
 		{
 			firstSelectedComponent = component;
 		}
-		
+				
 		if (isEnabled && component.getComponentType() == ComponentType.LINE_SEGMENT)
 		{
 			LineSegmentComponent ls = (LineSegmentComponent)component;
 			selectedComponents.add(ls.getStartPoint());
 			selectedComponents.add(ls.getEndPoint());
 			
-			Component concComp = ls.isPort(allComponents.iterator());
+			Component concComp = ls.isPort(components.iterator());
 			
 			if (concComp != null)
 			{
@@ -147,9 +150,9 @@ public final class ComponentSelector
 		else if (isEnabled && 
 				(component.getComponentType() == ComponentType.BLACK_BOX ||
 				 component.getComponentType() == ComponentType.GATE))
-		{
-			addConcreteComponentToSelection(component);
-		}
+		{						
+			addConcreteComponentToSelection(component);	
+		}		
 	}
 	
 	private void addConcreteComponentToSelection(final Component component)
