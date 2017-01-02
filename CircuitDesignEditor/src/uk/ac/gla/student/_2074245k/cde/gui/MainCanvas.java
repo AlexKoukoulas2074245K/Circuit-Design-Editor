@@ -94,7 +94,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public MainCanvas(JFrame window)
 	{		
 		super();
-		this.window = window;
+		this.window = window;		
 		init(null);	
 	}
 	

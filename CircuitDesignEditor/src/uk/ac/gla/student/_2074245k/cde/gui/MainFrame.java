@@ -5,6 +5,8 @@ import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -68,7 +70,13 @@ public final class MainFrame extends JFrame
     	super("C.D.E (Circuit Design Editor)");
     	try 
     	{ 
-    		setContentPane(createComponents(this));
+    		setContentPane(createComponents(this));            
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setSize(1200, 700);
+            setMinimumSize(new Dimension(500, 500));
+            setLocationRelativeTo(null);
+            setVisible(true);   
+            
     		addWindowListener(new WindowAdapter()
     		{
     			@Override
@@ -289,14 +297,22 @@ public final class MainFrame extends JFrame
         menuPanel.add(componentMovementPanel);
         menuPanel.add(wireMovementPanel);        
         menuPanel.add(hingeMovementPanel);
-        menuPanel.add(checkBoxPanel);
-        canvasPanel = new MainCanvas(this);
+        menuPanel.add(checkBoxPanel);        
         
+        canvasPanel = new MainCanvas(this);            
+        canvasPanel.setPreferredSize(new Dimension(2000, 2000));
+              
+        JPanel wrapperPanel = new JPanel(new GridBagLayout());
+        wrapperPanel.add(canvasPanel, new GridBagConstraints());
+                
         // Create the master panel
         masterPanel = new JPanel(new BorderLayout());
         masterPanel.add(menuPanel, BorderLayout.NORTH);
-        masterPanel.add(canvasPanel, BorderLayout.CENTER);
-               
+        masterPanel.add(new JScrollPane(wrapperPanel,
+        		                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), 
+        		        BorderLayout.CENTER);
+        
         // Add functionality to components
         createNewCanvasItem.addActionListener(new ActionListener()
         {
