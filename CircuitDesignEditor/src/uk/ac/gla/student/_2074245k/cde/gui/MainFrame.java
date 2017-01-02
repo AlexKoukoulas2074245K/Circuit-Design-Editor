@@ -37,6 +37,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -498,12 +499,17 @@ public final class MainFrame extends JFrame
         		jg.setResizable(false);
         		
         		BlackBoxBuilderPanel builderPanel = new BlackBoxBuilderPanel(canvasPanel, jg);
-        		builderPanel.subscribeToBlackBoxCreationEvent(canvasPanel);
-        		jg.setContentPane(builderPanel);        		
+        		builderPanel.subscribeToBlackBoxCreationEvent(canvasPanel);        		
+        		JScrollPane scrollPane = new JScrollPane(builderPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        		scrollPane.setBounds(0, 100, 300, 780);        		
+        		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
+        		
         		jg.setIconImage(bbImage);
+        		jg.setContentPane(scrollPane);        		
         		jg.pack();
         		jg.setLocationRelativeTo(frame);        	
-        		jg.setVisible(true);           		
+        		jg.setVisible(true);
+        		
             }
 		});
                 
