@@ -213,7 +213,7 @@ public final class LineSegmentComponent extends Component
 	@Override
 	public void delete()
 	{
-		if (isPort(canvas.getComponentsIterator()) != null)
+		if (isPort() != null)
 		{				
 			return;
 		}
@@ -296,8 +296,9 @@ public final class LineSegmentComponent extends Component
 		}		
 	}
 	
-	public Component isPort(final Iterator<Component> compIter)
+	public Component isPort()
 	{
+		Iterator<Component> compIter = canvas.getComponentsIterator(); 
 		while (compIter.hasNext())
 		{
 			Component nextComp = compIter.next();

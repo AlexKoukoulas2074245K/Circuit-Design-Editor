@@ -1,16 +1,15 @@
 package uk.ac.gla.student._2074245k.cde.gui;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
+import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
-import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public final class ComponentSelector 
@@ -43,7 +42,7 @@ public final class ComponentSelector
 		{
 			if (component.getComponentType() != ComponentType.LINE_SEGMENT && absRect.intersects(component.getRectangle()))
 			{
-				addComponentToSelection(component, allComponents);
+				addComponentToSelection(component);
 			}
 			else if (component.getComponentType() == ComponentType.LINE_SEGMENT)
 			{
@@ -51,15 +50,15 @@ public final class ComponentSelector
 				if (absRect.contains(ls.getStartPoint().getRectangle()) ||
 					absRect.contains(ls.getEndPoint().getRectangle()))
 				{
-					addComponentToSelection(component, allComponents);
+					addComponentToSelection(component);
 				}
 			}
 		}
 	}
 	
-	public void addComponentToSelectionExternally(final Component component, final List<Component> allComponents)
+	public void addComponentToSelectionExternally(final Component component)
 	{
-		addComponentToSelection(component, allComponents);		
+		addComponentToSelection(component);		
 	}
 	
 	public int getNumberOfSelectedComponents()
@@ -122,12 +121,10 @@ public final class ComponentSelector
 		return new Rectangle(rectX, rectY, rectX2 - rectX, rectY2 - rectY);
 	}
 	
-	private void addComponentToSelection(final Component component, final List<Component> allComponents)
+	private void addComponentToSelection(final Component component)
 	{
 		selectedComponents.add(component);
-		
-		List<Component> components = new ArrayList<Component>(allComponents);
-		
+				
 		if (selectedComponents.size() == 1)
 		{
 			firstSelectedComponent = component;
@@ -139,7 +136,7 @@ public final class ComponentSelector
 			selectedComponents.add(ls.getStartPoint());
 			selectedComponents.add(ls.getEndPoint());
 			
-			Component concComp = ls.isPort(components.iterator());
+			Component concComp = ls.isPort();
 			
 			if (concComp != null)
 			{

@@ -11,14 +11,20 @@ import uk.ac.gla.student._2074245k.cde.gui.ComponentSelector;
 public final class FrameCounter 
 {
 	private long frameCounter, startTime;
+	private Runtime runtime;
 	
 	public FrameCounter()
 	{
 		frameCounter = 0L;
 		startTime    = 0L;
+		runtime      = Runtime.getRuntime();
 	}
 	
-	public void update(final List<Component> components, final ComponentSelector selector, final JFrame frame)
+	public void update(final List<Component> components, 
+			           final ComponentSelector selector, 
+			           final int execActionLength, 
+			           final int undoneActionLength, 
+			           final JFrame frame)
 	{
 		frameCounter++;
 		long timeNow = System.nanoTime();
@@ -42,11 +48,15 @@ public final class FrameCounter
 					nBBs++;
 			}
 			frame.setTitle("C.D.E (Circuit Design Editor)  -  FPS: " + frameCounter + 
-					        "    BlackBoxes: " + nBBs +
+					        "   | BBs: " + nBBs +
 					        ", Gates: " + nGates +
-					        ", Line Segments: " + nLses +
-					        ", Hinges: " + nHinges + 
-					        ", Selected Components: " + selector.getNumberOfSelectedComponents());
+					        ", LS: " + nLses +
+					        ", Hinges: " + nHinges + 					      
+					        ", Sel: " + selector.getNumberOfSelectedComponents() +
+					        " | Exec: " + execActionLength + 
+					        " Undo: " + undoneActionLength +
+					        " Mem: " + ((runtime.totalMemory() - runtime.freeMemory())/(1024L * 1024L)) + "MB");
+			
 			frameCounter = 0;				
 		}	
 	}

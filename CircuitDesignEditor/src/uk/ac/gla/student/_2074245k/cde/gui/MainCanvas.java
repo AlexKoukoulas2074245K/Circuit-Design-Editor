@@ -32,6 +32,7 @@ import org.w3c.dom.Document;
 import uk.ac.gla.student._2074245k.cde.actions.Action;
 import uk.ac.gla.student._2074245k.cde.actions.MoveAction;
 import uk.ac.gla.student._2074245k.cde.actions.MultiMoveAction;
+import uk.ac.gla.student._2074245k.cde.actions.PasteAction;
 import uk.ac.gla.student._2074245k.cde.components.AlignedComponentsList;
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
@@ -88,16 +89,13 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private List<int[]> startPositions;
 	private List<int[]> targetPositions;		
 	
-	public MainCanvas()
-	{
-		super();		
-		init();	
-	}
+	private File lastSaveLocation = null;
 	
-	public void begin(JFrame window)
-	{
+	public MainCanvas(JFrame window)
+	{		
+		super();
 		this.window = window;
-		mainCanvasThread.start();
+		init(null);	
 	}
 	
 	@Override
@@ -112,6 +110,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			addMouseListener(this);
 			addMouseMotionListener(this);		
 			addComponentListener(this);
+			mainCanvasThread.start();
 		}
 	}
 		
@@ -127,7 +126,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 			checkAndRemoveMarkedComponents();
 			inputUpdates();			
 			repaint();
-			fc.update(components, componentSelector, window);
+			fc.update(components, 
+					  componentSelector, 
+					  executedActionHistory.size(),
+					  undoneActionHistory.size(),
+					  window);
 		}				 
 	}
 
@@ -323,15 +326,26 @@ public final class MainCanvas extends JPanel implements Runnable,
 		return componentSelector.getNumberOfSelectedComponents() > 1;
 	}
 	
+	public File getLastSaveLocation()
+	{
+		return lastSaveLocation;
+	}
+	
 	public void openProjectFromFile(final File file)	
 	{
-		init();
+		init(file);
 		ProjectPersistenceUtilities.openProject(file, this);
+	}
+	
+	public void saveProject()
+	{
+		ProjectPersistenceUtilities.saveProject(lastSaveLocation, components, false);		
 	}
 	
 	public void saveProjectToFile(final File file)
 	{
-		ProjectPersistenceUtilities.saveProject(file, components);				
+		ProjectPersistenceUtilities.saveProject(file, components, true);				
+		lastSaveLocation = file;
 	}
 	
 	public void exportToSVG(final File svgOutput)
@@ -398,7 +412,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			
 			for (Component component: components)
 			{
-				componentSelector.addComponentToSelectionExternally(component, components);
+				componentSelector.addComponentToSelectionExternally(component);
 			}
 		}
 	}
@@ -411,7 +425,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			componentSelector.enable();
 			while (selCompsIter.hasNext())
 			{													
-				componentSelector.addComponentToSelectionExternally(selCompsIter.next(), components);							
+				componentSelector.addComponentToSelectionExternally(selCompsIter.next());							
 			}
 			
 			componentSelector.disable();
@@ -429,19 +443,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	public void paste()
 	{				
-		List<Component> loadedComponents = ProjectPersistenceUtilities.openProjectNonPersistent(this);
-			
 		componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
-		componentSelector.enable();
-		for (Component comp: loadedComponents)
-		{
-			if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
-			{
-				comp.setPosition(comp.getRectangle().x + 100, comp.getRectangle().y + 100);
-			}
-			componentSelector.addComponentToSelectionExternally(comp, components);
-			addNewComponent(comp);				
-		}
+		componentSelector.enable();		
+		Action pasteAction = new PasteAction(this, componentSelector);
+		pasteAction.execute();
+		executedActionHistory.add(pasteAction);
 		componentSelector.disable();
 	}
 	
@@ -478,7 +484,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 					if (highlightedComponent != null)
 					{
 						componentSelector.disable();
-						componentSelector.addComponentToSelectionExternally(highlightedComponent, components);
+						componentSelector.addComponentToSelectionExternally(highlightedComponent);
 						
 						selectionDx = componentSelector.getFirstComponent().getRectangle().x - mouse.getX();
 						selectionDy = componentSelector.getFirstComponent().getRectangle().y - mouse.getY();					
@@ -628,8 +634,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			else
 			{
 				isNubInContact = false;
-			}			
-						
+			}
 		}
 		
 		if (keyboard.isKeyTapped(Keyboard.DELETE_KEY))
@@ -956,8 +961,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 					startPositions.get(0),
 					new int[]{ componentSelector.getFirstComponent().getRectangle().x,
 							   componentSelector.getFirstComponent().getRectangle().y });
-			currentAction.execute();				
-			executedActionHistory.add(currentAction);				
+			currentAction.execute();
+			
+			// Differentiate between a simple click and an actual move
+			if (startPositions.get(0)[0] != componentSelector.getFirstComponent().getRectangle().x ||
+				startPositions.get(0)[1] != componentSelector.getFirstComponent().getRectangle().y)
+			{
+				executedActionHistory.add(currentAction);								
+			}		
 		}
 		else if (componentSelector.getNumberOfSelectedComponents() > 1)
 		{				
@@ -973,11 +984,17 @@ public final class MainCanvas extends JPanel implements Runnable,
 					targetPositions.iterator());
 			
 			currentAction.execute();
-			executedActionHistory.add(currentAction);				
+						
+			// Differentiate between a simple click and an actual move
+			if (startPositions.get(0)[0] != targetPositions.get(0)[0] ||
+				startPositions.get(0)[1] != targetPositions.get(0)[1])
+			{
+				executedActionHistory.add(currentAction);								
+			}						
 		}	
 	}
 	
-	private void init()
+	private void init(final File saveFile)
 	{
 		selectionDx = selectionDy = dragNubX = dragNubY = 0;		
 		highlightedComponent = null;
@@ -1001,5 +1018,6 @@ public final class MainCanvas extends JPanel implements Runnable,
 		domImpl = GenericDOMImplementation.getDOMImplementation();
 		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
 		
+		lastSaveLocation = saveFile;		
 	}
 }

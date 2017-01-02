@@ -265,10 +265,10 @@ public final class ProjectPersistenceUtilities
 	
 	public static void saveProjectNonPersistent(final List<Component> components)
 	{
-		saveProject(new File(".temp"), components);
+		saveProject(new File(".temp"), components, false);
 	}
 	
-	public static void saveProject(final File file, final List<Component> components)
+	public static void saveProject(final File file, final List<Component> components, final boolean promptOnCompletion)
 	{
 		boolean nonPersistMode = file.getName().equals(".temp");
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
@@ -404,7 +404,7 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();				
 			}
 			
-			if (!nonPersistMode)
+			if (!nonPersistMode && promptOnCompletion)
 			{
 				JOptionPane.showMessageDialog(null, "Saved project successfully");								
 			}

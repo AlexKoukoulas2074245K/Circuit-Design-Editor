@@ -13,6 +13,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,18 +54,46 @@ import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 
-public final class MainFrame 
+public final class MainFrame extends JFrame
 {       
-    private static JPanel menuPanel;
-    private static MainCanvas canvasPanel;
-    private static JPanel masterPanel;    
+	private static final long serialVersionUID = 7475614725428306744L;
+	
+	private JPanel masterPanel;    
+	private JPanel menuPanel;
+    private MainCanvas canvasPanel;
     
-    public void begin(JFrame window)
+    public MainFrame()
     {
-    	canvasPanel.begin(window);
+    	super("C.D.E (Circuit Design Editor)");
+    	try 
+    	{ 
+    		setContentPane(createComponents(this));
+    		addWindowListener(new WindowAdapter()
+    		{
+    			@Override
+    			public void windowClosing(final WindowEvent __)
+    			{
+    				if (canvasPanel.getLastSaveLocation() == null)
+    				{    					
+    					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_OPTION);
+                		if (selOption == JOptionPane.YES_OPTION)
+                		{            			
+                			displaySaveProjectDialog();                	
+                		}                		
+    				}
+    				
+    				System.exit(0);
+    			}
+    		});
+    	}
+		catch (IOException e) 
+    	{
+			JOptionPane.showMessageDialog(null, "Error populating main frame", "IO Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+    	}
     }
     
-    public JComponent createComponents(final JFrame frame) throws IOException 
+    private JComponent createComponents(final JFrame frame) throws IOException 
     {   
     	// Build Menu
     	JMenuBar menuBar = new JMenuBar();
@@ -80,17 +110,22 @@ public final class MainFrame
 		openProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		openProjectItem.getAccessibleContext().setAccessibleDescription("Open an existing project");
 		
-		JMenuItem saveProjectItem = new JMenuItem("Save project", KeyEvent.VK_3);
+		JMenuItem saveProjectItem = new JMenuItem("Save Project", KeyEvent.VK_3);
 		saveProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		saveProjectItem.getAccessibleContext().setAccessibleDescription("Saves the project to disk");
 		
-		JMenuItem exportProjectItem = new JMenuItem("Export to SVG", KeyEvent.VK_4);
+		JMenuItem saveAsProjectItem = new JMenuItem("Save Project As..", KeyEvent.VK_4);
+		saveAsProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		saveAsProjectItem.getAccessibleContext().setAccessibleDescription("Saves the project to disk at a specified location");
+		
+		JMenuItem exportProjectItem = new JMenuItem("Export to SVG", KeyEvent.VK_5);
 		exportProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 		exportProjectItem.getAccessibleContext().setAccessibleDescription("Export project to scalable vector graphics (svg) format");
 		
 		fileMenuTab.add(createNewCanvasItem);
 		fileMenuTab.add(openProjectItem);
 		fileMenuTab.add(saveProjectItem);
+		fileMenuTab.add(saveAsProjectItem);
 		fileMenuTab.add(exportProjectItem);
 		
 		JMenu editTab = new JMenu("Edit");
@@ -254,7 +289,7 @@ public final class MainFrame
         menuPanel.add(wireMovementPanel);        
         menuPanel.add(hingeMovementPanel);
         menuPanel.add(checkBoxPanel);
-        canvasPanel = new MainCanvas();
+        canvasPanel = new MainCanvas(this);
         
         // Create the master panel
         masterPanel = new JPanel(new BorderLayout());
@@ -288,26 +323,24 @@ public final class MainFrame
         
         saveProjectItem.addActionListener(new ActionListener()
         {
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		if (canvasPanel.getLastSaveLocation() == null)
+        		{
+        			displaySaveProjectDialog();
+        		}
+        		else
+        		{
+        			canvasPanel.saveProject();
+        		}
+        	}
+        });
+        
+        saveAsProjectItem.addActionListener(new ActionListener()
+        {
         	public void actionPerformed(ActionEvent __) 
         	{
-        		JFileChooser fc = new JFileChooser(".");
-                FileNameExtensionFilter fileFilter = new FileNameExtensionFilter("Circuit Design Editor file (*.cde)", "cde");
-                fc.setFileFilter(fileFilter);
-                
-                int choice = fc.showSaveDialog(menuPanel);
-                if (choice == JFileChooser.APPROVE_OPTION) 
-                {	
-                	File selFile = fc.getSelectedFile();
-                	File adjustedFile = selFile;
-                	
-                	if (!selFile.getName().endsWith(".cde"))
-                	{
-                		adjustedFile = new File(selFile.getAbsolutePath() + ".cde");
-                	}
-                	                	
-                	selFile.delete();
-                	canvasPanel.saveProjectToFile(adjustedFile);                	
-                }
+        		displaySaveProjectDialog();
             }
         });
         
@@ -329,10 +362,19 @@ public final class MainFrame
                 	{
                 		adjustedFile = new File(selFile.getAbsolutePath() + ".svg");
                 	}
-                	                	
-                	selFile.delete();
                 	
-                	canvasPanel.exportToSVG(adjustedFile);
+                	if (adjustedFile.exists())
+                	{                		
+                		int selOption = JOptionPane.showConfirmDialog (null, "Overwrite existing file?", "Export Option", JOptionPane.YES_NO_OPTION);
+                		if (selOption == JOptionPane.YES_OPTION)
+                		{            			            		                
+                			canvasPanel.exportToSVG(adjustedFile);
+                		}
+                	}
+                	else
+                	{
+                		canvasPanel.exportToSVG(adjustedFile);
+                	}
                 }
         	}
         });
@@ -710,5 +752,37 @@ public final class MainFrame
 		}
         
         return masterPanel;
+    }
+    
+    private void displaySaveProjectDialog()
+    {
+    	JFileChooser fc = new JFileChooser(".");
+        FileNameExtensionFilter fileFilter = new FileNameExtensionFilter("Circuit Design Editor file (*.cde)", "cde");
+        fc.setFileFilter(fileFilter);
+        
+        int choice = fc.showSaveDialog(menuPanel);
+        if (choice == JFileChooser.APPROVE_OPTION) 
+        {	
+        	File selFile = fc.getSelectedFile();
+        	File adjustedFile = selFile;
+        	
+        	if (!selFile.getName().endsWith(".cde"))
+        	{
+        		adjustedFile = new File(selFile.getAbsolutePath() + ".cde");
+        	}
+        	
+        	if (adjustedFile.exists())
+        	{                		
+        		int selOption = JOptionPane.showConfirmDialog (null, "Overwrite existing file?", "Save Option", JOptionPane.YES_NO_OPTION);
+        		if (selOption == JOptionPane.YES_OPTION)
+        		{            			
+        			canvasPanel.saveProjectToFile(adjustedFile);                	
+        		}
+        	}
+        	else
+        	{
+        		canvasPanel.saveProjectToFile(adjustedFile);
+        	}
+        }
     }
 }

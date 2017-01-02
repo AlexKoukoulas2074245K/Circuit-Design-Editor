@@ -1,7 +1,6 @@
 package uk.ac.gla.student._2074245k.cde;
 
 import java.awt.Dimension;
-import java.io.IOException;
 
 import javax.swing.JFrame;
 
@@ -11,25 +10,17 @@ public final class Main
 {
     public static void main(String[] args) 
     {    	
-        // Create a new JFrame.
-        JFrame f = new JFrame("C.D.E (Circuit Design Editor)");
+        // Create custom JFrame.        
         MainFrame frame = new MainFrame();
 
-        // Add components to the frame.
-        try { f.getContentPane().add(frame.createComponents(f)); }
-        catch (IOException e) { e.printStackTrace(); }
-        
         // Scale frame to fit components
-        f.pack();
+        frame.pack();
         
         // Display the frame.
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(new Dimension(1200, 600));
-        f.setMinimumSize(new Dimension(400, 400));
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-        
-        // Begin main execution
-        frame.begin(f);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(new Dimension(1200, 600));
+        frame.setMinimumSize(new Dimension(400, 400));
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);             
     }
 }
