@@ -3,13 +3,11 @@ package uk.ac.gla.student._2074245k.cde.gui;
 import java.awt.Rectangle;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
-import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public final class ComponentSelector 
@@ -28,7 +26,7 @@ public final class ComponentSelector
 		isEnabled = false;
 	}
 	
-	public void update(final int endX, final int endY, final List<Component> allComponents)
+	public void update(final int endX, final int endY, final Set<Component> allComponents)
 	{
 		this.endX = endX;
 		this.endY = endY;
@@ -45,10 +43,9 @@ public final class ComponentSelector
 				addComponentToSelection(component);
 			}
 			else if (component.getComponentType() == ComponentType.LINE_SEGMENT)
-			{
-				LineSegmentComponent ls = (LineSegmentComponent)component;
-				if (absRect.contains(ls.getStartPoint().getRectangle()) ||
-					absRect.contains(ls.getEndPoint().getRectangle()))
+			{				
+				if (absRect.contains(component.getChildren().get(0).getRectangle()) ||
+					absRect.contains(component.getChildren().get(1).getRectangle()))
 				{
 					addComponentToSelection(component);
 				}
@@ -129,20 +126,25 @@ public final class ComponentSelector
 		{
 			firstSelectedComponent = component;
 		}
-				
-		if (isEnabled && component.getComponentType() == ComponentType.LINE_SEGMENT)
+		
+		if (isEnabled && component.getComponentType() == ComponentType.HINGE)
 		{
-			LineSegmentComponent ls = (LineSegmentComponent)component;
-			selectedComponents.add(ls.getStartPoint());
-			selectedComponents.add(ls.getEndPoint());
-			
-			Component concComp = ls.isPort();
-			
-			if (concComp != null)
-			{
-				selectedComponents.add(concComp);
-				addConcreteComponentToSelection(concComp);
+			for (Component parent: component.getParents())
+			{				
+				addComponentToSelection(parent);
 			}
+		}
+		if (isEnabled && component.getComponentType() == ComponentType.LINE_SEGMENT)
+		{			
+			selectedComponents.add(component.getChildren().get(0));
+			selectedComponents.add(component.getChildren().get(1));
+			
+			
+			for (Component parent: component.getParents())
+			{				
+				selectedComponents.add(parent);
+				addConcreteComponentToSelection(parent);
+			}			
 		}				
 		else if (isEnabled && 
 				(component.getComponentType() == ComponentType.BLACK_BOX ||
@@ -158,10 +160,10 @@ public final class ComponentSelector
 		Iterator<Component> portsIter = concComp.getPortsIterator();
 		while (portsIter.hasNext())
 		{
-			LineSegmentComponent ls = (LineSegmentComponent)portsIter.next();
+			Component ls = portsIter.next();
 			selectedComponents.add(ls);
-			selectedComponents.add(ls.getStartPoint());
-			selectedComponents.add(ls.getEndPoint());
+			selectedComponents.add(ls.getChildren().get(0));
+			selectedComponents.add(ls.getChildren().get(1));
 		}
 
 	}

@@ -64,6 +64,7 @@ import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public final class MainFrame extends JFrame
 {       
+	public static final String WINDOW_TITLE               = "C.D.E (Circuit Design Editor)"; 
 	private static final long serialVersionUID            = 7475614725428306744L;	
 	private static final String DEFAULT_LAF_CLASS_NAME    = "javax.swing.plaf.metal.MetalLookAndFeel";
 	private static final Dimension DEFAULT_WINDOW_MIN_DIM = new Dimension(500, 500);
@@ -77,18 +78,17 @@ public final class MainFrame extends JFrame
     
     public MainFrame()
     {
-    	super("C.D.E (Circuit Design Editor)");
+    	super(WINDOW_TITLE);
     	init(DEFAULT_CANVAS_DIM, DEFAULT_LAF_CLASS_NAME);
     }
-    
-    
+        
     private void init(final Dimension canvasDimension, final String lookAndFeelClassName)
     {
     	try 
     	{ 
     		setContentPane(createComponents(this, canvasDimension));
     		changeLookAndFeel(lookAndFeelClassName);
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             setSize(DEFAULT_WINDOW_DIM);
             setMinimumSize(DEFAULT_WINDOW_MIN_DIM);
             setLocationRelativeTo(null);
@@ -99,16 +99,17 @@ public final class MainFrame extends JFrame
     			@Override
     			public void windowClosing(final WindowEvent __)
     			{
-    				if (canvasPanel.getLastSaveLocation() == null)
-    				{    					
-    					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_OPTION);
-                		if (selOption == JOptionPane.YES_OPTION)
-                		{            			
-                			displaySaveProjectDialog();   	
-                		}                		
-    				}
-    				
-    				System.exit(0);
+    				   					
+					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_CANCEL_OPTION);
+            		if (selOption == JOptionPane.YES_OPTION)
+            		{            			
+            			displaySaveProjectDialog();
+            			System.exit(0);
+            		}
+            		else if (selOption == JOptionPane.NO_OPTION)
+            		{
+            			System.exit(0);                			
+            		}    				
     			}
     		});
     	}
@@ -172,17 +173,22 @@ public final class MainFrame extends JFrame
 		
 		JMenuItem copyItem = new JMenuItem("Copy", KeyEvent.VK_4);
 		copyItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
-		copyItem.getAccessibleContext().setAccessibleDescription("Copies the selected components");
+		copyItem.getAccessibleContext().setAccessibleDescription("Copy the selected components");
 		
 		JMenuItem pasteItem = new JMenuItem("Paste", KeyEvent.VK_5);
 		pasteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK));
-		pasteItem.getAccessibleContext().setAccessibleDescription("Pastes the copied selection at the location of the mouse pointer");
+		pasteItem.getAccessibleContext().setAccessibleDescription("Paste the copied selection");
+		
+		JMenuItem deleteItem = new JMenuItem("Delete", KeyEvent.VK_6);
+		deleteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+		deleteItem.getAccessibleContext().setAccessibleDescription("Delete the selected component(s)");
 		
 		editTab.add(undoItem);
 		editTab.add(redoItem);
 		editTab.add(selectAllMenuItem);
 		editTab.add(copyItem);
 		editTab.add(pasteItem);
+		editTab.add(deleteItem);
 		
 		JMenu windowTab = new JMenu("Window");
 		windowTab.setMnemonic(KeyEvent.VK_W);
@@ -536,6 +542,14 @@ public final class MainFrame extends JFrame
         	}
         });
         
+        deleteItem.addActionListener(new ActionListener()
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		canvasPanel.delete();
+        	}
+        });
         
         changeLF.addActionListener(new ActionListener()
 		{
@@ -720,8 +734,9 @@ public final class MainFrame extends JFrame
 
 			@Override
 			public void mouseDragged(MouseEvent e) 
-			{
-				canvasPanel.setNubCreationPosition(e.getX() + nubButton.getLocation().x, e.getY() + nubButton.getLocation().y - 85);
+			{				
+				canvasPanel.setNubCreationPosition(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+						                           -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
 			}
 
 			@Override
@@ -743,13 +758,15 @@ public final class MainFrame extends JFrame
 			@Override
 			public void mousePressed(MouseEvent e) 
 			{
-				canvasPanel.startCreatingNub(e.getX() + nubButton.getLocation().x, e.getY() + nubButton.getLocation().y - 85);
+				canvasPanel.startCreatingNub(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+                        					 -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
 			} 								
 
 			@Override
 			public void mouseReleased(MouseEvent e) 
 			{
-				canvasPanel.finalizeNubPosition(e.getX() + nubButton.getLocation().x, e.getY() + nubButton.getLocation().y - 85);
+				canvasPanel.finalizeNubPosition(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+                        						-canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
 			}
         
         });

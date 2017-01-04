@@ -6,7 +6,6 @@ public final class Main
 {
     public static void main(String[] args) 
     {    	
-        // Create custom frame and begin         
         new MainFrame();          
     }
 }

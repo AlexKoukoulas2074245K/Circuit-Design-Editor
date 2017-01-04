@@ -3,7 +3,9 @@ package uk.ac.gla.student._2074245k.cde.components;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
@@ -181,7 +183,7 @@ public final class HingeComponent extends Component
 	@Override
 	public void delete() 
 	{		
-		if (isEndPoint(canvas.getComponentsIterator()) != null)
+		if (getParents().size() >= 1)
 			return;
 		
 		canvas.removeComponent(this);
@@ -202,6 +204,33 @@ public final class HingeComponent extends Component
 		outClonedComponents.add(clonedComponent);
 		
 		return clonedComponent;
+	}
+	
+	@Override
+	public List<Component> getParents()
+	{		
+		List<Component> parents = new ArrayList<Component>();
+		Iterator<Component> compIter = canvas.getComponentsIterator();
+		while (compIter.hasNext())
+		{
+			Component comp = compIter.next();
+			
+			if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
+			{
+				continue;
+			}
+						
+			if (comp.getChildren().get(0) == this || comp.getChildren().get(1) == this)
+				parents.add(comp);
+		}
+		
+		return parents;
+	}
+	
+	@Override
+	public List<Component> getChildren()
+	{
+		return new ArrayList<Component>();
 	}
 	
 	@Override
@@ -234,25 +263,6 @@ public final class HingeComponent extends Component
 	public ComponentType getComponentType()
 	{
 		return ComponentType.HINGE;
-	}
-	
-	public Component isEndPoint(final Iterator<Component> compIter)
-	{		
-		while (compIter.hasNext())
-		{
-			Component comp = compIter.next();
-			
-			if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
-			{
-				continue;
-			}
-			
-			LineSegmentComponent ls = (LineSegmentComponent)comp;
-			if (ls.getStartPoint() == this || ls.getEndPoint() == this)
-				return ls;
-		}
-		
-		return null;
 	}
 	
 	public boolean isInternal()

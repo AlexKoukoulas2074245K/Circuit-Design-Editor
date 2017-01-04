@@ -1,6 +1,6 @@
 package uk.ac.gla.student._2074245k.cde.actions;
 
-import java.util.List;
+import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
@@ -12,7 +12,7 @@ public class PasteAction implements Action
 {
 	private MainCanvas canvas;
 	private ComponentSelector compSelector;
-	private List<Component> loadedComponents;
+	private Set<Component> loadedComponents;
 	
 	private ActionState state; 
 	

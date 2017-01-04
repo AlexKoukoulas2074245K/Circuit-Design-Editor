@@ -85,21 +85,27 @@ public final class BlackBoxComponent extends ConcreteComponent
 			Component clonedPort = port.clone(outClonedComponents);						
 			clonedComponent.addPort(clonedPort);
 			
-			if (internalHorHinges.contains(((LineSegmentComponent)port).getStartPoint()))
+			Component portStartPoint = port.getChildren().get(0);
+			Component portEndPoint = port.getChildren().get(1);
+			
+			Component clonedPortStartPoint = clonedPort.getChildren().get(0);
+			Component clonedPortEndPoint = clonedPort.getChildren().get(1);
+			
+			if (internalHorHinges.contains(portStartPoint))
 			{
-				clonedComponent.addInternalHorHinge(((LineSegmentComponent)clonedPort).getStartPoint());
+				clonedComponent.addInternalHorHinge(clonedPortStartPoint);
 			}
-			else if (internalHorHinges.contains(((LineSegmentComponent)port).getEndPoint()))
+			else if (internalHorHinges.contains(portEndPoint))
 			{
-				clonedComponent.addInternalHorHinge(((LineSegmentComponent)clonedPort).getEndPoint());
+				clonedComponent.addInternalHorHinge(clonedPortEndPoint);
 			}
-			else if (internalVerHinges.contains(((LineSegmentComponent)port).getStartPoint()))
+			else if (internalVerHinges.contains(portStartPoint))
 			{	
-				clonedComponent.addInternalVerHinge(((LineSegmentComponent)clonedPort).getStartPoint());
+				clonedComponent.addInternalVerHinge(clonedPortStartPoint);
 			}
-			else if (internalVerHinges.contains(((LineSegmentComponent)port).getEndPoint()))
+			else if (internalVerHinges.contains(portEndPoint))
 			{
-				clonedComponent.addInternalVerHinge(((LineSegmentComponent)clonedPort).getEndPoint());
+				clonedComponent.addInternalVerHinge(clonedPortEndPoint);
 			}
 				
 		}

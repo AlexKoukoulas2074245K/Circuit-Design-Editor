@@ -1,6 +1,7 @@
 package uk.ac.gla.student._2074245k.cde.components;
 
 import java.awt.Rectangle;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -44,9 +45,11 @@ public abstract class Component
 	public abstract void finalizeMovement(final AlignedComponentsList alignedComponents);
 	public abstract boolean mouseIntersection(final int mouseX, final int mouseY);
 	public abstract void render(final GraphicsGenerator g, final boolean highlighted, final boolean selected, final boolean inMultiSelectionMovement);
-	public abstract void renderAligned(final GraphicsGenerator g);
+	public abstract void renderAligned(final GraphicsGenerator g);	
 	public abstract void delete();
 	public abstract Component clone(Set<Component> outClonedComponents);
+	public abstract List<Component> getParents();
+	public abstract List<Component> getChildren();
 	public abstract String serialize();	
 	public abstract Rectangle getRectangle();
 	public abstract void setPosition(final int x, final int y);

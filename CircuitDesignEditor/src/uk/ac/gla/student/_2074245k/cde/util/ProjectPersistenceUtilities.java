@@ -7,8 +7,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
@@ -29,27 +31,27 @@ public final class ProjectPersistenceUtilities
 		HINGE, LINE_SEGMENT, GATE, BLACK_BOX
 	}
 	
-	public static List<Component> openProjectNonPersistent(final MainCanvas canvas)
+	public static Set<Component> openProjectNonPersistent(final MainCanvas canvas)
 	{
 		File tempFile = new File(".temp");
 		
 		if (tempFile.exists())
 		{			
-			List<Component> loadedComponents = openProject(new File(".temp"), canvas);
+			Set<Component> loadedComponents = openProject(new File(".temp"), canvas);
 			tempFile.delete();
 			return loadedComponents;		
 		}
 		else
 		{
-			return new ArrayList<Component>();
+			return new HashSet<Component>();
 		}
 	}
 	
-	public static List<Component> openProject(final File file, final MainCanvas canvas)
+	public static Set<Component> openProject(final File file, final MainCanvas canvas)
 	{		
 		boolean nonPersistMode = file.getName().equals(".temp");
 		
-		List<Component> loadedComponents                 = new ArrayList<Component>();
+		Set<Component> loadedComponents                  = new HashSet<Component>();
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
 		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
@@ -257,18 +259,19 @@ public final class ProjectPersistenceUtilities
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
 		return loadedComponents;
 	}
 	
-	public static void saveProjectNonPersistent(final List<Component> components)
+	public static void saveProjectNonPersistent(final Set<Component> components)
 	{
 		saveProject(new File(".temp"), components, false);
 	}
 	
-	public static void saveProject(final File file, final List<Component> components, final boolean promptOnCompletion)
+	public static void saveProject(final File file, final Set<Component> components, final boolean promptOnCompletion)
 	{
 		boolean nonPersistMode = file.getName().equals(".temp");
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
@@ -302,8 +305,8 @@ public final class ProjectPersistenceUtilities
 			for (int i = 0; i < lineSegmentComponents.size(); ++i)
 			{	
 				bw.write("Line Segment Index:" + i + " " + 
-			             hingeComponents.indexOf(lineSegmentComponents.get(i).getStartPoint()) + "," +
-						 hingeComponents.indexOf(lineSegmentComponents.get(i).getEndPoint()) + "," + 
+			             hingeComponents.indexOf(lineSegmentComponents.get(i).getChildren().get(0)) + "," +
+						 hingeComponents.indexOf(lineSegmentComponents.get(i).getChildren().get(1)) + "," + 
 			             lineSegmentComponents.get(i).serialize());
 				bw.newLine();
 			}

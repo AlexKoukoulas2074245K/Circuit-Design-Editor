@@ -17,8 +17,10 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -69,7 +71,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private JFrame window;
 	private Thread mainCanvasThread;
-	private List<Component> components;	
+	private Set<Component> components;	
 	private List<Component> lineSegmentPath;
 	private List<Component> incidentLineSegments;
 	private List<Component> componentsToAdd;
@@ -118,19 +120,19 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void run() 
 	{
 		requestFocus();
-		FrameCounter fc = new FrameCounter();
+		FrameCounter frameCounter = new FrameCounter();
 		
 		while (true)
-		{			
+		{						
 			checkAndAddNewComponents();
 			checkAndRemoveMarkedComponents();
 			inputUpdates();			
 			repaint();
-			fc.update(components, 
-					  componentSelector, 
-					  executedActionHistory.size(),
-					  undoneActionHistory.size(),
-					  window);
+			frameCounter.update(components, 
+					            componentSelector, 
+					            executedActionHistory.size(),
+					            undoneActionHistory.size(),
+					            window);
 		}				 
 	}
 
@@ -192,85 +194,83 @@ public final class MainCanvas extends JPanel implements Runnable,
 	@Override
 	public void callbackOnBlackBoxCreationEvent(final Component blackBox, final List<PortView> portViews) 
 	{
-		synchronized (componentsToAdd)
+				
+		Rectangle rect = blackBox.getRectangle();
+		
+		for (PortView portView: portViews)
 		{			
-			Rectangle rect = blackBox.getRectangle();
+			Component externalHinge = null;
+			Component internalHinge = null;
+			Component port = null;
 			
-			for (PortView portView: portViews)
-			{			
-				Component externalHinge = null;
-				Component internalHinge = null;
-				Component port = null;
-				
-				switch (portView.portLocation)
-				{					
-					case LEFT:
-					{
-						externalHinge = new HingeComponent(this, rect.x - BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
-						internalHinge = new HingeComponent(this, rect.x - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
-						port = new LineSegmentComponent(this, externalHinge, internalHinge, false);						
-						
-						((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.LEFT, portView.portName);
-						((BlackBoxComponent)blackBox).addInternalHorHinge(internalHinge);
-						
-					} break;
+			switch (portView.portLocation)
+			{					
+				case LEFT:
+				{
+					externalHinge = new HingeComponent(this, rect.x - BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
+					internalHinge = new HingeComponent(this, rect.x - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
+					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);						
 					
-					case RIGHT:
-					{
-						externalHinge = new HingeComponent(this, rect.x + rect.width + BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
-						internalHinge = new HingeComponent(this, rect.x + rect.width - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
-						port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
-						
-						((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.RIGHT, portView.portName);
-						((BlackBoxComponent)blackBox).addInternalHorHinge(internalHinge);						
-						
-					} break;
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.LEFT, portView.portName);
+					((BlackBoxComponent)blackBox).addInternalHorHinge(internalHinge);
 					
-					case TOP:
-					{
-						externalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y - BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, false);
-						internalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y - HingeComponent.HINGE_DIAMETER/2, false);
-						port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
-						
-						((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.TOP, portView.portName);
-						((BlackBoxComponent)blackBox).addInternalVerHinge(internalHinge);						
-						
-					} break;
+				} break;
+				
+				case RIGHT:
+				{
+					externalHinge = new HingeComponent(this, rect.x + rect.width + BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
+					internalHinge = new HingeComponent(this, rect.x + rect.width - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
+					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
-					case BOTTOM:
-					{
-						externalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y + rect.height + BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, false);
-						internalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y + rect.height - HingeComponent.HINGE_DIAMETER/2, false);
-						port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
-						
-						((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
-						((BlackBoxComponent)blackBox).addInternalVerHinge(internalHinge);								
-					}  break;
-				}
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.RIGHT, portView.portName);
+					((BlackBoxComponent)blackBox).addInternalHorHinge(internalHinge);						
+					
+				} break;
 				
-				((HingeComponent)internalHinge).setIsInverted(portView.isInverted);
+				case TOP:
+				{
+					externalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y - BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, false);
+					internalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y - HingeComponent.HINGE_DIAMETER/2, false);
+					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
+					
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.TOP, portView.portName);
+					((BlackBoxComponent)blackBox).addInternalVerHinge(internalHinge);						
+					
+				} break;
 				
-				((BlackBoxComponent)blackBox).addPort(port);
-				
-				componentsToAdd.add(externalHinge);
-				componentsToAdd.add(internalHinge);
-				componentsToAdd.add(port);	
+				case BOTTOM:
+				{
+					externalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y + rect.height + BlackBoxComponent.PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, false);
+					internalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y + rect.height - HingeComponent.HINGE_DIAMETER/2, false);
+					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
+					
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
+					((BlackBoxComponent)blackBox).addInternalVerHinge(internalHinge);								
+				}  break;
 			}
 			
-			componentsToAdd.add(blackBox);	
+			((HingeComponent)internalHinge).setIsInverted(portView.isInverted);
 			
-			Component.MovementType prevMT = ConcreteComponent.globalConcreteComponentMovementType;
-			ConcreteComponent.globalConcreteComponentMovementType = Component.MovementType.FREE;
-			blackBox.moveTo(getWidth()/2 - blackBox.getRectangle().width/2,
-					        getHeight()/2 - blackBox.getRectangle().height/2);
-			ConcreteComponent.globalConcreteComponentMovementType = prevMT;
+			((BlackBoxComponent)blackBox).addPort(port);
+			
+			addNewComponent(externalHinge);
+			addNewComponent(internalHinge);
+			addNewComponent(port);	
 		}
+		
+		addNewComponent(blackBox);	
+		
+		Component.MovementType prevMT = ConcreteComponent.globalConcreteComponentMovementType;
+		ConcreteComponent.globalConcreteComponentMovementType = Component.MovementType.FREE;
+		blackBox.moveTo(getWidth()/2 - blackBox.getRectangle().width/2,
+				        getHeight()/2 - blackBox.getRectangle().height/2);
+		ConcreteComponent.globalConcreteComponentMovementType = prevMT;	
 	}
 	
 	public void addNewComponent(final Component component)
 	{
 		synchronized (componentsToAdd)
-		{
+		{		
 			componentsToAdd.add(component);			
 		}
 	}
@@ -430,7 +430,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			
 			componentSelector.disable();
 			
-			List<Component> selComponents = new ArrayList<Component>();
+			Set<Component> selComponents = new HashSet<Component>();
 			selCompsIter = componentSelector.getSelectedComponentsIterator();
 			while (selCompsIter.hasNext())
 			{
@@ -449,6 +449,32 @@ public final class MainCanvas extends JPanel implements Runnable,
 		pasteAction.execute();
 		executedActionHistory.add(pasteAction);
 		componentSelector.disable();
+	}
+	
+	public void delete()
+	{
+		synchronized (componentSelector)
+		{			
+			if (componentSelector.getNumberOfSelectedComponents() > 1)			
+			{				
+				Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+				componentSelector.enable();
+				while (selCompsIter.hasNext())
+				{													
+					componentSelector.addComponentToSelectionExternally(selCompsIter.next());							
+				}
+				
+				componentSelector.disable();				
+			}
+			
+			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompsIter.hasNext())
+			{
+				selCompsIter.next().delete();
+			}
+			
+			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
+		}
 	}
 	
 	private void inputUpdates()
@@ -573,24 +599,21 @@ public final class MainCanvas extends JPanel implements Runnable,
 		if (isCreatingNub)
 		{							
 			incidentLineSegments.clear();			
-			for (int i = components.size() - 1; i >= 0; --i)
-			{	
-				Component component = components.get(i);
+			for (Component component: components)			
+			{					
 				if (component.getComponentType() == ComponentType.LINE_SEGMENT)
-				{
-					LineSegmentComponent ls = (LineSegmentComponent)component;
+				{					
+					double lineLength = Math.hypot(component.getChildren().get(1).getRectangle().getCenterX() - component.getChildren().get(0).getRectangle().getCenterX(),
+		                                           component.getChildren().get(1).getRectangle().getCenterY() - component.getChildren().get(0).getRectangle().getCenterY());
 					
-					double lineLength = Math.hypot(ls.getEndPoint().getRectangle().getCenterX() - ls.getStartPoint().getRectangle().getCenterX(),
-		                                           ls.getEndPoint().getRectangle().getCenterY() - ls.getStartPoint().getRectangle().getCenterY());
+					double startToMouseDistance = Math.hypot(component.getChildren().get(0).getRectangle().getCenterX() - dragNubX, 
+							                                 component.getChildren().get(0).getRectangle().getCenterY() - dragNubY);
 					
-					double startToMouseDistance = Math.hypot(ls.getStartPoint().getRectangle().getCenterX() - dragNubX, 
-							                                 ls.getStartPoint().getRectangle().getCenterY() - dragNubY);
-					
-					double mouseToEndDistance = Math.hypot(dragNubX - ls.getEndPoint().getRectangle().getCenterX(),
-							                               dragNubY - ls.getEndPoint().getRectangle().getCenterY());
+					double mouseToEndDistance = Math.hypot(dragNubX - component.getChildren().get(1).getRectangle().getCenterX(),
+							                               dragNubY - component.getChildren().get(1).getRectangle().getCenterY());
 
 					if (lineLength - startToMouseDistance - mouseToEndDistance >= -1.0f)				
-						incidentLineSegments.add(components.get(i));
+						incidentLineSegments.add(component);
 				}					
 			}
 						
@@ -636,22 +659,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				isNubInContact = false;
 			}
 		}
-		
-		if (keyboard.isKeyTapped(Keyboard.DELETE_KEY))
-		{	
-			synchronized (componentSelector)
-			{				
-				Iterator<Component> iter = componentSelector.getSelectedComponentsIterator();
-				while (iter.hasNext())
-				{
-					Component component = iter.next();
-					component.delete();				
-				}
 				
-				componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
-			}
-		}
-		
 		mouse.updateOnFrameEnd();
 		keyboard.updateOnFrameEnd();
 	}
@@ -789,7 +797,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			synchronized (components)
 			{				
 				for (Component component: componentsToAdd)
-				{
+				{					
 					components.add(component);
 				}
 				
@@ -845,83 +853,73 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private void finalizeWireCreation(final int x, final int y)
 	{								
-		synchronized (componentsToAdd)
-		{			
-			Component startPoint = new HingeComponent(this, x - NEW_WIRE_LENGTH/2 - HingeComponent.HINGE_DIAMETER/2, y - HingeComponent.HINGE_DIAMETER/2, true);
-			Component endPoint   = new HingeComponent(this, x + NEW_WIRE_LENGTH/2 - HingeComponent.HINGE_DIAMETER/2, y - HingeComponent.HINGE_DIAMETER/2, true);		
-			
-			componentsToAdd.add(new LineSegmentComponent(this, startPoint, endPoint, true));		
-			componentsToAdd.add(startPoint);
-			componentsToAdd.add(endPoint);
-		}
+		
+		Component startPoint = new HingeComponent(this, x - NEW_WIRE_LENGTH/2 - HingeComponent.HINGE_DIAMETER/2, y - HingeComponent.HINGE_DIAMETER/2, true);
+		Component endPoint   = new HingeComponent(this, x + NEW_WIRE_LENGTH/2 - HingeComponent.HINGE_DIAMETER/2, y - HingeComponent.HINGE_DIAMETER/2, true);		
+		
+		addNewComponent(new LineSegmentComponent(this, startPoint, endPoint, true));		
+		addNewComponent(startPoint);
+		addNewComponent(endPoint);		
 	}
 	
 	private void finalizeNubCreation()
 	{
-		synchronized (componentsToAdd)
-		{			
-			isCreatingNub = false;
+		
+		isCreatingNub = false;
+		
+		List<Component> excludedSegments = new ArrayList<Component>();
+		
+		if (incidentLineSegments.size() > 0)
+		{	
 			
-			List<Component> excludedSegments = new ArrayList<Component>();
+			HingeComponent nubHinge = new HingeComponent(this, incidentNubX, incidentNubY, true);
+			nubHinge.setHasNub(true);
 			
-			if (incidentLineSegments.size() > 0)
-			{	
+			if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
+			{
 				
-				HingeComponent nubHinge = new HingeComponent(this, incidentNubX, incidentNubY, true);
-				nubHinge.setHasNub(true);
+				removeComponent(highlightedComponent);											
 				
-				if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
+				for (Component component: components)
 				{
-					synchronized (componentsToRemove)
-					{
-						componentsToRemove.add(highlightedComponent);						
-					}
-					
-					for (Component component: components)
-					{
-						if (component.getComponentType() != ComponentType.LINE_SEGMENT)
-							continue;
-						
-						LineSegmentComponent ls = (LineSegmentComponent)component;
-						
-						if (ls.getStartPoint() == highlightedComponent)
-						{
-							ls.setStartPoint(nubHinge);						
-							excludedSegments.add(ls);
-						}						
-						else if (ls.getEndPoint() == highlightedComponent)
-						{					
-							ls.setEndPoint(nubHinge);
-							excludedSegments.add(ls);
-						}
-					}
-				}				
-				
-				for (Component component: incidentLineSegments)
-				{
-					if (excludedSegments.contains(component))
+					if (component.getComponentType() != ComponentType.LINE_SEGMENT)
 						continue;
-					
-					synchronized (componentsToRemove)
-					{
-						componentsToRemove.add(component);						
-					}
 					
 					LineSegmentComponent ls = (LineSegmentComponent)component;
 					
-					LineSegmentComponent newSegment1 = new LineSegmentComponent(this, ls.getStartPoint(), nubHinge, true);
-					LineSegmentComponent newSegment2 = new LineSegmentComponent(this, nubHinge, ls.getEndPoint(), true);
-					
-					componentsToAdd.add(newSegment1);
-					componentsToAdd.add(newSegment2);
+					if (ls.getChildren().get(0) == highlightedComponent)
+					{
+						ls.setStartPoint(nubHinge);						
+						excludedSegments.add(ls);
+					}						
+					else if (ls.getChildren().get(1) == highlightedComponent)
+					{					
+						ls.setEndPoint(nubHinge);
+						excludedSegments.add(ls);
+					}
 				}
-				
-				componentsToAdd.add(nubHinge);
-			}
-			else if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
+			}				
+			
+			for (Component component: incidentLineSegments)
 			{
-				((HingeComponent)highlightedComponent).setHasNub(true);
+				if (excludedSegments.contains(component))
+					continue;
+				
+				
+				removeComponent(component);											
+									
+				LineSegmentComponent newSegment1 = new LineSegmentComponent(this, component.getChildren().get(0), nubHinge, true);
+				LineSegmentComponent newSegment2 = new LineSegmentComponent(this, nubHinge, component.getChildren().get(1), true);
+				
+				addNewComponent(newSegment1);
+				addNewComponent(newSegment2);
 			}
+			
+			addNewComponent(nubHinge);
+		}
+		else if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
+		{
+			((HingeComponent)highlightedComponent).setHasNub(true);
 		}
 	}
 
@@ -939,13 +937,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 				if (lineSegmentPath.contains(comp))
 					continue;
 				
-				LineSegmentComponent ls = (LineSegmentComponent)comp;
+				Component startPoint = comp.getChildren().get(0);
+				Component endPoint = comp.getChildren().get(1);
 				
-				if (ls.getStartPoint() == ((LineSegmentComponent) (selectedSegment)).getStartPoint() ||
-					ls.getEndPoint()   == ((LineSegmentComponent) (selectedSegment)).getEndPoint()||
-					ls.getStartPoint() == ((LineSegmentComponent) (selectedSegment)).getEndPoint() ||
-					ls.getEndPoint()   == ((LineSegmentComponent) (selectedSegment)).getStartPoint())
-						lineSegmentPath.add(ls);					
+				if (startPoint == selectedSegment.getChildren().get(0) ||
+					endPoint   == selectedSegment.getChildren().get(1)||
+					startPoint == selectedSegment.getChildren().get(1)||
+				    endPoint   == selectedSegment.getChildren().get(0))
+						lineSegmentPath.add(comp);					
 			}											
 		}
 	}
@@ -999,9 +998,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 		selectionDx = selectionDy = dragNubX = dragNubY = 0;		
 		highlightedComponent = null;
 		
+		components            = new HashSet<Component>();
 		lineSegmentPath       = new ArrayList<Component>();
 		incidentLineSegments  = new ArrayList<Component>();		
-		components            = new ArrayList<Component>();
 		componentsToAdd       = new ArrayList<Component>();
 		componentsToRemove    = new ArrayList<Component>();
 		executedActionHistory = new ArrayList<Action>();

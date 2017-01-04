@@ -68,7 +68,7 @@ public final class GateComponent extends ConcreteComponent
 		
 		return clonedComponent;
 	}
-	
+		
 	@Override
 	public String serialize() 
 	{		

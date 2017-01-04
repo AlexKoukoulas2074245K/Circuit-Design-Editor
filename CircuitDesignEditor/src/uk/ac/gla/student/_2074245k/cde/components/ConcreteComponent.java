@@ -59,36 +59,38 @@ public abstract class ConcreteComponent extends Component
 					continue;
 				
 				for (Component p: ports)
-				{
-					LineSegmentComponent port = (LineSegmentComponent) p;
-					if (!internalHorHinges.contains(port.getStartPoint()) && !internalVerHinges.contains(port.getStartPoint()))
+				{					
+					Component portStartPoint = p.getChildren().get(0);
+					Component portEndPoint = p.getChildren().get(1);
+					
+					if (!internalHorHinges.contains(portStartPoint) && !internalVerHinges.contains(portStartPoint))
 					{
-						if (Math.abs(component.getRectangle().y - port.getStartPoint().getRectangle().y) < ALIGNMENT_THRESHOLD)
+						if (Math.abs(component.getRectangle().y - portStartPoint.getRectangle().y) < ALIGNMENT_THRESHOLD)
 						{
 							alignedComponents.addVerAlignedComponent(component);
-							alignedComponents.addVerAlignedComponent(port.getStartPoint());
-							alignmentDy = component.getRectangle().y - port.getStartPoint().getRectangle().y; 
+							alignedComponents.addVerAlignedComponent(portStartPoint);
+							alignmentDy = component.getRectangle().y - portStartPoint.getRectangle().y; 
 						}
-						if (Math.abs(component.getRectangle().x - port.getStartPoint().getRectangle().x) < ALIGNMENT_THRESHOLD)
+						if (Math.abs(component.getRectangle().x - portStartPoint.getRectangle().x) < ALIGNMENT_THRESHOLD)
 						{
 							alignedComponents.addHorAlignedComponent(component);
-							alignedComponents.addVerAlignedComponent(port.getStartPoint());
-							alignmentDx = component.getRectangle().x - port.getStartPoint().getRectangle().x;
+							alignedComponents.addVerAlignedComponent(portStartPoint);
+							alignmentDx = component.getRectangle().x - portStartPoint.getRectangle().x;
 						}
 					}
-					if (!internalHorHinges.contains(port.getEndPoint()) && !internalVerHinges.contains(port.getEndPoint()))
+					if (!internalHorHinges.contains(portEndPoint) && !internalVerHinges.contains(portEndPoint))
 					{
-						if (Math.abs(component.getRectangle().y - port.getEndPoint().getRectangle().y) < ALIGNMENT_THRESHOLD)
+						if (Math.abs(component.getRectangle().y - portEndPoint.getRectangle().y) < ALIGNMENT_THRESHOLD)
 						{
 							alignedComponents.addVerAlignedComponent(component);
-							alignedComponents.addVerAlignedComponent(port.getEndPoint());
-							alignmentDy = component.getRectangle().y - port.getEndPoint().getRectangle().y; 
+							alignedComponents.addVerAlignedComponent(portEndPoint);
+							alignmentDy = component.getRectangle().y - portEndPoint.getRectangle().y; 
 						}
-						if (Math.abs(component.getRectangle().x - port.getEndPoint().getRectangle().x) < ALIGNMENT_THRESHOLD)
+						if (Math.abs(component.getRectangle().x - portEndPoint.getRectangle().x) < ALIGNMENT_THRESHOLD)
 						{
 							alignedComponents.addHorAlignedComponent(component);
-							alignedComponents.addVerAlignedComponent(port.getEndPoint());
-							alignmentDx = component.getRectangle().x - port.getEndPoint().getRectangle().x;
+							alignedComponents.addVerAlignedComponent(portEndPoint);
+							alignmentDx = component.getRectangle().x - portEndPoint.getRectangle().x;
 						}
 					}					
 				}
@@ -205,7 +207,7 @@ public abstract class ConcreteComponent extends Component
 	public boolean mouseIntersection(final int mouseX, final int mouseY) 
 	{
 		return getRectangle().contains(mouseX, mouseY);		
-	}
+	}	
 	
 	@Override
 	public void delete() 
@@ -235,6 +237,18 @@ public abstract class ConcreteComponent extends Component
 			internalVerHinge.delete();
 			internalVerHingeIter.remove();
 		}	
+	}
+	
+	@Override
+	public List<Component> getParents()
+	{
+		return new ArrayList<Component>();		
+	}
+	
+	@Override
+	public List<Component> getChildren()
+	{
+		return new ArrayList<Component>(ports);
 	}
 	
 	@Override
@@ -282,8 +296,8 @@ public abstract class ConcreteComponent extends Component
 	{
 		for (Component port: ports)
 		{
-			if (((LineSegmentComponent)port).getStartPoint() == component ||
-			    ((LineSegmentComponent)port).getEndPoint() == component)						
+			if (port.getChildren().get(0) == component ||
+			    port.getChildren().get(1) == component)						
 				return true;
 		}
 		

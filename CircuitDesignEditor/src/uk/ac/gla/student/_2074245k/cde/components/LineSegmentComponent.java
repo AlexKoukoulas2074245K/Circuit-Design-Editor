@@ -1,7 +1,9 @@
 package uk.ac.gla.student._2074245k.cde.components;
 
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
@@ -213,7 +215,7 @@ public final class LineSegmentComponent extends Component
 	@Override
 	public void delete()
 	{
-		if (isPort() != null)
+		if (getParents().size() >= 1)
 		{				
 			return;
 		}
@@ -221,8 +223,8 @@ public final class LineSegmentComponent extends Component
 		canvas.removeComponent(this);			
 		startPoint.delete();
 		endPoint.delete();
-	}		
-
+	}
+	
 	@Override
 	public Component clone(Set<Component> outClonedComponents)
 	{
@@ -233,6 +235,34 @@ public final class LineSegmentComponent extends Component
 		outClonedComponents.add(clonedComponent);
 		
 		return clonedComponent;
+	}
+	
+	@Override
+	public List<Component> getParents()
+	{
+		List<Component> parents = new ArrayList<Component>();
+		Iterator<Component> compIter = canvas.getComponentsIterator(); 
+		while (compIter.hasNext())
+		{
+			Component nextComp = compIter.next();
+			if (nextComp.getComponentType() == ComponentType.BLACK_BOX ||
+				nextComp.getComponentType() == ComponentType.GATE)
+			{
+				if (((ConcreteComponent)nextComp).hasPort(this))
+					parents.add(nextComp);
+			}
+		}
+		
+		return parents;
+	}
+	
+	@Override
+	public List<Component> getChildren()
+	{
+		List<Component> children = new ArrayList<Component>();
+		children.add(startPoint);
+		children.add(endPoint);
+		return children;
 	}
 	
 	@Override
@@ -294,34 +324,7 @@ public final class LineSegmentComponent extends Component
 			startPoint.render(g, true, false, false);					
 			endPoint.render(g, true, false, false);			
 		}		
-	}
-	
-	public Component isPort()
-	{
-		Iterator<Component> compIter = canvas.getComponentsIterator(); 
-		while (compIter.hasNext())
-		{
-			Component nextComp = compIter.next();
-			if (nextComp.getComponentType() == ComponentType.BLACK_BOX ||
-				nextComp.getComponentType() == ComponentType.GATE)
-			{
-				if (((ConcreteComponent)nextComp).hasPort(this))
-					return nextComp;
-			}
-		}
-		
-		return null;
-	}
-	
-	public Component getStartPoint()
-	{
-		return startPoint;
-	}
-	
-	public Component getEndPoint()
-	{
-		return endPoint;
-	}
+	}	
 	
 	public void setStartPoint(final Component component)
 	{
