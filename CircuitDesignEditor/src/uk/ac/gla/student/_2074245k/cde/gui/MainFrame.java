@@ -9,6 +9,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -64,10 +65,12 @@ import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 public final class MainFrame extends JFrame
 {       
 	private static final long serialVersionUID            = 7475614725428306744L;	
-	private static final Dimension DEFAULT_CANVAS_DIM     = new Dimension(640, 640);
-	private static final Dimension DEFAULT_WINDOW_DIM     = new Dimension(1300, 700);
+	private static final String DEFAULT_LAF_CLASS_NAME    = "javax.swing.plaf.metal.MetalLookAndFeel";
 	private static final Dimension DEFAULT_WINDOW_MIN_DIM = new Dimension(500, 500);
-	
+	private static final Dimension DEFAULT_WINDOW_DIM     = new Dimension((int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 0.666f),
+			                                                              (int)(Toolkit.getDefaultToolkit().getScreenSize().getHeight() * 0.666f));	
+	private static final Dimension DEFAULT_CANVAS_DIM     = new Dimension((int)(DEFAULT_WINDOW_DIM.getWidth() * 0.75f),
+                                                                          (int)(DEFAULT_WINDOW_DIM.getHeight() * 0.75f));
 	private JPanel masterPanel;    
 	private JPanel menuPanel;
     private MainCanvas canvasPanel;
@@ -75,7 +78,7 @@ public final class MainFrame extends JFrame
     public MainFrame()
     {
     	super("C.D.E (Circuit Design Editor)");
-    	init(DEFAULT_CANVAS_DIM, UIManager.getSystemLookAndFeelClassName());
+    	init(DEFAULT_CANVAS_DIM, DEFAULT_LAF_CLASS_NAME);
     }
     
     
@@ -592,12 +595,12 @@ public final class MainFrame extends JFrame
         	public void actionPerformed(ActionEvent __) 
         	{               
         		JDialog jg = new JDialog(frame, "Black Box specification", ModalityType.APPLICATION_MODAL);
-        		jg.setResizable(false);
+        		jg.setResizable(true);
         		
         		BlackBoxBuilderPanel builderPanel = new BlackBoxBuilderPanel(canvasPanel, jg);
         		builderPanel.subscribeToBlackBoxCreationEvent(canvasPanel);        		
         		JScrollPane scrollPane = new JScrollPane(builderPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        		scrollPane.setBounds(0, 100, 300, 780);        		
+        		 	
         		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
         		
         		jg.setIconImage(bbImage);

@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -345,7 +347,10 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		blackBoxView.subscribeToPortInsertionEvent(this);
 		blackBoxView.subscribeToPortDeletionEvent(this);
 		blackBoxView.setPreferredSize(DEFAULT_VIEW_DIMENSION);
-		blackBoxOptionsPanel.add(blackBoxView);
+		
+		JPanel wrapperFixedViewPanel = new JPanel(new GridBagLayout());
+        wrapperFixedViewPanel.add(blackBoxView, new GridBagConstraints());        
+		blackBoxOptionsPanel.add(wrapperFixedViewPanel);
 		
 		
 		JPanel gridVisibilityPanel = new JPanel();
@@ -593,9 +598,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			} break;
 		}		
 		validate();
-		modalAncestor.validate();
-		modalAncestor.pack();
-		modalAncestor.setPreferredSize(modalAncestor.getPreferredSize());
+		modalAncestor.validate();		
 	}
 
 	@Override
@@ -610,9 +613,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		}
 		
 		validate();
-		modalAncestor.validate();
-		modalAncestor.pack();
-		modalAncestor.setPreferredSize(modalAncestor.getPreferredSize());
+		modalAncestor.validate();		
 	}
 
 	@Override
