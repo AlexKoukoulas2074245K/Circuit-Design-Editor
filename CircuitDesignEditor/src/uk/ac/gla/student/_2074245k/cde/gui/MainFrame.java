@@ -19,10 +19,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -31,6 +33,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -47,6 +50,7 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.NumberFormatter;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
@@ -59,7 +63,10 @@ import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public final class MainFrame extends JFrame
 {       
-	private static final long serialVersionUID = 7475614725428306744L;
+	private static final long serialVersionUID            = 7475614725428306744L;	
+	private static final Dimension DEFAULT_CANVAS_DIM     = new Dimension(640, 640);
+	private static final Dimension DEFAULT_WINDOW_DIM     = new Dimension(1300, 700);
+	private static final Dimension DEFAULT_WINDOW_MIN_DIM = new Dimension(500, 500);
 	
 	private JPanel masterPanel;    
 	private JPanel menuPanel;
@@ -68,12 +75,19 @@ public final class MainFrame extends JFrame
     public MainFrame()
     {
     	super("C.D.E (Circuit Design Editor)");
+    	init(DEFAULT_CANVAS_DIM, UIManager.getSystemLookAndFeelClassName());
+    }
+    
+    
+    private void init(final Dimension canvasDimension, final String lookAndFeelClassName)
+    {
     	try 
     	{ 
-    		setContentPane(createComponents(this));            
+    		setContentPane(createComponents(this, canvasDimension));
+    		changeLookAndFeel(lookAndFeelClassName);
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            setSize(1200, 700);
-            setMinimumSize(new Dimension(500, 500));
+            setSize(DEFAULT_WINDOW_DIM);
+            setMinimumSize(DEFAULT_WINDOW_MIN_DIM);
             setLocationRelativeTo(null);
             setVisible(true);   
             
@@ -87,7 +101,7 @@ public final class MainFrame extends JFrame
     					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_OPTION);
                 		if (selOption == JOptionPane.YES_OPTION)
                 		{            			
-                			displaySaveProjectDialog();                	
+                			displaySaveProjectDialog();   	
                 		}                		
     				}
     				
@@ -102,7 +116,7 @@ public final class MainFrame extends JFrame
     	}
     }
     
-    private JComponent createComponents(final JFrame frame) throws IOException 
+    private JComponent createComponents(final JFrame frame, final Dimension canvasDimension) throws IOException 
     {   
     	// Build Menu
     	JMenuBar menuBar = new JMenuBar();
@@ -300,25 +314,102 @@ public final class MainFrame extends JFrame
         menuPanel.add(checkBoxPanel);        
         
         canvasPanel = new MainCanvas(this);            
-        canvasPanel.setPreferredSize(new Dimension(2000, 2000));
+        canvasPanel.setPreferredSize(canvasDimension);
               
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.add(canvasPanel, new GridBagConstraints());
-                
+        
+        JScrollPane canvasScrollPane = new JScrollPane(wrapperPanel, 
+        		                                       JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+        		                                       JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        canvasScrollPane.getVerticalScrollBar().setUnitIncrement(15);
+        canvasScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
+        
         // Create the master panel
         masterPanel = new JPanel(new BorderLayout());
         masterPanel.add(menuPanel, BorderLayout.NORTH);
-        masterPanel.add(new JScrollPane(wrapperPanel,
-        		                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), 
-        		        BorderLayout.CENTER);
+        masterPanel.add(canvasScrollPane, BorderLayout.CENTER);
         
         // Add functionality to components
         createNewCanvasItem.addActionListener(new ActionListener()
         {
         	public void actionPerformed(ActionEvent __) 
         	{
-                System.out.println("To be implemented..");
+        		JDialog jg = new JDialog(frame, "New canvas specification", ModalityType.APPLICATION_MODAL);
+        		
+        		NumberFormatter dimensionsFormatter = new NumberFormatter(NumberFormat.getInstance());
+        		dimensionsFormatter.setValueClass(Integer.class);
+        		dimensionsFormatter.setMinimum(0);
+        		dimensionsFormatter.setCommitsOnValidEdit(false);
+        		
+        		JLabel widthLabel = new JLabel("Canvas Width:  ");
+        		JFormattedTextField widthField = new JFormattedTextField(dimensionsFormatter);		
+        		widthField.setValue(256);
+        		widthField.setColumns(10);
+        		widthField.addFocusListener(new SelectAllFocusListener(widthField));		        		
+        					
+        		JLabel heightLabel = new JLabel("Canvas Height:  ");
+        		JFormattedTextField heightField = new JFormattedTextField(dimensionsFormatter);		
+        		heightField.setValue(256);
+        		heightField.setColumns(10);
+        		heightField.addFocusListener(new SelectAllFocusListener(heightField));		
+        		
+        		JPanel widthPanel = new JPanel();
+        		widthPanel.add(widthLabel);
+        		widthPanel.add(widthField);
+        		
+        		JPanel heightPanel = new JPanel();
+        		heightPanel.add(heightLabel);
+        		heightPanel.add(heightField);
+        		
+        		JPanel newCanvasSpecsPanel = new JPanel();
+        		newCanvasSpecsPanel.setLayout(new BoxLayout(newCanvasSpecsPanel, BoxLayout.Y_AXIS));
+        		newCanvasSpecsPanel.add(widthPanel);
+        		newCanvasSpecsPanel.add(heightPanel);	
+        		        		
+        		JButton createButton = new JButton("Create");
+        		createButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent __) 
+        			{
+        				int selOption = JOptionPane.showConfirmDialog (null, "Creating new canvas, would you like to save your progress?", "New canvas option", JOptionPane.YES_NO_OPTION);
+                		if (selOption == JOptionPane.YES_OPTION)
+                		{            			
+                			displaySaveProjectDialog();   	
+                		}
+                		init(new Dimension((int)widthField.getValue(), (int)heightField.getValue()), UIManager.getLookAndFeel().getClass().getName());
+                        jg.dispose();
+                        
+        			}			
+        		});
+        		
+        		JButton cancelButton = new JButton("Cancel");
+        		cancelButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent __) 
+        			{
+        				jg.dispose();
+        			}			
+        		});
+        		
+        		JPanel optionsPanel = new JPanel();
+        		optionsPanel.add(createButton);
+        		optionsPanel.add(cancelButton);
+        		
+        		JPanel newCanvasOptionsPanel = new JPanel(new BorderLayout());
+        		newCanvasOptionsPanel.add(optionsPanel, BorderLayout.EAST);  
+        		
+        		JPanel lfPanel = new JPanel(new BorderLayout());
+        		lfPanel.add(newCanvasSpecsPanel, BorderLayout.NORTH);
+        		lfPanel.add(newCanvasOptionsPanel, BorderLayout.SOUTH);
+        		
+        		jg.setContentPane(lfPanel);        		
+        		jg.pack();        		
+        		jg.setResizable(false);
+        		jg.setLocationRelativeTo(frame);
+        		jg.setVisible(true);  
             }
         });
         
@@ -461,20 +552,9 @@ public final class MainFrame extends JFrame
         		applyButton.addActionListener(new ActionListener()
         		{
         			@Override
-        			public void actionPerformed(ActionEvent arg0) 
+        			public void actionPerformed(ActionEvent __) 
         			{
-        				try 
-        				{
-							UIManager.setLookAndFeel((String)cb.getSelectedItem());
-							SwingUtilities.updateComponentTreeUI(frame);
-						}
-        				catch (ClassNotFoundException | 
-        						 InstantiationException | 
-        						 IllegalAccessException |
-        						 UnsupportedLookAndFeelException e1) 
-        		        {		
-        		        	JOptionPane.showMessageDialog(null, "Error while chaning the look and feel of the window", "IO Error", JOptionPane.ERROR_MESSAGE);
-        				}       				
+        				changeLookAndFeel((String)cb.getSelectedItem());        				     			
         			}			
         		});
         		
@@ -510,7 +590,7 @@ public final class MainFrame extends JFrame
         bbButton.addActionListener(new ActionListener()
 		{
         	public void actionPerformed(ActionEvent __) 
-        	{
+        	{               
         		JDialog jg = new JDialog(frame, "Black Box specification", ModalityType.APPLICATION_MODAL);
         		jg.setResizable(false);
         		
@@ -766,9 +846,9 @@ public final class MainFrame extends JFrame
 			SwingUtilities.updateComponentTreeUI(frame);
 		}
         catch (ClassNotFoundException | 
-				 InstantiationException | 
-				 IllegalAccessException |
-				 UnsupportedLookAndFeelException e1) 
+			   InstantiationException | 
+			   IllegalAccessException |
+			   UnsupportedLookAndFeelException e1) 
         {		
         	JOptionPane.showMessageDialog(null, "Error while chaning the look and feel of the window", "IO Error", JOptionPane.ERROR_MESSAGE);
 		}
@@ -806,5 +886,21 @@ public final class MainFrame extends JFrame
         		canvasPanel.saveProjectToFile(adjustedFile);
         	}
         }
+    }
+    
+    private void changeLookAndFeel(final String lookAndFeelClassName)
+    {
+    	try 
+		{
+			UIManager.setLookAndFeel(lookAndFeelClassName);
+			SwingUtilities.updateComponentTreeUI(this);
+		}
+		catch (ClassNotFoundException | 
+			   InstantiationException | 
+			   IllegalAccessException |
+			   UnsupportedLookAndFeelException e1) 
+        {		
+        	JOptionPane.showMessageDialog(null, "Error while changing the look and feel of the window", "IO Error", JOptionPane.ERROR_MESSAGE);
+		}  
     }
 }
