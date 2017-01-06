@@ -458,12 +458,19 @@ public final class MainCanvas extends JPanel implements Runnable,
 			if (componentSelector.getNumberOfSelectedComponents() > 1)			
 			{				
 				Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
-				componentSelector.enable();
+				List<Component> selComponents = new ArrayList<Component>();
+				
 				while (selCompsIter.hasNext())
-				{													
-					componentSelector.addComponentToSelectionExternally(selCompsIter.next());							
+				{
+					selComponents.add(selCompsIter.next());
 				}
 				
+				componentSelector.enable();
+				
+				for (Component selComponent: selComponents)
+				{
+					componentSelector.addComponentToSelectionExternally(selComponent);												
+				}				
 				componentSelector.disable();				
 			}
 			

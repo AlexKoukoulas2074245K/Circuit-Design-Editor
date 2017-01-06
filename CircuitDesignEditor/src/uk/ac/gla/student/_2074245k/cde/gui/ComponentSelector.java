@@ -128,7 +128,7 @@ public final class ComponentSelector
 		}
 		
 		if (isEnabled && component.getComponentType() == ComponentType.HINGE)
-		{
+		{			
 			for (Component parent: component.getParents())
 			{				
 				addComponentToSelection(parent);
