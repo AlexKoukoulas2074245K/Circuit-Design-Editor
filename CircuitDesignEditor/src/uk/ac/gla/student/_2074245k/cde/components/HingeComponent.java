@@ -186,7 +186,7 @@ public final class HingeComponent extends Component
 		if (getParents().size() >= 1)
 			return;
 		
-		canvas.removeComponent(this);
+		canvas.removeComponentFromCanvas(this);
 	}
 	
 	@Override
@@ -449,10 +449,10 @@ public final class HingeComponent extends Component
 	    	else
 	    	{
 	    		lineSegment = new LineSegmentComponent(canvas, this, endPoint, true);
-	    		canvas.addNewComponent(endPoint);	    		
+	    		canvas.addComponentToCanvas(endPoint);	    		
 	    	}
 	    	
-	    	canvas.addNewComponent(lineSegment);	    	
+	    	canvas.addComponentToCanvas(lineSegment);	    	
 	    }
 	}
 	

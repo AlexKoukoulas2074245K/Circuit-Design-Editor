@@ -212,7 +212,7 @@ public abstract class ConcreteComponent extends Component
 	@Override
 	public void delete() 
 	{
-		canvas.removeComponent(this);
+		canvas.removeComponentFromCanvas(this);
 		
 		Iterator<Component> portsIter = getPortsIterator();
 		while (portsIter.hasNext())

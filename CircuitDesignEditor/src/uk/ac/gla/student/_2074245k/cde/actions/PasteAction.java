@@ -39,7 +39,7 @@ public class PasteAction implements Action
 					comp.setPosition(comp.getRectangle().x + 100, comp.getRectangle().y + 100);
 				}
 				compSelector.addComponentToSelectionExternally(comp);
-				canvas.addNewComponent(comp);				
+				canvas.addComponentToCanvas(comp);				
 			}
 			
 			state = ActionState.EXECUTED;
@@ -57,7 +57,7 @@ public class PasteAction implements Action
 		{				
 			for (Component comp: loadedComponents)
 			{
-				canvas.removeComponent(comp);
+				canvas.removeComponentFromCanvas(comp);
 			}
 			state = ActionState.IDLE;
 		}

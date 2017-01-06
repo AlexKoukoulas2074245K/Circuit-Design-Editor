@@ -229,7 +229,7 @@ public final class ProjectPersistenceUtilities
 			{
 				if (!nonPersistMode)				
 				{
-					canvas.addNewComponent(comp);					
+					canvas.addComponentToCanvas(comp);					
 				}
 				loadedComponents.add(comp);
 			}
@@ -238,7 +238,7 @@ public final class ProjectPersistenceUtilities
 			{
 				if (!nonPersistMode)				
 				{
-					canvas.addNewComponent(comp);					
+					canvas.addComponentToCanvas(comp);					
 				}
 				loadedComponents.add(comp);
 			}
@@ -247,7 +247,7 @@ public final class ProjectPersistenceUtilities
 			{
 				if (!nonPersistMode)				
 				{
-					canvas.addNewComponent(comp);					
+					canvas.addComponentToCanvas(comp);					
 				}
 				loadedComponents.add(comp);
 			}						

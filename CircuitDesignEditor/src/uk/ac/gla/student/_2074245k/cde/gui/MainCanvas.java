@@ -73,7 +73,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private Thread mainCanvasThread;
 	private Set<Component> components;	
 	private List<Component> lineSegmentPath;
-	private List<Component> incidentLineSegments;
+	private List<Component> nubPlacementIncidentComponents;
 	private List<Component> componentsToAdd;
 	private List<Component> componentsToRemove;
 	
@@ -253,12 +253,12 @@ public final class MainCanvas extends JPanel implements Runnable,
 			
 			((BlackBoxComponent)blackBox).addPort(port);
 			
-			addNewComponent(externalHinge);
-			addNewComponent(internalHinge);
-			addNewComponent(port);	
+			addComponentToCanvas(externalHinge);
+			addComponentToCanvas(internalHinge);
+			addComponentToCanvas(port);	
 		}
 		
-		addNewComponent(blackBox);	
+		addComponentToCanvas(blackBox);	
 		
 		Component.MovementType prevMT = ConcreteComponent.globalConcreteComponentMovementType;
 		ConcreteComponent.globalConcreteComponentMovementType = Component.MovementType.FREE;
@@ -267,7 +267,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		ConcreteComponent.globalConcreteComponentMovementType = prevMT;	
 	}
 	
-	public void addNewComponent(final Component component)
+	public void addComponentToCanvas(final Component component)
 	{
 		synchronized (componentsToAdd)
 		{		
@@ -275,7 +275,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 	}
 	
-	public void removeComponent(final Component component)
+	public void removeComponentFromCanvas(final Component component)
 	{
 		synchronized (componentsToRemove)
 		{
@@ -598,7 +598,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		if (isCreatingNub)
 		{							
-			incidentLineSegments.clear();			
+			nubPlacementIncidentComponents.clear();			
 			for (Component component: components)			
 			{					
 				if (component.getComponentType() == ComponentType.LINE_SEGMENT)
@@ -613,11 +613,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 							                               dragNubY - component.getChildren().get(1).getRectangle().getCenterY());
 
 					if (lineLength - startToMouseDistance - mouseToEndDistance >= -1.0f)				
-						incidentLineSegments.add(component);
+						nubPlacementIncidentComponents.add(component);
 				}					
 			}
 						
-			int nIncidentLineSegments = incidentLineSegments.size();
+			int nIncidentLineSegments = nubPlacementIncidentComponents.size();
 						
 			if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
 			{								
@@ -634,14 +634,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 					incidentNubX = dragNubX - HingeComponent.HINGE_DIAMETER/2;
 					incidentNubY = dragNubY - HingeComponent.HINGE_DIAMETER/2;
 					
-					if (((LineSegmentComponent)incidentLineSegments.get(0)).getOrientation() == Orientation.HORIZONTAL)
-						incidentNubY = incidentLineSegments.get(0).getRectangle().y - HingeComponent.NUB_DIAMETER/2 + 1;
+					if (((LineSegmentComponent)nubPlacementIncidentComponents.get(0)).getOrientation() == Orientation.HORIZONTAL)
+						incidentNubY = nubPlacementIncidentComponents.get(0).getRectangle().y - HingeComponent.NUB_DIAMETER/2 + 1;
 					else
-						incidentNubX = incidentLineSegments.get(0).getRectangle().x - HingeComponent.NUB_DIAMETER/2 + 1;
+						incidentNubX = nubPlacementIncidentComponents.get(0).getRectangle().x - HingeComponent.NUB_DIAMETER/2 + 1;
 				}
 				else
 				{
-					for (Component incidentLineSegment: incidentLineSegments)
+					for (Component incidentLineSegment: nubPlacementIncidentComponents)
 					{
 						if (((LineSegmentComponent)incidentLineSegment).getOrientation() == Orientation.HORIZONTAL)
 						{
@@ -799,8 +799,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				for (Component component: componentsToAdd)
 				{					
 					components.add(component);
-				}
-				
+				}				
 				componentsToAdd.clear();
 			}
 		}
@@ -857,70 +856,81 @@ public final class MainCanvas extends JPanel implements Runnable,
 		Component startPoint = new HingeComponent(this, x - NEW_WIRE_LENGTH/2 - HingeComponent.HINGE_DIAMETER/2, y - HingeComponent.HINGE_DIAMETER/2, true);
 		Component endPoint   = new HingeComponent(this, x + NEW_WIRE_LENGTH/2 - HingeComponent.HINGE_DIAMETER/2, y - HingeComponent.HINGE_DIAMETER/2, true);		
 		
-		addNewComponent(new LineSegmentComponent(this, startPoint, endPoint, true));		
-		addNewComponent(startPoint);
-		addNewComponent(endPoint);		
+		addComponentToCanvas(new LineSegmentComponent(this, startPoint, endPoint, true));		
+		addComponentToCanvas(startPoint);
+		addComponentToCanvas(endPoint);		
 	}
 	
 	private void finalizeNubCreation()
-	{
-		
+	{		
 		isCreatingNub = false;
 		
-		List<Component> excludedSegments = new ArrayList<Component>();
-		
-		if (incidentLineSegments.size() > 0)
-		{	
-			
+		if (isNubInContact)
+		{			
 			HingeComponent nubHinge = new HingeComponent(this, incidentNubX, incidentNubY, true);
 			nubHinge.setHasNub(true);
 			
-			if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
+			Component incidentHinge = null;			
+			List<Component> excludedLineSegments = new ArrayList<Component>();			
+			Iterator<Component> compsIter = getComponentsIterator();
+			while (compsIter.hasNext())
 			{
+				Component comp = compsIter.next();
 				
-				removeComponent(highlightedComponent);											
-				
-				for (Component component: components)
-				{
-					if (component.getComponentType() != ComponentType.LINE_SEGMENT)
-						continue;
-					
-					LineSegmentComponent ls = (LineSegmentComponent)component;
-					
-					if (ls.getChildren().get(0) == highlightedComponent)
+				if (comp.getComponentType() == ComponentType.HINGE)
+				{					
+					if (comp.getRectangle().intersects(nubHinge.getRectangle()))
 					{
-						ls.setStartPoint(nubHinge);						
-						excludedSegments.add(ls);
-					}						
-					else if (ls.getChildren().get(1) == highlightedComponent)
-					{					
-						ls.setEndPoint(nubHinge);
-						excludedSegments.add(ls);
+						incidentHinge = comp;
+						nubHinge.setPosition(incidentHinge.getRectangle().x, incidentHinge.getRectangle().y);
+						nubHinge.setMovable(incidentHinge.isMovable());						
 					}
 				}
-			}				
-			
-			for (Component component: incidentLineSegments)
-			{
-				if (excludedSegments.contains(component))
-					continue;
-				
-				
-				removeComponent(component);											
-									
-				LineSegmentComponent newSegment1 = new LineSegmentComponent(this, component.getChildren().get(0), nubHinge, true);
-				LineSegmentComponent newSegment2 = new LineSegmentComponent(this, nubHinge, component.getChildren().get(1), true);
-				
-				addNewComponent(newSegment1);
-				addNewComponent(newSegment2);
 			}
 			
-			addNewComponent(nubHinge);
-		}
-		else if (highlightedComponent != null && highlightedComponent.getComponentType() == ComponentType.HINGE)
-		{
-			((HingeComponent)highlightedComponent).setHasNub(true);
-		}
+			compsIter = getComponentsIterator();
+			
+			while(compsIter.hasNext())
+			{
+				Component comp = compsIter.next();
+				
+				if (comp.getComponentType() == ComponentType.LINE_SEGMENT)
+				{
+					LineSegmentComponent ls = (LineSegmentComponent)comp;
+					
+					if (ls.getChildren().get(0) == incidentHinge)
+					{
+						ls.setStartPoint(nubHinge);
+						excludedLineSegments.add(ls);
+					}
+					else if (ls.getChildren().get(1) == incidentHinge)
+					{
+						ls.setEndPoint(nubHinge);
+						excludedLineSegments.add(ls);
+					}
+				}
+			}
+			
+			removeComponentFromCanvas(incidentHinge);
+			addComponentToCanvas(nubHinge);
+			
+			if (nubPlacementIncidentComponents.size() > 0)
+			{							
+				for (Component component: nubPlacementIncidentComponents)
+				{
+					if (excludedLineSegments.contains(component))
+						continue;				
+					
+					removeComponentFromCanvas(component);											
+										
+					LineSegmentComponent newSegment1 = new LineSegmentComponent(this, component.getChildren().get(0), nubHinge, true);
+					LineSegmentComponent newSegment2 = new LineSegmentComponent(this, nubHinge, component.getChildren().get(1), true);
+					
+					addComponentToCanvas(newSegment1);
+					addComponentToCanvas(newSegment2);
+				}						
+			}
+		}		
 	}
 
 	private void constructLinePath(final Component component)
@@ -1000,7 +1010,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		components            = new HashSet<Component>();
 		lineSegmentPath       = new ArrayList<Component>();
-		incidentLineSegments  = new ArrayList<Component>();		
+		nubPlacementIncidentComponents  = new ArrayList<Component>();		
 		componentsToAdd       = new ArrayList<Component>();
 		componentsToRemove    = new ArrayList<Component>();
 		executedActionHistory = new ArrayList<Action>();

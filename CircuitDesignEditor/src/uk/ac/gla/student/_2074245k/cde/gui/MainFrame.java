@@ -684,7 +684,7 @@ public final class MainFrame extends JFrame
         			{
         				GateComponent gateToAdd = new GateComponent(canvasPanel, GateComponent.GateType.valueOf((String)cb.getSelectedItem()), true, canvasPanel.getWidth()/2, canvasPanel.getHeight()/2);
                 		gateToAdd.constructPortsAutomatically();                		
-                		canvasPanel.addNewComponent(gateToAdd);
+                		canvasPanel.addComponentToCanvas(gateToAdd);
         				jg.dispose();
         			}			
         		});
@@ -724,8 +724,10 @@ public final class MainFrame extends JFrame
         wireButton.addActionListener(new ActionListener()
         {
         	public void actionPerformed(final ActionEvent __)
-        	{
-        		canvasPanel.finalizeWirePosition(canvasPanel.getWidth()/2, canvasPanel.getHeight()/2);                
+        	{        		
+        		int targetX = canvasPanel.getWidth()/2;
+        		int targetY = canvasPanel.getHeight()/2;        		        		        		
+        		canvasPanel.finalizeWirePosition(targetX, targetY);                
         	}
         });
        

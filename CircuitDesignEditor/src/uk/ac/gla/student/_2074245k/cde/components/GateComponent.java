@@ -90,9 +90,9 @@ public final class GateComponent extends ConcreteComponent
 		((HingeComponent)endPointIn1).addInternalHingeInfo(PortLocation.LEFT, "a");
 		addInternalHorHinge(endPointIn1);
 		addPort(in1Port);		
-		canvas.addNewComponent(startPointIn1);
-		canvas.addNewComponent(endPointIn1);
-		canvas.addNewComponent(in1Port);
+		canvas.addComponentToCanvas(startPointIn1);
+		canvas.addComponentToCanvas(endPointIn1);
+		canvas.addComponentToCanvas(in1Port);
 		
 		Component startPointIn2 = new HingeComponent(canvas, componentRect.x - PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, componentRect.y + (componentRect.height * 3)/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component endPointIn2   = new HingeComponent(canvas, componentRect.x - HingeComponent.HINGE_DIAMETER/2 - 1, componentRect.y + (componentRect.height * 3)/4 - HingeComponent.HINGE_DIAMETER/2, false);
@@ -101,9 +101,9 @@ public final class GateComponent extends ConcreteComponent
 		((HingeComponent)endPointIn2).addInternalHingeInfo(PortLocation.LEFT, "b");
 		addInternalHorHinge(endPointIn2);
 		addPort(in2Port);
-		canvas.addNewComponent(startPointIn2);
-		canvas.addNewComponent(endPointIn2);
-		canvas.addNewComponent(in2Port);
+		canvas.addComponentToCanvas(startPointIn2);
+		canvas.addComponentToCanvas(endPointIn2);
+		canvas.addComponentToCanvas(in2Port);
 		
 		Component startPointOut = new HingeComponent(canvas, componentRect.x + componentRect.width - HingeComponent.HINGE_DIAMETER/2 + 1, componentRect.y + componentRect.height/2 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component endPointOut   = new HingeComponent(canvas, componentRect.x + componentRect.width + PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, componentRect.y + componentRect.height/2 - HingeComponent.HINGE_DIAMETER/2, false);
@@ -112,9 +112,9 @@ public final class GateComponent extends ConcreteComponent
 		((HingeComponent)startPointOut).addInternalHingeInfo(PortLocation.RIGHT, "out");
 		addInternalHorHinge(startPointOut);
 		addPort(outPort);
-		canvas.addNewComponent(startPointOut);
-		canvas.addNewComponent(endPointOut);
-		canvas.addNewComponent(outPort);
+		canvas.addComponentToCanvas(startPointOut);
+		canvas.addComponentToCanvas(endPointOut);
+		canvas.addComponentToCanvas(outPort);
 	}
 }
 
