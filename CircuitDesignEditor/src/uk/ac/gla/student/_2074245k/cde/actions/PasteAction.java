@@ -1,18 +1,17 @@
 package uk.ac.gla.student._2074245k.cde.actions;
 
-import java.util.Set;
-
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.gui.ComponentSelector;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
+import uk.ac.gla.student._2074245k.cde.util.LoadingResult;
 import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
 public final class PasteAction implements Action 
 {
 	private MainCanvas canvas;
 	private ComponentSelector compSelector;
-	private Set<Component> loadedComponents;
+	private LoadingResult loadingResult;
 	
 	private ActionState state; 
 	
@@ -21,7 +20,7 @@ public final class PasteAction implements Action
 	{
 		this.canvas           = canvas;
 		this.compSelector     = compSelector;
-		this.loadedComponents = null;
+		this.loadingResult    = null;
 		state                 = ActionState.IDLE;
 	}
 	
@@ -30,9 +29,9 @@ public final class PasteAction implements Action
 	{
 		if (state == ActionState.IDLE)
 		{			
-			loadedComponents = ProjectPersistenceUtilities.openProjectNonPersistent(canvas); 
+			loadingResult = ProjectPersistenceUtilities.openProjectNonPersistent(canvas); 
 			
-			for (Component comp: loadedComponents)
+			for (Component comp: loadingResult.loadedComponents)
 			{
 				if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
 				{
@@ -55,7 +54,7 @@ public final class PasteAction implements Action
 	{
 		if (state == ActionState.EXECUTED)
 		{				
-			for (Component comp: loadedComponents)
+			for (Component comp: loadingResult.loadedComponents)
 			{
 				canvas.removeComponentFromCanvas(comp);
 			}

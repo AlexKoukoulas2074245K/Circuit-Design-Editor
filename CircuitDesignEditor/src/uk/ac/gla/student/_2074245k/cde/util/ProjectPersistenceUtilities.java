@@ -1,5 +1,6 @@
 package uk.ac.gla.student._2074245k.cde.util;
 
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 import javax.swing.JOptionPane;
 
+import uk.ac.gla.student._2074245k.cde.Main;
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
@@ -25,40 +27,60 @@ import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.gui.PortView;
 
 public final class ProjectPersistenceUtilities 
-{
+{		
 	private static enum LoadingMode
 	{
 		HINGE, LINE_SEGMENT, GATE, BLACK_BOX
 	}
 	
-	public static Set<Component> openProjectNonPersistent(final MainCanvas canvas)
+	public static LoadingResult openProjectNonPersistent(final MainCanvas canvas)
 	{
 		File tempFile = new File(".temp");
 		
 		if (tempFile.exists())
 		{			
-			Set<Component> loadedComponents = openProject(new File(".temp"), canvas);
+			LoadingResult result = openProject(new File(".temp"), canvas);
 			tempFile.delete();
-			return loadedComponents;		
+			return result;		
 		}
 		else
 		{
-			return new HashSet<Component>();
+			return new LoadingResult();
 		}
 	}
 	
-	public static Set<Component> openProject(final File file, final MainCanvas canvas)
+	public static LoadingResult openProject(final File file, final MainCanvas canvas)
 	{		
 		boolean nonPersistMode = file.getName().equals(".temp");
 		
-		Set<Component> loadedComponents                  = new HashSet<Component>();
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
 		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
 		
+		Set<Component> loadedComponents                  = new HashSet<Component>();
+		Dimension canvasDimension                        = null;
+		
 		try (BufferedReader br = new BufferedReader(new FileReader(file)))
 		{	
+			// Skip version comment
 			String line = br.readLine();
+			
+			// Show warning on previous version
+			if (!(line = br.readLine()).equals(Main.VERSION))
+			{
+				JOptionPane.showMessageDialog(null, "The save file was saved with a previous version of the software (" + line + ").\n" +
+			                                        "The current version of the software is: " + Main.VERSION + ".\n"+
+						                            "Errors might occurr when using different versions of the software", "IO Error", JOptionPane.WARNING_MESSAGE);
+			}
+			
+			// Skip canvas dimensions comment
+			line = br.readLine();
+			
+			// Read canvas dimensions
+			line = br.readLine();
+			canvasDimension = new Dimension(Integer.parseInt(line.split(",")[0]), Integer.parseInt(line.split(",")[1]));
+			
+			line = br.readLine();
 			LoadingMode loadingMode = LoadingMode.HINGE;
 			
 			while ((line = br.readLine()) != null)
@@ -258,20 +280,19 @@ public final class ProjectPersistenceUtilities
 			}			
 		}
 		catch (Exception e)
-		{
-			e.printStackTrace();
+		{			
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
-		return loadedComponents;
+		return new LoadingResult(loadedComponents, canvasDimension);
 	}
 	
-	public static void saveProjectNonPersistent(final Set<Component> components)
+	public static void saveProjectNonPersistent(final Set<Component> components, final Dimension canvasDimension)
 	{
-		saveProject(new File(".temp"), components, false);
+		saveProject(new File(".temp"), components, canvasDimension, false);
 	}
 	
-	public static void saveProject(final File file, final Set<Component> components, final boolean promptOnCompletion)
+	public static void saveProject(final File file, final Set<Component> components, final Dimension canvasDimension, final boolean promptOnCompletion)
 	{
 		boolean nonPersistMode = file.getName().equals(".temp");
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
@@ -290,6 +311,18 @@ public final class ProjectPersistenceUtilities
 		
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(file)))
 		{
+			bw.write("#CDE File Version");
+			bw.newLine();
+			
+			bw.write(Main.VERSION);
+			bw.newLine();
+			
+			bw.write("#Canvas Dimensions width,height");
+			bw.newLine();
+						
+			bw.write(canvasDimension.width + "," + canvasDimension.height);
+			bw.newLine();
+			
 			bw.write("#Hinges: Hinge Index:<Index> x,y,hasNub,isMovable,isInternal,isInverted,location,name");
 			bw.newLine();
 			

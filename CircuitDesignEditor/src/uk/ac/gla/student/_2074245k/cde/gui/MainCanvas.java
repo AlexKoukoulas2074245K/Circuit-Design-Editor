@@ -45,6 +45,7 @@ import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
 import uk.ac.gla.student._2074245k.cde.observers.BlackBoxCreationObserver;
 import uk.ac.gla.student._2074245k.cde.util.FrameCounter;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
+import uk.ac.gla.student._2074245k.cde.util.LoadingResult;
 import uk.ac.gla.student._2074245k.cde.util.Mouse;
 import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
@@ -329,7 +330,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			return aliveComponents.iterator();
 		}
 	}
-	
+		
 	public void finalizeWirePosition(final int x, final int y)
 	{					
 		finalizeWireCreation(x, y);								
@@ -366,17 +367,20 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void openProjectFromFile(final File file)	
 	{
 		init(file);
-		ProjectPersistenceUtilities.openProject(file, this);
+		LoadingResult result = ProjectPersistenceUtilities.openProject(file, this);
+		setPreferredSize(result.canvasDimension);			
+		revalidate();
+		repaint();
 	}
 	
 	public void saveProject()
 	{
-		ProjectPersistenceUtilities.saveProject(lastSaveLocation, components, false);		
+		ProjectPersistenceUtilities.saveProject(lastSaveLocation, components, getSize(), false);		
 	}
 	
 	public void saveProjectToFile(final File file)
 	{
-		ProjectPersistenceUtilities.saveProject(file, components, true);				
+		ProjectPersistenceUtilities.saveProject(file, components, getSize(), true);				
 		lastSaveLocation = file;
 	}
 	
@@ -469,7 +473,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				selComponents.add(selCompsIter.next());
 			}
 						
-			ProjectPersistenceUtilities.saveProjectNonPersistent(selComponents);
+			ProjectPersistenceUtilities.saveProjectNonPersistent(selComponents, getSize());
 		}
 	}
 	

@@ -145,7 +145,11 @@ public final class MainFrame extends JFrame
 		saveAsProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
 		saveAsProjectItem.getAccessibleContext().setAccessibleDescription("Saves the project to disk at a specified location");
 		
-		JMenuItem exportProjectItem = new JMenuItem("Export to SVG", KeyEvent.VK_5);
+		JMenuItem resizeCanvasItem = new JMenuItem("Resize Canvas", KeyEvent.VK_5);
+		resizeCanvasItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
+		resizeCanvasItem.getAccessibleContext().setAccessibleDescription("Resizes the current canvas to the specified dimension");
+		
+		JMenuItem exportProjectItem = new JMenuItem("Export to SVG", KeyEvent.VK_6);
 		exportProjectItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 		exportProjectItem.getAccessibleContext().setAccessibleDescription("Export project to scalable vector graphics (svg) format");
 		
@@ -153,6 +157,7 @@ public final class MainFrame extends JFrame
 		fileMenuTab.add(openProjectItem);
 		fileMenuTab.add(saveProjectItem);
 		fileMenuTab.add(saveAsProjectItem);
+		fileMenuTab.add(resizeCanvasItem);
 		fileMenuTab.add(exportProjectItem);
 		
 		JMenu editTab = new JMenu("Edit");
@@ -346,7 +351,7 @@ public final class MainFrame extends JFrame
         {
         	public void actionPerformed(ActionEvent __) 
         	{
-        		JDialog jg = new JDialog(frame, "New canvas specification", ModalityType.APPLICATION_MODAL);
+        		JDialog jDialog = new JDialog(frame, "New canvas specification", ModalityType.APPLICATION_MODAL);
         		
         		NumberFormatter dimensionsFormatter = new NumberFormatter(NumberFormat.getInstance());
         		dimensionsFormatter.setValueClass(Integer.class);
@@ -355,13 +360,13 @@ public final class MainFrame extends JFrame
         		
         		JLabel widthLabel = new JLabel("Canvas Width:  ");
         		JFormattedTextField widthField = new JFormattedTextField(dimensionsFormatter);		
-        		widthField.setValue(256);
+        		widthField.setValue(canvasPanel.getWidth());
         		widthField.setColumns(10);
         		widthField.addFocusListener(new SelectAllFocusListener(widthField));		        		
         					
         		JLabel heightLabel = new JLabel("Canvas Height:  ");
         		JFormattedTextField heightField = new JFormattedTextField(dimensionsFormatter);		
-        		heightField.setValue(256);
+        		heightField.setValue(canvasPanel.getHeight());
         		heightField.setColumns(10);
         		heightField.addFocusListener(new SelectAllFocusListener(heightField));		
         		
@@ -377,7 +382,7 @@ public final class MainFrame extends JFrame
         		newCanvasSpecsPanel.setLayout(new BoxLayout(newCanvasSpecsPanel, BoxLayout.Y_AXIS));
         		newCanvasSpecsPanel.add(widthPanel);
         		newCanvasSpecsPanel.add(heightPanel);	
-        		        		
+        		
         		JButton createButton = new JButton("Create");
         		createButton.addActionListener(new ActionListener()
         		{
@@ -390,7 +395,7 @@ public final class MainFrame extends JFrame
                 			displaySaveProjectDialog();   	
                 		}
                 		init(new Dimension((int)widthField.getValue(), (int)heightField.getValue()), UIManager.getLookAndFeel().getClass().getName());
-                        jg.dispose();
+                        jDialog.dispose();
                         
         			}			
         		});
@@ -401,7 +406,7 @@ public final class MainFrame extends JFrame
         			@Override
         			public void actionPerformed(ActionEvent __) 
         			{
-        				jg.dispose();
+        				jDialog.dispose();
         			}			
         		});
         		
@@ -416,11 +421,12 @@ public final class MainFrame extends JFrame
         		lfPanel.add(newCanvasSpecsPanel, BorderLayout.NORTH);
         		lfPanel.add(newCanvasOptionsPanel, BorderLayout.SOUTH);
         		
-        		jg.setContentPane(lfPanel);        		
-        		jg.pack();        		
-        		jg.setResizable(false);
-        		jg.setLocationRelativeTo(frame);
-        		jg.setVisible(true);  
+        		jDialog.setContentPane(lfPanel);
+        		jDialog.getRootPane().setDefaultButton(createButton);
+        		jDialog.pack();        		
+        		jDialog.setResizable(false);
+        		jDialog.setLocationRelativeTo(frame);
+        		jDialog.setVisible(true);  
             }
         });
         
@@ -460,6 +466,86 @@ public final class MainFrame extends JFrame
         	public void actionPerformed(ActionEvent __) 
         	{
         		displaySaveProjectDialog();
+            }
+        });
+        
+        resizeCanvasItem.addActionListener(new ActionListener()
+        {
+        	public void actionPerformed(ActionEvent __) 
+        	{
+        		JDialog jDialog = new JDialog(frame, "Resize canvas", ModalityType.APPLICATION_MODAL);
+        		
+        		NumberFormatter dimensionsFormatter = new NumberFormatter(NumberFormat.getInstance());
+        		dimensionsFormatter.setValueClass(Integer.class);
+        		dimensionsFormatter.setMinimum(0);
+        		dimensionsFormatter.setCommitsOnValidEdit(false);
+        		
+        		JLabel widthLabel = new JLabel("Canvas Width:  ");
+        		JFormattedTextField widthField = new JFormattedTextField(dimensionsFormatter);		
+        		widthField.setValue(canvasPanel.getWidth());
+        		widthField.setColumns(10);
+        		widthField.addFocusListener(new SelectAllFocusListener(widthField));		        		
+        					
+        		JLabel heightLabel = new JLabel("Canvas Height:  ");
+        		JFormattedTextField heightField = new JFormattedTextField(dimensionsFormatter);		
+        		heightField.setValue(canvasPanel.getHeight());
+        		heightField.setColumns(10);
+        		heightField.addFocusListener(new SelectAllFocusListener(heightField));		
+        		
+        		JPanel widthPanel = new JPanel();
+        		widthPanel.add(widthLabel);
+        		widthPanel.add(widthField);
+        		
+        		JPanel heightPanel = new JPanel();
+        		heightPanel.add(heightLabel);
+        		heightPanel.add(heightField);
+        		
+        		JPanel resizeCanvasSpecsPanel = new JPanel();
+        		resizeCanvasSpecsPanel.setLayout(new BoxLayout(resizeCanvasSpecsPanel, BoxLayout.Y_AXIS));
+        		resizeCanvasSpecsPanel.add(widthPanel);
+        		resizeCanvasSpecsPanel.add(heightPanel);	        		        		
+        		
+        		JButton resizeButton = new JButton("Resize");          		
+        		resizeButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent __) 
+        			{        				
+                		canvasPanel.setPreferredSize(new Dimension((int)widthField.getValue(), (int)heightField.getValue()));                		
+                		canvasPanel.revalidate();
+                		canvasPanel.repaint();
+                		jDialog.dispose();
+        			}			
+        		});
+        		
+        		JButton cancelButton = new JButton("Cancel");
+        		cancelButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent __) 
+        			{
+        				jDialog.dispose();
+        			}			
+        		});
+        		
+        		JPanel optionsPanel = new JPanel();
+        		optionsPanel.add(resizeButton);
+        		optionsPanel.add(cancelButton);
+        		
+        		JPanel resizeCanvasOptionsPanel = new JPanel(new BorderLayout());
+        		resizeCanvasOptionsPanel.add(optionsPanel, BorderLayout.EAST);  
+        		
+        		JPanel lfPanel = new JPanel(new BorderLayout());
+        		lfPanel.add(resizeCanvasSpecsPanel, BorderLayout.NORTH);
+        		lfPanel.add(resizeCanvasOptionsPanel, BorderLayout.SOUTH);
+        		
+        		jDialog.setContentPane(lfPanel);
+        		jDialog.getRootPane().setDefaultButton(resizeButton);        		
+        		jDialog.pack();        		
+        		jDialog.setResizable(false);
+        		jDialog.setLocationRelativeTo(frame);
+        		jDialog.setVisible(true);              
+        		jDialog.setFocusable(true);        		      	
             }
         });
         
@@ -557,7 +643,7 @@ public final class MainFrame extends JFrame
 		{
         	public void actionPerformed(ActionEvent __)
         	{
-        		JDialog jg = new JDialog(frame, "Change Look & Feel", ModalityType.APPLICATION_MODAL);
+        		JDialog jDialog = new JDialog(frame, "Change Look & Feel", ModalityType.APPLICATION_MODAL);
         		
         		JPanel lfiPanel = new JPanel();        		 
         		JComboBox<String> cb = new JComboBox<String>();
@@ -575,7 +661,7 @@ public final class MainFrame extends JFrame
         			public void actionPerformed(ActionEvent __) 
         			{
         				changeLookAndFeel((String)cb.getSelectedItem());        
-        				jg.dispose();
+        				jDialog.dispose();
         			}	
         		});
         		
@@ -585,7 +671,7 @@ public final class MainFrame extends JFrame
         			@Override
         			public void actionPerformed(ActionEvent __) 
         			{
-        				jg.dispose();
+        				jDialog.dispose();
         			}			
         		});
         		
@@ -611,11 +697,12 @@ public final class MainFrame extends JFrame
         		lfPanel.add(lfiPanel, BorderLayout.NORTH);
         		lfPanel.add(lfOptionsPanel, BorderLayout.SOUTH);
         		
-        		jg.setContentPane(lfPanel);        		
-        		jg.pack();        		
-        		jg.setResizable(false);
-        		jg.setLocationRelativeTo(frame);
-        		jg.setVisible(true);   
+        		jDialog.setContentPane(lfPanel);
+        		jDialog.getRootPane().setDefaultButton(okButton);
+        		jDialog.pack();        		
+        		jDialog.setResizable(false);
+        		jDialog.setLocationRelativeTo(frame);
+        		jDialog.setVisible(true);   
         	}
 		});
         
@@ -623,20 +710,20 @@ public final class MainFrame extends JFrame
 		{
         	public void actionPerformed(ActionEvent __) 
         	{               
-        		JDialog jg = new JDialog(frame, "Black Box specification", ModalityType.APPLICATION_MODAL);
-        		jg.setResizable(true);
+        		JDialog jDialog = new JDialog(frame, "Black Box specification", ModalityType.APPLICATION_MODAL);
+        		jDialog.setResizable(true);
         		
-        		BlackBoxBuilderPanel builderPanel = new BlackBoxBuilderPanel(canvasPanel, jg);
+        		BlackBoxBuilderPanel builderPanel = new BlackBoxBuilderPanel(canvasPanel, jDialog);
         		builderPanel.subscribeToBlackBoxCreationEvent(canvasPanel);        		
         		JScrollPane scrollPane = new JScrollPane(builderPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         		 	
         		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
         		
-        		jg.setIconImage(bbImage);
-        		jg.setContentPane(scrollPane);        		
-        		jg.pack();
-        		jg.setLocationRelativeTo(frame);        	
-        		jg.setVisible(true);
+        		jDialog.setIconImage(bbImage);
+        		jDialog.setContentPane(scrollPane);        		
+        		jDialog.pack();
+        		jDialog.setLocationRelativeTo(frame);        	
+        		jDialog.setVisible(true);
         		
             }
 		});
@@ -645,7 +732,7 @@ public final class MainFrame extends JFrame
 		{
         	public void actionPerformed(ActionEvent __) 
         	{        	
-        		JDialog jg = new JDialog(frame, "Gate selection", ModalityType.APPLICATION_MODAL);
+        		JDialog jDialog = new JDialog(frame, "Gate selection", ModalityType.APPLICATION_MODAL);
         		JPanel gateTypesPanel = new JPanel();        		
         		String[] gateTypeNames = Arrays.toString(GateComponent.GateType.values()).replaceAll("^.|.$", "").split(", ");
         		JComboBox<String> cb = new JComboBox<String>(gateTypeNames);
@@ -728,7 +815,7 @@ public final class MainFrame extends JFrame
         						                                    targetY);
                 		gateToAdd.constructPortsAutomatically();                		
                 		canvasPanel.addComponentToCanvas(gateToAdd);
-        				jg.dispose();
+        				jDialog.dispose();
         			}			
         		});
         		
@@ -738,7 +825,7 @@ public final class MainFrame extends JFrame
         			@Override
         			public void actionPerformed(ActionEvent __) 
         			{
-        				jg.dispose();
+        				jDialog.dispose();
         			}			
         		});
         			        		
@@ -755,12 +842,13 @@ public final class MainFrame extends JFrame
         		modalPanel.add(gateDisplayPanel, BorderLayout.CENTER);
         		modalPanel.add(gateOptionsPanel, BorderLayout.SOUTH);
         		        		
-        		jg.setContentPane(modalPanel);        		
-        		jg.pack();
-        		jg.setIconImage(gateImage);
-        		jg.setResizable(false);
-        		jg.setLocationRelativeTo(frame);
-        		jg.setVisible(true);        		        		
+        		jDialog.setContentPane(modalPanel);
+        		jDialog.getRootPane().setDefaultButton(createButton);
+        		jDialog.pack();
+        		jDialog.setIconImage(gateImage);
+        		jDialog.setResizable(false);
+        		jDialog.setLocationRelativeTo(frame);
+        		jDialog.setVisible(true);        		        		
             }
 		});
         
