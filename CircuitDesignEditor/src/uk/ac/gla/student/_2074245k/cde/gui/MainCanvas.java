@@ -6,8 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -25,6 +23,7 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -46,13 +45,11 @@ import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
 import uk.ac.gla.student._2074245k.cde.observers.BlackBoxCreationObserver;
 import uk.ac.gla.student._2074245k.cde.util.FrameCounter;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
-import uk.ac.gla.student._2074245k.cde.util.Keyboard;
 import uk.ac.gla.student._2074245k.cde.util.Mouse;
 import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
 
-public final class MainCanvas extends JPanel implements Runnable,											  
-                                                        KeyListener,
+public final class MainCanvas extends JPanel implements Runnable,											                                                          
                                                         MouseListener,
                                                         MouseMotionListener,
                                                         ComponentListener,
@@ -63,13 +60,13 @@ public final class MainCanvas extends JPanel implements Runnable,
 		FREE, AXIS_RESTRICTED
 	}
 			
-	public static Mouse mouse;
-	public static Keyboard keyboard;
+	public static Mouse mouse;	
 	
 	private static final long serialVersionUID   = 1L;
 	private static final int NEW_WIRE_LENGTH     = 200;
 	
 	private JFrame window;
+	private JScrollPane scrollPane;
 	private Thread mainCanvasThread;
 	private Set<Component> components;	
 	private List<Component> lineSegmentPath;
@@ -93,7 +90,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private File lastSaveLocation = null;
 	
-	public MainCanvas(JFrame window)
+	public MainCanvas(final JFrame window)
 	{		
 		super();
 		this.window = window;		
@@ -107,8 +104,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		if (mainCanvasThread == null)
 		{
-			mainCanvasThread = new Thread(this);
-			addKeyListener(this);
+			mainCanvasThread = new Thread(this);			
 			addMouseListener(this);
 			addMouseMotionListener(this);		
 			addComponentListener(this);
@@ -142,16 +138,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		GraphicsGenerator gfxGen = new GraphicsGenerator((Graphics2D)g);
 		display(gfxGen);
 	}
-	
-	@Override
-	public void keyPressed(KeyEvent eventArgs) { requestFocus(); keyboard.updateOnKeyPress(eventArgs); }
 
-	@Override
-	public void keyReleased(KeyEvent eventArgs) { requestFocus(); keyboard.updateOnKeyRelease(eventArgs); }
-
-	@Override
-	public void keyTyped(KeyEvent __) {}	
-	
 	@Override
 	public void mouseDragged(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseDrag(eventArgs); }
 	
@@ -162,13 +149,29 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void mousePressed(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMousePressed(eventArgs); }
 	
 	@Override
-	public void mouseReleased(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
+	public void mouseReleased(MouseEvent eventArgs) 
+	{
+		requestFocus();
+		mouse.updateOnMouseReleased(eventArgs);
+		lineSegmentPath.clear();
+		selectionDx = selectionDy = 0;
+		
+		if (movingComponents)
+		{								
+			finalizeMovementAndCreateActions();
+		}
+		
+		alignedComponents = null;
+		movingComponents  = false;
+		
+		synchronized (componentSelector)
+		{
+			componentSelector.disable();				
+		}
+	}
 	
 	@Override
-	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); if (eventArgs.getButton() == MouseEvent.BUTTON2) for (Component component: components)
-	{
-		System.out.println("Component " + component.getComponentType() + " at: " + component.getRectangle().x + ", " + component.getRectangle().y);
-	}}
+	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
 
 	@Override
 	public void mouseEntered(MouseEvent __) {}
@@ -262,9 +265,38 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		Component.MovementType prevMT = ConcreteComponent.globalConcreteComponentMovementType;
 		ConcreteComponent.globalConcreteComponentMovementType = Component.MovementType.FREE;
-		blackBox.moveTo(getWidth()/2 - blackBox.getRectangle().width/2,
-				        getHeight()/2 - blackBox.getRectangle().height/2);
+		
+		int targetX = 0;
+		int targetY = 0;
+		
+		if (getWidth() < scrollPane.getViewportBorderBounds().width)
+		{
+			targetX = getWidth()/2;
+		}
+		else
+		{
+			targetX = scrollPane.getViewport().getViewPosition().x + scrollPane.getViewportBorderBounds().width/2; 
+		}
+		
+		if (getHeight() < scrollPane.getViewportBorderBounds().height)
+		{
+			targetY = getHeight()/2;
+		}
+		else
+		{
+			targetY = scrollPane.getViewport().getViewPosition().y + scrollPane.getViewportBorderBounds().height/2;
+		}
+		
+		targetX -= blackBox.getRectangle().width/2;
+		targetY -= blackBox.getRectangle().height/2;
+		
+		blackBox.moveTo(targetX, targetY);
 		ConcreteComponent.globalConcreteComponentMovementType = prevMT;	
+	}
+
+	public void setScrollPane(final JScrollPane scrollPane)
+	{
+		this.scrollPane = scrollPane;
 	}
 	
 	public void addComponentToCanvas(final Component component)
@@ -584,24 +616,24 @@ public final class MainCanvas extends JPanel implements Runnable,
 				}
 			}
 		}
-		else if (mouse.isButtonJustReleased(Mouse.LEFT_BUTTON) || !mouse.isButtonDown(Mouse.LEFT_BUTTON))
-		{											
-			lineSegmentPath.clear();
-			selectionDx = selectionDy = 0;
-			
-			if (movingComponents)
-			{								
-				finalizeMovementAndCreateActions();
-			}
-			
-			alignedComponents = null;
-			movingComponents  = false;
-			
-			synchronized (componentSelector)
-			{
-				componentSelector.disable();				
-			}
-		}							
+//		else if (mouse.isButtonJustReleased(Mouse.LEFT_BUTTON) || !mouse.isButtonDown(Mouse.LEFT_BUTTON))
+//		{											
+//			lineSegmentPath.clear();
+//			selectionDx = selectionDy = 0;
+//			
+//			if (movingComponents)
+//			{								
+//				finalizeMovementAndCreateActions();
+//			}
+//			
+//			alignedComponents = null;
+//			movingComponents  = false;
+//			
+//			synchronized (componentSelector)
+//			{
+//				componentSelector.disable();				
+//			}
+//		}							
 		
 		if (isCreatingNub)
 		{							
@@ -667,8 +699,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			}
 		}
 				
-		mouse.updateOnFrameEnd();
-		keyboard.updateOnFrameEnd();
+		mouse.updateOnFrameEnd();		
 	}
 	
 	private void display(final GraphicsGenerator gfx)
@@ -692,65 +723,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private void render(final GraphicsGenerator gfx)
 	{							
-		List<Component> delayedRenderedComponents = new ArrayList<Component>();
-		
-		for (Component component: components)
-		{
-			if (component.getComponentType() == ComponentType.LINE_SEGMENT)
-			{
-				boolean isInSelection = componentSelector.isComponentInSelection(component);
-				component.render(gfx, 
-						         highlightedComponent == component && !isCreatingNub, 
-						         isInSelection,
-						         isInSelection && componentSelector.getNumberOfSelectedComponents() > 1);
-			}
-			else
-			{
-				delayedRenderedComponents.add(component);
-			}
-		}
-
-			
-		Iterator<Component> iter = componentSelector.getSelectedComponentsIterator();
-		while (iter.hasNext())
-		{
-			Component component = iter.next();
-			if (component.getComponentType() == ComponentType.LINE_SEGMENT)
-			{
-				for (Component pathComponent: lineSegmentPath)
-				{
-					if (component != pathComponent)
-					{
-						((LineSegmentComponent)pathComponent).renderAsPathEdge(gfx);				
-					}
-				}				
-			}
-		}		
-		
-		List<Component> lastPassComponents = new ArrayList<Component>();
-		
-		for (Component component: delayedRenderedComponents)
-		{
-			if (component.getComponentType() == ComponentType.HINGE)
-			{
-				boolean isInSelection = componentSelector.isComponentInSelection(component);
-				component.render(gfx, 
-				         highlightedComponent == component && !isCreatingNub, 
-				         isInSelection,
-				         isInSelection && componentSelector.getNumberOfSelectedComponents() > 1);			
-			}
-			else
-				lastPassComponents.add(component);
-		}
-		
-		for (Component component: lastPassComponents)
-		{
-			boolean isInSelection = componentSelector.isComponentInSelection(component);
-			component.render(gfx, 
-			         highlightedComponent == component && !isCreatingNub, 
-			         isInSelection,
-			         isInSelection && componentSelector.getNumberOfSelectedComponents() > 1);		
-		}
+		renderComponents(gfx, ComponentType.LINE_SEGMENT);
+		renderPathSegments(gfx);
+		renderComponents(gfx, ComponentType.GATE);
+		renderComponents(gfx, ComponentType.BLACK_BOX);		
+		renderComponents(gfx, ComponentType.HINGE);
 		
 		if (isCreatingNub)
 		{
@@ -795,7 +772,42 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		prevAlignedComponents = alignedComponents;
 	}
-
+	
+	private void renderComponents(final GraphicsGenerator gfx, final ComponentType compType)
+	{
+		Iterator<Component> compsIter = getComponentsIterator();
+		while (compsIter.hasNext())
+		{
+			Component component = compsIter.next();
+			if (component.getComponentType() == compType)
+			{
+				boolean isInSelection = componentSelector.isComponentInSelection(component);
+				component.render(gfx, 
+		                         highlightedComponent == component && !isCreatingNub, 
+		                         isInSelection,
+		                         isInSelection && componentSelector.getNumberOfSelectedComponents() > 1);
+			}
+		}
+	}
+	
+	private void renderPathSegments(final GraphicsGenerator gfx)
+	{
+		Iterator<Component> iter = componentSelector.getSelectedComponentsIterator();
+		while (iter.hasNext())
+		{
+			Component component = iter.next();
+			if (component.getComponentType() == ComponentType.LINE_SEGMENT)
+			{
+				for (Component pathComponent: lineSegmentPath)
+				{
+					if (component != pathComponent)
+					{
+						((LineSegmentComponent)pathComponent).renderAsPathEdge(gfx);				
+					}
+				}				
+			}
+		}	
+	}
 	
 	private void checkAndAddNewComponents()
 	{
@@ -889,36 +901,41 @@ public final class MainCanvas extends JPanel implements Runnable,
 					if (comp.getRectangle().intersects(nubHinge.getRectangle()))
 					{
 						incidentHinge = comp;
-						nubHinge.setPosition(incidentHinge.getRectangle().x, incidentHinge.getRectangle().y);
-						nubHinge.setMovable(incidentHinge.isMovable());						
+						nubHinge.setPosition(incidentHinge.getRectangle().x, incidentHinge.getRectangle().y);						
+						if (nubHinge.isMovable())
+						{
+							nubHinge.setMovable(incidentHinge.isMovable());													
+						}
+						
+						Iterator<Component> compsIter2 = getComponentsIterator();						
+						while(compsIter2.hasNext())
+						{
+							Component comp2 = compsIter2.next();
+							
+							if (comp2.getComponentType() == ComponentType.LINE_SEGMENT)
+							{
+								LineSegmentComponent ls = (LineSegmentComponent)comp2;
+								
+								if (ls.getChildren().get(0) == incidentHinge)
+								{
+									ls.setStartPoint(nubHinge);
+									ls.setMovable(ls.getChildren().get(0).isMovable() && ls.getChildren().get(1).isMovable());
+									excludedLineSegments.add(ls);
+								}
+								else if (ls.getChildren().get(1) == incidentHinge)
+								{
+									ls.setEndPoint(nubHinge);
+									ls.setMovable(ls.getChildren().get(0).isMovable() && ls.getChildren().get(1).isMovable());
+									excludedLineSegments.add(ls);
+								}
+							}
+						}
+						
+						removeComponentFromCanvas(incidentHinge);
 					}
 				}
 			}
-			
-			compsIter = getComponentsIterator();
-			
-			while(compsIter.hasNext())
-			{
-				Component comp = compsIter.next();
-				
-				if (comp.getComponentType() == ComponentType.LINE_SEGMENT)
-				{
-					LineSegmentComponent ls = (LineSegmentComponent)comp;
-					
-					if (ls.getChildren().get(0) == incidentHinge)
-					{
-						ls.setStartPoint(nubHinge);
-						excludedLineSegments.add(ls);
-					}
-					else if (ls.getChildren().get(1) == incidentHinge)
-					{
-						ls.setEndPoint(nubHinge);
-						excludedLineSegments.add(ls);
-					}
-				}
-			}
-			
-			removeComponentFromCanvas(incidentHinge);
+						
 			addComponentToCanvas(nubHinge);
 			
 			if (nubPlacementIncidentComponents.size() > 0)
@@ -1001,12 +1018,15 @@ public final class MainCanvas extends JPanel implements Runnable,
 			
 			currentAction.execute();
 						
-			// Differentiate between a simple click and an actual move
-			if (startPositions.get(0)[0] != targetPositions.get(0)[0] ||
-				startPositions.get(0)[1] != targetPositions.get(0)[1])
-			{
-				executedActionHistory.add(currentAction);								
-			}						
+			if (startPositions.size() > 0 && targetPositions.size() > 0)
+			{		
+				// Differentiate between a simple click and an actual move
+				if (startPositions.get(0)[0] != targetPositions.get(0)[0] ||
+						startPositions.get(0)[1] != targetPositions.get(0)[1])
+				{
+					executedActionHistory.add(currentAction);								
+				}						
+			}
 		}	
 	}
 	
@@ -1025,8 +1045,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		startPositions        = new ArrayList<int[]>();
 		targetPositions       = new ArrayList<int[]>();				
 		componentSelector     = new ComponentSelector(0, 0);
-		mouse                 = new Mouse();
-		keyboard              = new Keyboard();		
+		mouse                 = new Mouse();	
 		
 		isCreatingNub = isNubInContact = movingComponents = false;		
 		

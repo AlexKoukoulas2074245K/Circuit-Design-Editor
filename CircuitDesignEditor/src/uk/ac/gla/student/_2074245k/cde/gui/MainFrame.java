@@ -265,7 +265,7 @@ public final class MainFrame extends JFrame
         wireMovementPanel.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
         
         // Hinge movement panel        
-        JRadioButton moveHingeButtonUnrestricted            = new JRadioButton("Move Hinge Unrestricted");        
+        JRadioButton moveHingeButtonUnrestricted    = new JRadioButton("Move Hinge Unrestricted");        
         JRadioButton segmentSpawnButtonUnrestricted = new JRadioButton("New Line Segment Unrestricted");
         JRadioButton moveHingeButtonAxisRes         = new JRadioButton("Move Hinge Axis Res.");
         JRadioButton segmentSpawnButtonAxisRes      = new JRadioButton("New Line Segment Axis Res.");        
@@ -321,7 +321,7 @@ public final class MainFrame extends JFrame
         menuPanel.add(wireMovementPanel);        
         menuPanel.add(hingeMovementPanel);
         menuPanel.add(checkBoxPanel);        
-        
+                
         canvasPanel = new MainCanvas(this);            
         canvasPanel.setPreferredSize(canvasDimension);
               
@@ -331,6 +331,8 @@ public final class MainFrame extends JFrame
         JScrollPane canvasScrollPane = new JScrollPane(wrapperPanel, 
         		                                       JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
         		                                       JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        
+        canvasPanel.setScrollPane(canvasScrollPane);
         canvasScrollPane.getVerticalScrollBar().setUnitIncrement(15);
         canvasScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
         
@@ -565,14 +567,16 @@ public final class MainFrame extends JFrame
         			cb.addItem(lfi.getClassName());
         		lfiPanel.add(cb, BorderLayout.CENTER);        	    
         		
-        		JButton applyButton = new JButton("Apply");
-        		applyButton.addActionListener(new ActionListener()
+        		
+        		JButton okButton = new JButton("OK");
+        		okButton.addActionListener(new ActionListener()
         		{
         			@Override
         			public void actionPerformed(ActionEvent __) 
         			{
-        				changeLookAndFeel((String)cb.getSelectedItem());        				     			
-        			}			
+        				changeLookAndFeel((String)cb.getSelectedItem());        
+        				jg.dispose();
+        			}	
         		});
         		
         		JButton cancelButton = new JButton("Cancel");
@@ -585,9 +589,20 @@ public final class MainFrame extends JFrame
         			}			
         		});
         		
+        		JButton applyButton = new JButton("Apply");
+        		applyButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent __) 
+        			{
+        				changeLookAndFeel((String)cb.getSelectedItem());        				     			
+        			}			
+        		});
+        		
         		JPanel optionsPanel = new JPanel();
-        		optionsPanel.add(applyButton);
+        		optionsPanel.add(okButton);
         		optionsPanel.add(cancelButton);
+        		optionsPanel.add(applyButton);
         		
         		JPanel lfOptionsPanel = new JPanel(new BorderLayout());
         		lfOptionsPanel.add(optionsPanel, BorderLayout.EAST);  
@@ -682,7 +697,35 @@ public final class MainFrame extends JFrame
         			@Override
         			public void actionPerformed(ActionEvent arg0) 
         			{
-        				GateComponent gateToAdd = new GateComponent(canvasPanel, GateComponent.GateType.valueOf((String)cb.getSelectedItem()), true, canvasPanel.getWidth()/2, canvasPanel.getHeight()/2);
+        				int targetX = 0;
+                		int targetY = 0;
+                		
+                		if (canvasPanel.getWidth() < canvasScrollPane.getViewportBorderBounds().width)
+                		{
+                			targetX = canvasPanel.getWidth()/2;
+                		}
+                		else
+                		{
+                			targetX = canvasScrollPane.getViewport().getViewPosition().x + canvasScrollPane.getViewportBorderBounds().width/2; 
+                		}
+                		
+                		if (canvasPanel.getHeight() < canvasScrollPane.getViewportBorderBounds().height)
+                		{
+                			targetY = canvasPanel.getHeight()/2;
+                		}
+                		else
+                		{
+                			targetY = canvasScrollPane.getViewport().getViewPosition().y + canvasScrollPane.getViewportBorderBounds().height/2;
+                		}
+                		
+                		targetX -= GateComponent.DEFAULT_SIZE/2;
+                		targetY -= GateComponent.DEFAULT_SIZE/2;
+                		
+        				GateComponent gateToAdd = new GateComponent(canvasPanel,
+        						                                    GateComponent.GateType.valueOf((String)cb.getSelectedItem()),
+        						                                    true, 
+        						                                    targetX,
+        						                                    targetY);
                 		gateToAdd.constructPortsAutomatically();                		
                 		canvasPanel.addComponentToCanvas(gateToAdd);
         				jg.dispose();
@@ -724,9 +767,28 @@ public final class MainFrame extends JFrame
         wireButton.addActionListener(new ActionListener()
         {
         	public void actionPerformed(final ActionEvent __)
-        	{        		
-        		int targetX = canvasPanel.getWidth()/2;
-        		int targetY = canvasPanel.getHeight()/2;        		        		        		
+        	{        		        		        		
+        		int targetX = 0;
+        		int targetY = 0;
+        		
+        		if (canvasPanel.getWidth() < canvasScrollPane.getViewportBorderBounds().width)
+        		{
+        			targetX = canvasPanel.getWidth()/2;
+        		}
+        		else
+        		{
+        			targetX = canvasScrollPane.getViewport().getViewPosition().x + canvasScrollPane.getViewportBorderBounds().width/2; 
+        		}
+        		
+        		if (canvasPanel.getHeight() < canvasScrollPane.getViewportBorderBounds().height)
+        		{
+        			targetY = canvasPanel.getHeight()/2;
+        		}
+        		else
+        		{
+        			targetY = canvasScrollPane.getViewport().getViewPosition().y + canvasScrollPane.getViewportBorderBounds().height/2;
+        		}
+        		
         		canvasPanel.finalizeWirePosition(targetX, targetY);                
         	}
         });

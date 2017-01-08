@@ -2,7 +2,7 @@ package uk.ac.gla.student._2074245k.cde.actions;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
 
-public class MoveAction implements Action
+public final class MoveAction implements Action
 {
 	private final Component component;
 

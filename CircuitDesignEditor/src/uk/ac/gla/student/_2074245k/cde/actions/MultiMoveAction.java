@@ -7,7 +7,7 @@ import java.util.List;
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 
-public class MultiMoveAction implements Action
+public final class MultiMoveAction implements Action
 {
 	private final List<Component> components;
 	private final List<int[]> startPositions;

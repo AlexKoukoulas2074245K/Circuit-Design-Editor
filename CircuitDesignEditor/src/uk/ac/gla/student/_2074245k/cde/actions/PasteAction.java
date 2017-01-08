@@ -8,7 +8,7 @@ import uk.ac.gla.student._2074245k.cde.gui.ComponentSelector;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
-public class PasteAction implements Action 
+public final class PasteAction implements Action 
 {
 	private MainCanvas canvas;
 	private ComponentSelector compSelector;

@@ -281,7 +281,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		
 		// Top Port Panels 
 		JPanel topPortsLabelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		topPortsLabelPanel.add(new JLabel("Top Ports:      "));		
+		topPortsLabelPanel.add(new JLabel("Top Ports:       "));		
 		
 		JButton topNewPort = new JButton("New Port");
 		topNewPort.setForeground(Color.blue);
