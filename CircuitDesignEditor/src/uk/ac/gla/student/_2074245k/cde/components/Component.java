@@ -2,7 +2,6 @@ package uk.ac.gla.student._2074245k.cde.components;
 
 import java.awt.Rectangle;
 import java.util.List;
-import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
@@ -11,7 +10,7 @@ public abstract class Component
 {	
 	public enum ComponentType
 	{
-		LINE_SEGMENT, HINGE, GATE, BLACK_BOX
+		LINE_SEGMENT, HINGE, GATE, BLACK_BOX, WHITE_BOX
 	}
 	
 	public enum MovementType
@@ -46,8 +45,7 @@ public abstract class Component
 	public abstract boolean mouseIntersection(final int mouseX, final int mouseY);
 	public abstract void render(final GraphicsGenerator g, final boolean highlighted, final boolean selected, final boolean inMultiSelectionMovement);
 	public abstract void renderAligned(final GraphicsGenerator g);	
-	public abstract void delete();
-	public abstract Component clone(Set<Component> outClonedComponents);
+	public abstract void delete();	
 	public abstract List<Component> getParents();
 	public abstract List<Component> getChildren();
 	public abstract String serialize();	

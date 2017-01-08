@@ -237,19 +237,7 @@ public abstract class ConcreteComponent extends Component
 			internalVerHinge.delete();
 			internalVerHingeIter.remove();
 		}	
-	}
-	
-	@Override
-	public List<Component> getParents()
-	{
-		return new ArrayList<Component>();		
-	}
-	
-	@Override
-	public List<Component> getChildren()
-	{
-		return new ArrayList<Component>(ports);
-	}
+	}		
 	
 	@Override
 	public Rectangle getRectangle() 

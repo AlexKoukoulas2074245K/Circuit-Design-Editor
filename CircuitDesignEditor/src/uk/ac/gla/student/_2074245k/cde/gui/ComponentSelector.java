@@ -7,7 +7,6 @@ import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
-import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public final class ComponentSelector 
@@ -127,44 +126,27 @@ public final class ComponentSelector
 			firstSelectedComponent = component;
 		}
 		
-		if (isEnabled && component.getComponentType() == ComponentType.HINGE)
-		{			
+		if (isEnabled)
+		{
+			for (Component child: component.getChildren())
+			{
+				if (!selectedComponents.contains(child))
+				{					
+					addComponentToSelection(child);
+				}
+			}
+			
 			for (Component parent: component.getParents())
-			{				
-				addComponentToSelection(parent);
+			{
+				// TODO: check if this test should be here
+				if (parent.getComponentType() != ComponentType.WHITE_BOX)
+				{					
+					if (!selectedComponents.contains(parent))
+					{
+						addComponentToSelection(parent);					
+					}
+				}
 			}
 		}
-		if (isEnabled && component.getComponentType() == ComponentType.LINE_SEGMENT)
-		{			
-			selectedComponents.add(component.getChildren().get(0));
-			selectedComponents.add(component.getChildren().get(1));
-			
-			
-			for (Component parent: component.getParents())
-			{				
-				selectedComponents.add(parent);
-				addConcreteComponentToSelection(parent);
-			}			
-		}				
-		else if (isEnabled && 
-				(component.getComponentType() == ComponentType.BLACK_BOX ||
-				 component.getComponentType() == ComponentType.GATE))
-		{						
-			addConcreteComponentToSelection(component);	
-		}		
-	}
-	
-	private void addConcreteComponentToSelection(final Component component)
-	{
-		ConcreteComponent concComp = (ConcreteComponent)component;
-		Iterator<Component> portsIter = concComp.getPortsIterator();
-		while (portsIter.hasNext())
-		{
-			Component ls = portsIter.next();
-			selectedComponents.add(ls);
-			selectedComponents.add(ls.getChildren().get(0));
-			selectedComponents.add(ls.getChildren().get(1));
-		}
-
-	}
+	}		
 }

@@ -6,7 +6,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -187,23 +186,6 @@ public final class HingeComponent extends Component
 			return;
 		
 		canvas.removeComponentFromCanvas(this);
-	}
-	
-	@Override
-	public Component clone(Set<Component> outClonedComponents)
-	{
-		HingeComponent clonedComponent = new HingeComponent(canvas, x, y, isMovable);
-		clonedComponent.setHasNub(hasNub);
-		
-		if (isInternalHinge)
-		{
-			clonedComponent.addInternalHingeInfo(internalHingeLocation, name);			
-		}
-		
-		clonedComponent.setIsInverted(isInverted);		
-		outClonedComponents.add(clonedComponent);
-		
-		return clonedComponent;
 	}
 	
 	@Override

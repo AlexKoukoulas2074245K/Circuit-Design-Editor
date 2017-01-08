@@ -5,7 +5,6 @@ import java.util.Set;
 import javax.swing.JFrame;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
-import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.gui.ComponentSelector;
 import uk.ac.gla.student._2074245k.cde.gui.MainFrame;
 
@@ -36,21 +35,23 @@ public final class FrameCounter
 			int nLses   = 0;
 			int nGates  = 0;
 			int nBBs    = 0;
+			int nWBs    = 0;
 			
 			for (Component component: components)
 			{
-				if (component.getComponentType() == ComponentType.HINGE)
-					nHinges++;
-				else if (component.getComponentType() == ComponentType.LINE_SEGMENT)
-					nLses++;
-				else if (component.getComponentType() == ComponentType.GATE)
-					nGates++;
-				else if (component.getComponentType() == ComponentType.BLACK_BOX)
-					nBBs++;
+				switch (component.getComponentType())
+				{
+					case HINGE:        nHinges++; break;
+					case LINE_SEGMENT: nLses++; break;
+					case GATE:         nGates++; break;
+					case BLACK_BOX:    nBBs++; break;
+					case WHITE_BOX:    nWBs++; break;
+				}				
 			}
 			frame.setTitle(MainFrame.WINDOW_TITLE + 
 					       " -  FPS: " + frameCounter + 
 					       "   | BBs: " + nBBs +
+					       ", WBs: " + nWBs +
 					       ", Gates: " + nGates +
 					       ", LS: " + nLses +
 					       ", Hinges: " + nHinges + 					      

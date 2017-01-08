@@ -13,8 +13,11 @@ import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -31,63 +34,66 @@ import javax.swing.text.NumberFormatter;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.gui.PortView.PortLocation;
-import uk.ac.gla.student._2074245k.cde.observables.BlackBoxCreationObservable;
-import uk.ac.gla.student._2074245k.cde.observers.BlackBoxCreationObserver;
+import uk.ac.gla.student._2074245k.cde.observables.ConcreteComponentCreationObservable;
+import uk.ac.gla.student._2074245k.cde.observers.ConcreteComponentCreationObserver;
 import uk.ac.gla.student._2074245k.cde.observers.PortModificationObserver;
 
-public final class BlackBoxBuilderPanel extends JPanel implements PortModificationObserver, BlackBoxCreationObservable
+public final class ConcreteComponentBuilderPanel extends JPanel implements PortModificationObserver, ConcreteComponentCreationObservable
 {
 	protected static final int MARGIN_DENOMINATOR  = 8;
 	private static final long serialVersionUID   = -5262618480592072518L;
-	private static final int DEFAULT_VIEW_WIDTH  = 256;
-	private static final int DEFAULT_VIEW_HEIGHT = 256;		
-	private static final Dimension DEFAULT_VIEW_DIMENSION = new Dimension(DEFAULT_VIEW_WIDTH + DEFAULT_VIEW_WIDTH / MARGIN_DENOMINATOR,
-			                                                              DEFAULT_VIEW_HEIGHT + DEFAULT_VIEW_HEIGHT / MARGIN_DENOMINATOR);
+	
 	protected static String componentName  = "Name of component";
 	protected static int nameXOffset       = 0;
 	protected static int nameYOffset       = 0;
 	
 	private JDialog modalAncestor = null;
-	private BlackBoxBuilderViewPanel blackBoxView   = null;
+	private ConcreteComponentBuilderViewPanel concreteComponentView   = null;
 	private JPanel leftPortsPanel  = null;
 	private JPanel rightPortsPanel = null;
 	private JPanel topPortsPanel   = null;
 	private JPanel botPortsPanel   = null;
 	private Map<PortView, JPanel> portViewsToPanels = null;
-	private List<BlackBoxCreationObserver> blackBoxCreationObservers = null;
+	private List<ConcreteComponentCreationObserver> concreteComponentCreationObservers = null;	
+	private Set<Component> selComponents = null;
 	private int numLeftPorts = 0;
 	private int numRightPorts = 0;
 	private int numTopPorts = 0;
 	private int numBotPorts = 0;
+	private int minComponentWidth = 80;
+	private int minComponentHeight = 80;
 	
-	public BlackBoxBuilderPanel(final MainCanvas canvas, final JDialog ancestor)
+	public ConcreteComponentBuilderPanel(final MainCanvas canvas,
+			                             final boolean shouldBuildWhiteBox,
+			                             final Iterator<Component> selectedComponentsIter, 
+			                             final JDialog ancestor)
 	{
-		super();
-		this.modalAncestor = ancestor;
+		super();		
+		this.modalAncestor          = ancestor;
 		
 		portViewsToPanels = new HashMap<PortView, JPanel>();
-		blackBoxCreationObservers = new ArrayList<BlackBoxCreationObserver>();
+		concreteComponentCreationObservers = new ArrayList<ConcreteComponentCreationObserver>();
 		
 		setLayout(new BorderLayout());						
 			
-		JPanel blackBoxOptionsPanel = new JPanel();
-		blackBoxOptionsPanel.setLayout(new BoxLayout(blackBoxOptionsPanel, BoxLayout.Y_AXIS));
+		JPanel concreteComponentOptionsPanel = new JPanel();
+		concreteComponentOptionsPanel.setLayout(new BoxLayout(concreteComponentOptionsPanel, BoxLayout.Y_AXIS));
 		
 		JLabel nameLabel = new JLabel("Component's name:");
-		componentName = "Name of component";
+		componentName = "Name";
 		
 		JTextField componentNameField = new JTextField(componentName, 20);		
 		componentNameField.addFocusListener(new SelectAllFocusListener(componentNameField));
 		componentNameField.getDocument().addDocumentListener(new DocumentListener()
 		{
 			@Override
-			public void changedUpdate(DocumentEvent __) { componentName = componentNameField.getText(); blackBoxView.repaint(); }
+			public void changedUpdate(DocumentEvent __) { componentName = componentNameField.getText(); concreteComponentView.repaint(); }
 
 			@Override
-			public void insertUpdate(DocumentEvent __) { componentName = componentNameField.getText(); blackBoxView.repaint(); }
+			public void insertUpdate(DocumentEvent __) { componentName = componentNameField.getText(); concreteComponentView.repaint(); }
 
 			@Override
-			public void removeUpdate(DocumentEvent __) { componentName = componentNameField.getText(); blackBoxView.repaint(); }		
+			public void removeUpdate(DocumentEvent __) { componentName = componentNameField.getText(); concreteComponentView.repaint(); }		
 		});
 		
 		NumberFormatter nameOffsetFormatter = new NumberFormatter(NumberFormat.getInstance());
@@ -105,7 +111,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void propertyChange(PropertyChangeEvent evt)
 			{
 				nameXOffset = (int)evt.getNewValue();
-				blackBoxView.repaint();
+				concreteComponentView.repaint();
 			}
 		});
 		
@@ -120,7 +126,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void propertyChange(PropertyChangeEvent evt)
 			{
 				nameYOffset = (int)evt.getNewValue();
-				blackBoxView.repaint();
+				concreteComponentView.repaint();
 			}
 		});
 		
@@ -137,14 +143,21 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		nameYOffsetPanel.add(nameYOffsetLabel);
 		nameYOffsetPanel.add(nameYOffsetField);
 		
-		NumberFormatter dimensionsFormatter = new NumberFormatter(NumberFormat.getInstance());
-		dimensionsFormatter.setValueClass(Integer.class);
-		dimensionsFormatter.setMinimum(48);
-		dimensionsFormatter.setCommitsOnValidEdit(false);
+		if (shouldBuildWhiteBox)
+		{
+			selComponents = new HashSet<Component>();
+			while (selectedComponentsIter.hasNext()) selComponents.add(selectedComponentsIter.next());
+			calculateMinDimensions();
+		}
 		
-		JLabel widthLabel = new JLabel("Component's width (>= 48px):  ");
-		JFormattedTextField widthField = new JFormattedTextField(dimensionsFormatter);		
-		widthField.setValue(DEFAULT_VIEW_WIDTH);
+		NumberFormatter dimensionsWidthFormatter = new NumberFormatter(NumberFormat.getInstance());
+		dimensionsWidthFormatter.setValueClass(Integer.class);
+		dimensionsWidthFormatter.setMinimum(minComponentWidth);
+		dimensionsWidthFormatter.setCommitsOnValidEdit(false);
+		
+		JLabel widthLabel = new JLabel("Component's width (>= " + minComponentWidth + "px):  ");
+		JFormattedTextField widthField = new JFormattedTextField(dimensionsWidthFormatter);		
+		widthField.setValue(minComponentWidth);
 		widthField.setColumns(10);
 		widthField.addFocusListener(new SelectAllFocusListener(widthField));		
 		widthField.addPropertyChangeListener("value", new PropertyChangeListener()
@@ -152,23 +165,28 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void propertyChange(PropertyChangeEvent evt)
 			{
-				int canvasHeight = blackBoxView.getHeight();
+				int canvasHeight = concreteComponentView.getHeight();
 				int canvasWidth  = (int)evt.getNewValue() + (int)evt.getNewValue() / MARGIN_DENOMINATOR;
 				Dimension newCanvasDimension = new Dimension(canvasWidth, canvasHeight);	
 				
-				blackBoxView.setSize(newCanvasDimension);
-				blackBoxView.setPreferredSize(newCanvasDimension);		
-				blackBoxView.setMinimumSize(newCanvasDimension);
-				blackBoxView.setMaximumSize(newCanvasDimension);
+				concreteComponentView.setSize(newCanvasDimension);
+				concreteComponentView.setPreferredSize(newCanvasDimension);		
+				concreteComponentView.setMinimumSize(newCanvasDimension);
+				concreteComponentView.setMaximumSize(newCanvasDimension);
 				validate();
 				modalAncestor.pack();				
-				blackBoxView.repaint();
+				concreteComponentView.repaint();
 			}
 		});
 					
-		JLabel heightLabel = new JLabel("Component's height (>= 48px): ");
-		JFormattedTextField heightField = new JFormattedTextField(dimensionsFormatter);		
-		heightField.setValue(DEFAULT_VIEW_HEIGHT);
+		NumberFormatter dimensionsHeightFormatter = new NumberFormatter(NumberFormat.getInstance());
+		dimensionsHeightFormatter.setValueClass(Integer.class);
+		dimensionsHeightFormatter.setMinimum(minComponentHeight);
+		dimensionsHeightFormatter.setCommitsOnValidEdit(false);
+		
+		JLabel heightLabel = new JLabel("Component's height (>= " + minComponentHeight + "px): ");
+		JFormattedTextField heightField = new JFormattedTextField(dimensionsHeightFormatter);		
+		heightField.setValue(minComponentHeight);
 		heightField.setColumns(10);
 		heightField.addFocusListener(new SelectAllFocusListener(heightField));		
 		heightField.addPropertyChangeListener("value", new PropertyChangeListener()
@@ -176,17 +194,17 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void propertyChange(PropertyChangeEvent evt)
 			{
-				int canvasWidth  = blackBoxView.getWidth(); 
+				int canvasWidth  = concreteComponentView.getWidth(); 
 				int canvasHeight = (int)evt.getNewValue() + (int)evt.getNewValue() / MARGIN_DENOMINATOR;
 				Dimension newCanvasDimension = new Dimension(canvasWidth, canvasHeight);
 								
-				blackBoxView.setSize(newCanvasDimension);
-				blackBoxView.setPreferredSize(newCanvasDimension);
-				blackBoxView.setMinimumSize(newCanvasDimension);
-				blackBoxView.setMaximumSize(newCanvasDimension);				
+				concreteComponentView.setSize(newCanvasDimension);
+				concreteComponentView.setPreferredSize(newCanvasDimension);
+				concreteComponentView.setMinimumSize(newCanvasDimension);
+				concreteComponentView.setMaximumSize(newCanvasDimension);				
 				validate();
 				modalAncestor.pack();				
-				blackBoxView.repaint();
+				concreteComponentView.repaint();
 			}
 		});
 		
@@ -203,10 +221,10 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		dimensionsPanel.add(widthPanel);
 		dimensionsPanel.add(heightPanel);		
 		
-		blackBoxOptionsPanel.add(namePanel);
-		blackBoxOptionsPanel.add(nameXOffsetPanel);
-		blackBoxOptionsPanel.add(nameYOffsetPanel);
-		blackBoxOptionsPanel.add(dimensionsPanel);						
+		concreteComponentOptionsPanel.add(namePanel);
+		concreteComponentOptionsPanel.add(nameXOffsetPanel);
+		concreteComponentOptionsPanel.add(nameYOffsetPanel);
+		concreteComponentOptionsPanel.add(dimensionsPanel);						
 		
 		JCheckBox gridVisibilityCheckbox = new JCheckBox("Port Grid visibility");
 		gridVisibilityCheckbox.setSelected(true);
@@ -215,7 +233,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void actionPerformed(ActionEvent __) 
 			{
-				blackBoxView.toggleGridVisibility();
+				concreteComponentView.toggleGridVisibility();
 			}		
 		});
 		
@@ -232,9 +250,9 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void actionPerformed(ActionEvent __) 
 			{
 				numLeftPorts++;
-				PortView portView = new PortView(PortLocation.LEFT, blackBoxView.getComponentRectangle().width/2, 1.0f/(numLeftPorts + 1), "port");
+				PortView portView = new PortView(PortLocation.LEFT, concreteComponentView.getComponentRectangle().width/2, 1.0f/(numLeftPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
-				blackBoxView.portInserted(portView);
+				concreteComponentView.portInserted(portView);
 			}		
 		});
 		
@@ -248,7 +266,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		leftPanel.add(leftPortsLabelPanel);
 		leftPanel.add(leftPortsPanel);
 		leftPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-		blackBoxOptionsPanel.add(leftPanel);
+		concreteComponentOptionsPanel.add(leftPanel);
 		
 		// Right Port Panels
 		JPanel rightPortsLabelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -262,9 +280,9 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void actionPerformed(ActionEvent __) 
 			{
 				numRightPorts++;
-				PortView portView = new PortView(PortLocation.RIGHT, blackBoxView.getComponentRectangle().width/2, 1.0f/(numRightPorts + 1), "port");
+				PortView portView = new PortView(PortLocation.RIGHT, concreteComponentView.getComponentRectangle().width/2, 1.0f/(numRightPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
-				blackBoxView.portInserted(portView);
+				concreteComponentView.portInserted(portView);
 			}		
 		});
 		rightPortsLabelPanel.add(rightNewPort);
@@ -277,7 +295,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		rightPanel.add(rightPortsLabelPanel);
 		rightPanel.add(rightPortsPanel);
 		rightPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-		blackBoxOptionsPanel.add(rightPanel);
+		concreteComponentOptionsPanel.add(rightPanel);
 		
 		// Top Port Panels 
 		JPanel topPortsLabelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -291,9 +309,9 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void actionPerformed(ActionEvent __) 
 			{
 				numTopPorts++;
-				PortView portView = new PortView(PortLocation.TOP, blackBoxView.getComponentRectangle().width/2, 1.0f/(numTopPorts + 1), "port");
+				PortView portView = new PortView(PortLocation.TOP, concreteComponentView.getComponentRectangle().width/2, 1.0f/(numTopPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
-				blackBoxView.portInserted(portView);
+				concreteComponentView.portInserted(portView);
 			}		
 		});
 		topPortsLabelPanel.add(topNewPort);
@@ -306,7 +324,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		topPanel.add(topPortsLabelPanel);
 		topPanel.add(topPortsPanel);
 		topPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-		blackBoxOptionsPanel.add(topPanel);
+		concreteComponentOptionsPanel.add(topPanel);
 		
 		// Bottom Port Panels
 		JPanel botPortsLabelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -320,9 +338,9 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void actionPerformed(ActionEvent __) 
 			{
 				numBotPorts++;
-				PortView portView = new PortView(PortLocation.BOTTOM, blackBoxView.getComponentRectangle().width/2, 1.0f/(numBotPorts + 1), "port");
+				PortView portView = new PortView(PortLocation.BOTTOM, concreteComponentView.getComponentRectangle().width/2, 1.0f/(numBotPorts + 1), "port");
 				callbackOnPortInsertionEvent(portView);
-				blackBoxView.portInserted(portView);
+				concreteComponentView.portInserted(portView);
 			}		
 		});
 		botPortsLabelPanel.add(botNewPort);
@@ -335,27 +353,28 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		botPanel.add(botPortsLabelPanel);
 		botPanel.add(botPortsPanel);
 		botPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-		blackBoxOptionsPanel.add(botPanel);
+		concreteComponentOptionsPanel.add(botPanel);
 		
-		// Black box View Panels
-		JLabel blackBoxPortCue = new JLabel("[You can also click outside the black box area to place ports]");
-		JPanel blackBoxPortCuePanel = new JPanel();
-		blackBoxPortCuePanel.add(blackBoxPortCue);
-		blackBoxOptionsPanel.add(blackBoxPortCuePanel);
+		// Component View Panels
+		JLabel concreteComponentPortCue = new JLabel("[You can also click in the grid below to place ports]");
+		JPanel concreteComponentPortCuePanel = new JPanel();
+		concreteComponentPortCuePanel.add(concreteComponentPortCue);
+		concreteComponentOptionsPanel.add(concreteComponentPortCuePanel);
 		
-		blackBoxView = new BlackBoxBuilderViewPanel(canvas);
-		blackBoxView.subscribeToPortInsertionEvent(this);
-		blackBoxView.subscribeToPortDeletionEvent(this);
-		blackBoxView.setPreferredSize(DEFAULT_VIEW_DIMENSION);
+		concreteComponentView = new ConcreteComponentBuilderViewPanel(canvas, shouldBuildWhiteBox, selComponents);
+		concreteComponentView.subscribeToPortInsertionEvent(this);
+		concreteComponentView.subscribeToPortDeletionEvent(this);
+		concreteComponentView.setPreferredSize(new Dimension(minComponentWidth + 2 * (minComponentWidth/MARGIN_DENOMINATOR),
+				                                             minComponentHeight + 2 * (minComponentHeight/MARGIN_DENOMINATOR)));
 		
 		JPanel wrapperFixedViewPanel = new JPanel(new GridBagLayout());
-        wrapperFixedViewPanel.add(blackBoxView, new GridBagConstraints());        
-		blackBoxOptionsPanel.add(wrapperFixedViewPanel);
+        wrapperFixedViewPanel.add(concreteComponentView, new GridBagConstraints());        
+		concreteComponentOptionsPanel.add(wrapperFixedViewPanel);
 		
 		
 		JPanel gridVisibilityPanel = new JPanel();
 		gridVisibilityPanel.add(gridVisibilityCheckbox);				
-		blackBoxOptionsPanel.add(gridVisibilityPanel);
+		concreteComponentOptionsPanel.add(gridVisibilityPanel);
 				
 		JButton createButton = new JButton("Create Component");
 		createButton.addActionListener(new ActionListener()
@@ -363,12 +382,12 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				Component blackBoxComponent = blackBoxView.buildBlackBox();
-				List<PortView> portViews = blackBoxView.getPortViews();
+				Component concreteComponent = concreteComponentView.buildConcreteComponent();
+				List<PortView> portViews = concreteComponentView.getPortViews();
 				
-				for (BlackBoxCreationObserver observer: blackBoxCreationObservers)
+				for (ConcreteComponentCreationObserver observer: concreteComponentCreationObservers)
 				{
-					observer.callbackOnBlackBoxCreationEvent(blackBoxComponent, portViews);
+					observer.callbackOnConcreteComponentCreationEvent(concreteComponent, portViews);
 				}
 				modalAncestor.dispose();
 			}			
@@ -391,7 +410,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		JPanel finalOptionsPanel = new JPanel(new BorderLayout());
 		finalOptionsPanel.add(optionsPanel, BorderLayout.EAST);
 		
-		add(blackBoxOptionsPanel, BorderLayout.NORTH);
+		add(concreteComponentOptionsPanel, BorderLayout.NORTH);
 		add(finalOptionsPanel, BorderLayout.SOUTH);	
 	}
 
@@ -407,13 +426,13 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		portNameField.getDocument().addDocumentListener(new DocumentListener()
 		{
 			@Override
-			public void changedUpdate(DocumentEvent __) { blackBoxView.portNameChange(portView, portNameField.getText()); }
+			public void changedUpdate(DocumentEvent __) { concreteComponentView.portNameChange(portView, portNameField.getText()); }
 
 			@Override
-			public void insertUpdate(DocumentEvent __) { blackBoxView.portNameChange(portView, portNameField.getText()); }
+			public void insertUpdate(DocumentEvent __) { concreteComponentView.portNameChange(portView, portNameField.getText()); }
 
 			@Override
-			public void removeUpdate(DocumentEvent __) { blackBoxView.portNameChange(portView, portNameField.getText()); }		
+			public void removeUpdate(DocumentEvent __) { concreteComponentView.portNameChange(portView, portNameField.getText()); }		
 		});		
 		portPanel.add(portNameField);
 		
@@ -425,7 +444,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			public void actionPerformed(ActionEvent __) 
 			{
 				portView.isInverted = !portView.isInverted;
-				blackBoxView.repaint();				
+				concreteComponentView.repaint();				
 			}			
 		});
 		
@@ -440,8 +459,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 		{		
 			case LEFT:
 			{
-				portPositionFormatter.setMinimum(blackBoxView.getComponentRectangle().y);
-				portPositionFormatter.setMaximum(blackBoxView.getComponentRectangle().y + blackBoxView.getComponentRectangle().height);
+				portPositionFormatter.setMinimum(concreteComponentView.getComponentRectangle().y);
+				portPositionFormatter.setMaximum(concreteComponentView.getComponentRectangle().y + concreteComponentView.getComponentRectangle().height);
 				
 				JLabel portYLabel = new JLabel("Y (px):  ");
 				JFormattedTextField portYField = new JFormattedTextField(portPositionFormatter);
@@ -453,7 +472,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void propertyChange(PropertyChangeEvent evt)
 					{
-						blackBoxView.portPositionChanged(portView, (int)evt.getNewValue());
+						concreteComponentView.portPositionChanged(portView, (int)evt.getNewValue());
 					}
 				});
 				
@@ -468,7 +487,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					public void actionPerformed(ActionEvent __) 
 					{
 						numLeftPorts--;
-						blackBoxView.portDeleted(portView);
+						concreteComponentView.portDeleted(portView);
 						leftPortsPanel.remove(portPanel);
 						validate();										
 					}					
@@ -480,8 +499,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			
 			case RIGHT:
 			{
-				portPositionFormatter.setMinimum(blackBoxView.getComponentRectangle().y);
-				portPositionFormatter.setMaximum(blackBoxView.getComponentRectangle().y + blackBoxView.getComponentRectangle().height);
+				portPositionFormatter.setMinimum(concreteComponentView.getComponentRectangle().y);
+				portPositionFormatter.setMaximum(concreteComponentView.getComponentRectangle().y + concreteComponentView.getComponentRectangle().height);
 				
 				JLabel portYLabel = new JLabel("Y (px):  ");
 				JFormattedTextField portYField = new JFormattedTextField(portPositionFormatter);
@@ -493,7 +512,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void propertyChange(PropertyChangeEvent evt)
 					{
-						blackBoxView.portPositionChanged(portView, (int)evt.getNewValue());
+						concreteComponentView.portPositionChanged(portView, (int)evt.getNewValue());
 					}
 				});
 				
@@ -508,7 +527,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					public void actionPerformed(ActionEvent __) 
 					{
 						numRightPorts--;
-						blackBoxView.portDeleted(portView);
+						concreteComponentView.portDeleted(portView);
 						rightPortsPanel.remove(portPanel);
 						validate();										
 					}					
@@ -520,8 +539,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			
 			case TOP:    
 			{
-				portPositionFormatter.setMinimum(blackBoxView.getComponentRectangle().x);
-				portPositionFormatter.setMaximum(blackBoxView.getComponentRectangle().x + blackBoxView.getComponentRectangle().width);
+				portPositionFormatter.setMinimum(concreteComponentView.getComponentRectangle().x);
+				portPositionFormatter.setMaximum(concreteComponentView.getComponentRectangle().x + concreteComponentView.getComponentRectangle().width);
 				
 				JLabel portXLabel = new JLabel("X (px):  ");
 				JFormattedTextField portXField = new JFormattedTextField(portPositionFormatter);
@@ -533,7 +552,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void propertyChange(PropertyChangeEvent evt)
 					{
-						blackBoxView.portPositionChanged(portView, (int)evt.getNewValue());
+						concreteComponentView.portPositionChanged(portView, (int)evt.getNewValue());
 					}
 				});
 				
@@ -548,7 +567,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					public void actionPerformed(ActionEvent __) 
 					{
 						numTopPorts--;
-						blackBoxView.portDeleted(portView);
+						concreteComponentView.portDeleted(portView);
 						topPortsPanel.remove(portPanel);
 						validate();											
 					}					
@@ -560,8 +579,8 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 			
 			case BOTTOM:
 			{
-				portPositionFormatter.setMinimum(blackBoxView.getComponentRectangle().x);
-				portPositionFormatter.setMaximum(blackBoxView.getComponentRectangle().x + blackBoxView.getComponentRectangle().width);
+				portPositionFormatter.setMinimum(concreteComponentView.getComponentRectangle().x);
+				portPositionFormatter.setMaximum(concreteComponentView.getComponentRectangle().x + concreteComponentView.getComponentRectangle().width);
 				
 				JLabel portXLabel = new JLabel("X (px):  ");
 				JFormattedTextField portXField = new JFormattedTextField(portPositionFormatter);
@@ -573,7 +592,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					@Override
 					public void propertyChange(PropertyChangeEvent evt)
 					{
-						blackBoxView.portPositionChanged(portView, (int)evt.getNewValue());
+						concreteComponentView.portPositionChanged(portView, (int)evt.getNewValue());
 					}
 				});
 				
@@ -588,7 +607,7 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 					public void actionPerformed(ActionEvent __) 
 					{
 						numBotPorts--;
-						blackBoxView.portDeleted(portView);
+						concreteComponentView.portDeleted(portView);
 						botPortsPanel.remove(portPanel);
 						validate();												
 					}					
@@ -617,8 +636,39 @@ public final class BlackBoxBuilderPanel extends JPanel implements PortModificati
 	}
 
 	@Override
-	public void subscribeToBlackBoxCreationEvent(final BlackBoxCreationObserver observer) 
+	public void subscribeToConcreteComponentCreationEvent(final ConcreteComponentCreationObserver observer) 
 	{
-		blackBoxCreationObservers.add(observer);
-	}	
+		concreteComponentCreationObservers.add(observer);
+	}
+	
+	private void calculateMinDimensions()
+	{
+		Component firstComponent = selComponents.iterator().next();
+		int minX = firstComponent.getRectangle().x;
+		int minY = firstComponent.getRectangle().y;
+		int maxX = firstComponent.getRectangle().x + firstComponent.getRectangle().width;
+		int maxY = firstComponent.getRectangle().y + firstComponent.getRectangle().height;
+		
+		// Find min and max points from selection
+		for (Component comp: selComponents)
+		{
+			if (comp.getRectangle().x < minX)
+				minX = comp.getRectangle().x;
+			if (comp.getRectangle().y < minY)
+				minY = comp.getRectangle().y;
+			if (comp.getRectangle().x + comp.getRectangle().width > maxX)
+				maxX = comp.getRectangle().x + comp.getRectangle().width;
+			if (comp.getRectangle().y + comp.getRectangle().height > maxY)
+				maxY = comp.getRectangle().y + comp.getRectangle().height;
+		}
+		
+		// Add padding
+		minX -= 32;
+		minY -= 32;
+		maxX += 32;
+		maxY += 32;
+		
+		minComponentWidth  = maxX - minX;
+		minComponentHeight = maxY - minY;
+	}
 }

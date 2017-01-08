@@ -1,7 +1,9 @@
 package uk.ac.gla.student._2074245k.cde.components;
 
 import java.awt.Rectangle;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -58,17 +60,31 @@ public final class GateComponent extends ConcreteComponent
 	{
 		render(g, false, false, false);
 	}
+		
+	@Override
+	public List<Component> getParents()
+	{
+		List<Component> parents = new ArrayList<Component>();
+		Iterator<Component> compIter = canvas.getComponentsIterator(); 
+		while (compIter.hasNext())
+		{
+			Component nextComp = compIter.next();
+			if (nextComp.getComponentType() == ComponentType.WHITE_BOX)				
+			{
+				if (((WhiteBoxComponent)nextComp).isInnerComponent(this))
+					parents.add(nextComp);
+			}
+		}
+		
+		return parents;	
+	}
 	
 	@Override
-	public Component clone(Set<Component> outComponents)
+	public List<Component> getChildren()
 	{
-		GateComponent clonedComponent = new GateComponent(canvas, gateType, isMovable, getRectangle().x, getRectangle().y);
-		clonedComponent.constructPortsAutomatically();
-		outComponents.add(clonedComponent);
-		
-		return clonedComponent;
+		return new ArrayList<Component>(ports);
 	}
-		
+	
 	@Override
 	public String serialize() 
 	{		

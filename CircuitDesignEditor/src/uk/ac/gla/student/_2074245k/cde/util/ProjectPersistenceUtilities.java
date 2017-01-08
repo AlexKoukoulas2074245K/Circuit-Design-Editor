@@ -23,6 +23,7 @@ import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.GateComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
+import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.gui.PortView;
 
@@ -298,7 +299,7 @@ public final class ProjectPersistenceUtilities
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
 		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
-		
+		List<WhiteBoxComponent> whiteBoxComponents       = new ArrayList<WhiteBoxComponent>();
 		for (Component component: components)
 		{
 			switch (component.getComponentType())
@@ -306,6 +307,7 @@ public final class ProjectPersistenceUtilities
 				case LINE_SEGMENT: lineSegmentComponents.add((LineSegmentComponent)component); break;
 				case HINGE:        hingeComponents.add((HingeComponent)component); break;
 				case GATE: case BLACK_BOX: concreteComponents.add((ConcreteComponent)component); break;
+				case WHITE_BOX: whiteBoxComponents.add((WhiteBoxComponent)component); break;
 			}
 		}
 		

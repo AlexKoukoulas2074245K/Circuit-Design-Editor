@@ -17,6 +17,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -42,7 +43,9 @@ import uk.ac.gla.student._2074245k.cde.components.Component.Orientation;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
-import uk.ac.gla.student._2074245k.cde.observers.BlackBoxCreationObserver;
+import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComparator;
+import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
+import uk.ac.gla.student._2074245k.cde.observers.ConcreteComponentCreationObserver;
 import uk.ac.gla.student._2074245k.cde.util.FrameCounter;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 import uk.ac.gla.student._2074245k.cde.util.LoadingResult;
@@ -54,7 +57,7 @@ public final class MainCanvas extends JPanel implements Runnable,
                                                         MouseListener,
                                                         MouseMotionListener,
                                                         ComponentListener,
-                                                        BlackBoxCreationObserver
+                                                        ConcreteComponentCreationObserver
 {
 	public enum MovementType
 	{
@@ -196,10 +199,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void componentShown(ComponentEvent __) {}
 	
 	@Override
-	public void callbackOnBlackBoxCreationEvent(final Component blackBox, final List<PortView> portViews) 
+	public void callbackOnConcreteComponentCreationEvent(final Component comp, final List<PortView> portViews) 
 	{
-				
-		Rectangle rect = blackBox.getRectangle();
+		ConcreteComponent concComp = (ConcreteComponent)comp;
+		Rectangle rect = concComp.getRectangle();
 		
 		for (PortView portView: portViews)
 		{			
@@ -216,7 +219,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);						
 					
 					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.LEFT, portView.portName);
-					((BlackBoxComponent)blackBox).addInternalHorHinge(internalHinge);
+					concComp.addInternalHorHinge(internalHinge);
 					
 				} break;
 				
@@ -227,7 +230,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.RIGHT, portView.portName);
-					((BlackBoxComponent)blackBox).addInternalHorHinge(internalHinge);						
+					concComp.addInternalHorHinge(internalHinge);						
 					
 				} break;
 				
@@ -238,7 +241,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.TOP, portView.portName);
-					((BlackBoxComponent)blackBox).addInternalVerHinge(internalHinge);						
+					concComp.addInternalVerHinge(internalHinge);						
 					
 				} break;
 				
@@ -249,23 +252,21 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
-					((BlackBoxComponent)blackBox).addInternalVerHinge(internalHinge);								
+					concComp.addInternalVerHinge(internalHinge);								
 				}  break;
 			}
 			
 			((HingeComponent)internalHinge).setIsInverted(portView.isInverted);
 			
-			((BlackBoxComponent)blackBox).addPort(port);
+			concComp.addPort(port);
 			
 			addComponentToCanvas(externalHinge);
 			addComponentToCanvas(internalHinge);
 			addComponentToCanvas(port);	
 		}
 		
-		addComponentToCanvas(blackBox);	
+		addComponentToCanvas(concComp);	
 		
-		Component.MovementType prevMT = ConcreteComponent.globalConcreteComponentMovementType;
-		ConcreteComponent.globalConcreteComponentMovementType = Component.MovementType.FREE;
 		
 		int targetX = 0;
 		int targetY = 0;
@@ -288,10 +289,51 @@ public final class MainCanvas extends JPanel implements Runnable,
 			targetY = scrollPane.getViewport().getViewPosition().y + scrollPane.getViewportBorderBounds().height/2;
 		}
 		
-		targetX -= blackBox.getRectangle().width/2;
-		targetY -= blackBox.getRectangle().height/2;
+		targetX -= concComp.getRectangle().width/2;
+		targetY -= concComp.getRectangle().height/2;
 		
-		blackBox.moveTo(targetX, targetY);
+		Component.MovementType prevMT = ConcreteComponent.globalConcreteComponentMovementType;
+		ConcreteComponent.globalConcreteComponentMovementType = Component.MovementType.FREE;
+		concComp.moveTo(targetX, targetY);
+		
+		// Position selected components inside white box
+		if (concComp.getComponentType() == ComponentType.WHITE_BOX)
+		{
+			// Find component with min position
+			Component componentWithMinX = componentSelector.getSelectedComponentsIterator().next();	
+			Component componentWithMinY = componentSelector.getSelectedComponentsIterator().next();
+			
+			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompsIter.hasNext())
+			{
+				Component selComp = selCompsIter.next();
+				if (selComp.getRectangle().x < componentWithMinX.getRectangle().x)
+				{
+					componentWithMinX = selComp;
+				}
+				if (selComp.getRectangle().y < componentWithMinY.getRectangle().y)
+				{					
+					componentWithMinY = selComp;
+				}
+			}
+			
+			System.out.println(concComp.getRectangle().x + ", " + componentWithMinX.getRectangle().x);
+			System.out.println(concComp.getRectangle().y + ", " + componentWithMinY.getRectangle().y);
+			
+			int dx = componentWithMinX.getRectangle().x - (concComp.getRectangle().x + 32);
+			int dy = componentWithMinY.getRectangle().y - (concComp.getRectangle().y + 32);
+			
+			selCompsIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompsIter.hasNext())
+			{
+				Component selComp = selCompsIter.next();
+				if (selComp.getComponentType() != ComponentType.LINE_SEGMENT)
+				{
+					selComp.setPosition(selComp.getRectangle().x - dx, selComp.getRectangle().y - dy);					
+				}
+			}
+		}
+		
 		ConcreteComponent.globalConcreteComponentMovementType = prevMT;	
 	}
 
@@ -352,6 +394,16 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void finalizeNubPosition(final int x, final int y)
 	{
 		finalizeNubCreation();
+	}
+	
+	public int getNumberOfSelectedComponents()
+	{
+		return componentSelector.getNumberOfSelectedComponents();
+	}
+	
+	public Iterator<Component> getSelectedComponentsIterator()
+	{
+		return componentSelector.getSelectedComponentsIterator();
 	}
 	
 	public boolean hasMultiSelection()
@@ -453,21 +505,32 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 	}
 	
+	public void addChildrenAndParentsToSelection()
+	{
+		Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+		List<Component> selComponents = new ArrayList<Component>();
+		
+		while (selCompsIter.hasNext())
+		{
+			selComponents.add(selCompsIter.next());
+		}
+		
+		componentSelector.enable();
+		
+		for (Component selComponent: selComponents)
+		{
+			componentSelector.addComponentToSelectionExternally(selComponent);												
+		}				
+		componentSelector.disable();			
+	}
+	
 	public void copy()
 	{
 		synchronized (componentSelector)
 		{				
-			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
-			componentSelector.enable();
-			while (selCompsIter.hasNext())
-			{													
-				componentSelector.addComponentToSelectionExternally(selCompsIter.next());							
-			}
-			
-			componentSelector.disable();
-			
+			this.addChildrenAndParentsToSelection();			
 			Set<Component> selComponents = new HashSet<Component>();
-			selCompsIter = componentSelector.getSelectedComponentsIterator();
+			Iterator<Component>selCompsIter = componentSelector.getSelectedComponentsIterator();
 			while (selCompsIter.hasNext())
 			{
 				selComponents.add(selCompsIter.next());
@@ -493,21 +556,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{			
 			if (componentSelector.getNumberOfSelectedComponents() > 1)			
 			{				
-				Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
-				List<Component> selComponents = new ArrayList<Component>();
-				
-				while (selCompsIter.hasNext())
-				{
-					selComponents.add(selCompsIter.next());
-				}
-				
-				componentSelector.enable();
-				
-				for (Component selComponent: selComponents)
-				{
-					componentSelector.addComponentToSelectionExternally(selComponent);												
-				}				
-				componentSelector.disable();				
+				addChildrenAndParentsToSelection();
 			}
 			
 			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
@@ -518,6 +567,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 			
 			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 		}
+	}
+	
+	public void toggleOpacity()
+	{
+		WhiteBoxComponent.WHITE_BOX_OPACITY = !WhiteBoxComponent.WHITE_BOX_OPACITY;
 	}
 	
 	private void inputUpdates()
@@ -619,25 +673,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 					movingComponents = true;
 				}
 			}
-		}
-//		else if (mouse.isButtonJustReleased(Mouse.LEFT_BUTTON) || !mouse.isButtonDown(Mouse.LEFT_BUTTON))
-//		{											
-//			lineSegmentPath.clear();
-//			selectionDx = selectionDy = 0;
-//			
-//			if (movingComponents)
-//			{								
-//				finalizeMovementAndCreateActions();
-//			}
-//			
-//			alignedComponents = null;
-//			movingComponents  = false;
-//			
-//			synchronized (componentSelector)
-//			{
-//				componentSelector.disable();				
-//			}
-//		}							
+		}						
 		
 		if (isCreatingNub)
 		{							
@@ -730,8 +766,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 		renderComponents(gfx, ComponentType.LINE_SEGMENT);
 		renderPathSegments(gfx);
 		renderComponents(gfx, ComponentType.GATE);
-		renderComponents(gfx, ComponentType.BLACK_BOX);		
+		renderComponents(gfx, ComponentType.BLACK_BOX);
 		renderComponents(gfx, ComponentType.HINGE);
+		renderWhiteBoxes(gfx);
 		
 		if (isCreatingNub)
 		{
@@ -813,6 +850,40 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}	
 	}
 	
+	private void renderWhiteBoxes(final GraphicsGenerator gfx)
+	{
+		List<Component> whiteBoxes = new LinkedList<Component>();
+		for (Iterator<Component> componentsIter = components.iterator(); componentsIter.hasNext();)
+		{
+			Component comp = componentsIter.next();
+			if (comp.getComponentType() == ComponentType.WHITE_BOX)
+			{
+				whiteBoxes.add(comp);
+			}
+		}
+		
+		if (whiteBoxes.size() > 0)
+		{
+			if (WhiteBoxComponent.WHITE_BOX_OPACITY)
+			{
+				whiteBoxes.sort(new WhiteBoxComparator(false));
+			}
+			else
+			{
+				whiteBoxes.sort(new WhiteBoxComparator(true));
+			}
+			
+			for (Component comp: whiteBoxes)			
+			{
+				boolean isInSelection = componentSelector.isComponentInSelection(comp);
+				comp.render(gfx, 
+                            highlightedComponent == comp && !isCreatingNub, 
+                            isInSelection,
+                            isInSelection && componentSelector.getNumberOfSelectedComponents() > 1);
+			}
+		}
+	}
+	
 	private void checkAndAddNewComponents()
 	{
 		synchronized (componentsToAdd)
@@ -846,31 +917,69 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private Component getHoveredComponent(final int mouseX, final int mouseY)
 	{		
-		Component highlightedComponent = null;
+		List<Component> opaqueWBs      = new LinkedList<Component>();
+		List<Component> gates          = new LinkedList<Component>();
+		List<Component> hinges         = new LinkedList<Component>();
+		List<Component> lses           = new LinkedList<Component>();
+		List<Component> bbs            = new LinkedList<Component>();
+		List<Component> transpWBs      = new LinkedList<Component>();
+		
 		for (Iterator<Component> componentIter = components.iterator(); componentIter.hasNext();)
 		{
 			Component component = componentIter.next();
-			if (component.mouseIntersection(mouseX, mouseY))
-			{	
-				// Prioritize Gate > Hinge > Line Segment
-				if (highlightedComponent != null && 
-					highlightedComponent.getComponentType() == ComponentType.GATE &&
-					component.getComponentType() != ComponentType.GATE)
-				{	
-					continue;				
-				}				 
-				else if (highlightedComponent != null &&
-					highlightedComponent.getComponentType() == ComponentType.HINGE &&
-					component.getComponentType() == ComponentType.LINE_SEGMENT)
+			switch (component.getComponentType())
+			{
+				case GATE:         gates.add(component); break;
+				case HINGE:        hinges.add(component); break;
+				case LINE_SEGMENT: lses.add(component); break;
+				case BLACK_BOX:    bbs.add(component); break;
+				case WHITE_BOX:    
 				{
-					continue;
-				}
-				
-				highlightedComponent = component;
+					if (WhiteBoxComponent.WHITE_BOX_OPACITY)
+					{
+						opaqueWBs.add(component);
+					}
+					else
+					{
+						transpWBs.add(component);
+					}
+				} break;
 			}
 		}
 		
+		opaqueWBs.sort(new WhiteBoxComparator(true));
+		transpWBs.sort(new WhiteBoxComparator(false));		
+		
+		Component highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, opaqueWBs);
+		if (highlightedComponent != null) return highlightedComponent;
+		
+		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, gates);
+		if (highlightedComponent != null) return highlightedComponent;
+		
+		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, hinges);
+		if (highlightedComponent != null) return highlightedComponent;
+		
+		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, lses);
+		if (highlightedComponent != null) return highlightedComponent;
+		
+		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, bbs);
+		if (highlightedComponent != null) return highlightedComponent;
+		
+		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, transpWBs);
 		return highlightedComponent;
+	}
+	
+	private Component getHoveredComponentInBucket(final int mouseX, 
+			                                      final int mouseY,
+ 			                                      final List<Component> bucket)
+	{
+		for (Component comp: bucket)
+		{
+			if (comp.mouseIntersection(mouseX, mouseY))
+				return comp;
+		}
+		
+		return null;
 	}
 	
 	private void finalizeWireCreation(final int x, final int y)

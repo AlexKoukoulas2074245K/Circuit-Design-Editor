@@ -98,16 +98,19 @@ public final class MainFrame extends JFrame
     		{
     			@Override
     			public void windowClosing(final WindowEvent __)
-    			{
-    				   					
+    			{    				   					
 					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_CANCEL_OPTION);
             		if (selOption == JOptionPane.YES_OPTION)
             		{            			
             			displaySaveProjectDialog();
+            			File tempFile = new File(".temp");
+            			if (tempFile.exists()) tempFile.delete();
             			System.exit(0);
             		}
             		else if (selOption == JOptionPane.NO_OPTION)
             		{
+            			File tempFile = new File(".temp");
+            			if (tempFile.exists()) tempFile.delete();
             			System.exit(0);                			
             		}    				
     			}
@@ -308,14 +311,14 @@ public final class MainFrame extends JFrame
         JCheckBox hingeVisibilityCheckbox = new JCheckBox("Hinge Visibility");
         hingeVisibilityCheckbox.setSelected(true);
         
-        // Path visibility checkbox
-        JCheckBox pathVisibilityCheckbox = new JCheckBox("Wire Path Visibility");
-        pathVisibilityCheckbox.setSelected(true);
+        // White Box opacity checkbox
+        JCheckBox whiteBoxOpacityCheckbox = new JCheckBox("White Box Opacity");
+        whiteBoxOpacityCheckbox.setSelected(false);
         
         JPanel checkBoxPanel = new JPanel(new BorderLayout());
         checkBoxPanel.add(alignmentCheckbox, BorderLayout.NORTH);
         checkBoxPanel.add(hingeVisibilityCheckbox, BorderLayout.CENTER);
-        checkBoxPanel.add(pathVisibilityCheckbox, BorderLayout.SOUTH);
+        checkBoxPanel.add(whiteBoxOpacityCheckbox, BorderLayout.SOUTH);
         
         // Add components to the menu panel
         menuPanel.add(bbButton);        
@@ -335,9 +338,8 @@ public final class MainFrame extends JFrame
         
         JScrollPane canvasScrollPane = new JScrollPane(wrapperPanel, 
         		                                       JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-        		                                       JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        
-        canvasPanel.setScrollPane(canvasScrollPane);
+        		                                       JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);                
+        canvasPanel.setScrollPane(canvasScrollPane);        
         canvasScrollPane.getVerticalScrollBar().setUnitIncrement(15);
         canvasScrollPane.getHorizontalScrollBar().setUnitIncrement(15);
         
@@ -709,14 +711,28 @@ public final class MainFrame extends JFrame
         bbButton.addActionListener(new ActionListener()
 		{
         	public void actionPerformed(ActionEvent __) 
-        	{               
-        		JDialog jDialog = new JDialog(frame, "Black Box specification", ModalityType.APPLICATION_MODAL);
+        	{
+        		boolean shouldBuildWhiteBox = false;
+        		if (canvasPanel.getNumberOfSelectedComponents() > 0)
+        		{        			
+        			int selOption = JOptionPane.showConfirmDialog (null, "Build White Box with selected components?", "White Box Option", JOptionPane.YES_NO_CANCEL_OPTION);        			
+        			if (selOption == JOptionPane.YES_OPTION)
+        			{
+        				canvasPanel.addChildrenAndParentsToSelection();
+        				shouldBuildWhiteBox = true;
+        			}        			
+        			else if (selOption == JOptionPane.CANCEL_OPTION)
+        			{
+        				return;
+        			}
+        		}
+        		
+        		JDialog jDialog = new JDialog(frame, (shouldBuildWhiteBox ? "White" : "Black") + " Box specification", ModalityType.APPLICATION_MODAL);
         		jDialog.setResizable(true);
         		
-        		BlackBoxBuilderPanel builderPanel = new BlackBoxBuilderPanel(canvasPanel, jDialog);
-        		builderPanel.subscribeToBlackBoxCreationEvent(canvasPanel);        		
-        		JScrollPane scrollPane = new JScrollPane(builderPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        		 	
+        		ConcreteComponentBuilderPanel builderPanel = new ConcreteComponentBuilderPanel(canvasPanel, shouldBuildWhiteBox, canvasPanel.getSelectedComponentsIterator(), jDialog);
+        		builderPanel.subscribeToConcreteComponentCreationEvent(canvasPanel);        		
+        		JScrollPane scrollPane = new JScrollPane(builderPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);        		 
         		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
         		
         		jDialog.setIconImage(bbImage);
@@ -887,8 +903,8 @@ public final class MainFrame extends JFrame
 			@Override
 			public void mouseDragged(MouseEvent e) 
 			{				
-				canvasPanel.setNubCreationPosition(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
-						                           -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
+				canvasPanel.setNubCreationPosition(canvasScrollPane.getViewport().getViewPosition().x -canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+						                           canvasScrollPane.getViewport().getViewPosition().y -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
 			}
 
 			@Override
@@ -1004,11 +1020,11 @@ public final class MainFrame extends JFrame
         	}
         });        
         
-        pathVisibilityCheckbox.addActionListener(new ActionListener()
+        whiteBoxOpacityCheckbox.addActionListener(new ActionListener()
         {
         	public void actionPerformed(ActionEvent __)
         	{
-        		LineSegmentComponent.globalPathVisibility = !LineSegmentComponent.globalPathVisibility;
+        		canvasPanel.toggleOpacity();
         	}
         });
         

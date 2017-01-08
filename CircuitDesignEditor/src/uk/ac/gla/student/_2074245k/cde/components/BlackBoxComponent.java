@@ -3,7 +3,9 @@ package uk.ac.gla.student._2074245k.cde.components;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -70,48 +72,29 @@ public final class BlackBoxComponent extends ConcreteComponent
 	{
 		render(g, false, false, false);
 	}
-
+	
 	@Override
-	public Component clone(Set<Component> outClonedComponents)
+	public List<Component> getParents()
 	{
-		BlackBoxComponent clonedComponent = new BlackBoxComponent(canvas,
-				                                                  new Rectangle(componentRect),
-				                                                  new String(name),
-				                                                  nameXOffset,
-				                                                  nameYOffset);
-		
-		for (Component port: ports)
+		List<Component> parents = new ArrayList<Component>();
+		Iterator<Component> compIter = canvas.getComponentsIterator(); 
+		while (compIter.hasNext())
 		{
-			Component clonedPort = port.clone(outClonedComponents);						
-			clonedComponent.addPort(clonedPort);
-			
-			Component portStartPoint = port.getChildren().get(0);
-			Component portEndPoint = port.getChildren().get(1);
-			
-			Component clonedPortStartPoint = clonedPort.getChildren().get(0);
-			Component clonedPortEndPoint = clonedPort.getChildren().get(1);
-			
-			if (internalHorHinges.contains(portStartPoint))
+			Component nextComp = compIter.next();
+			if (nextComp.getComponentType() == ComponentType.WHITE_BOX)				
 			{
-				clonedComponent.addInternalHorHinge(clonedPortStartPoint);
+				if (((WhiteBoxComponent)nextComp).isInnerComponent(this))
+					parents.add(nextComp);
 			}
-			else if (internalHorHinges.contains(portEndPoint))
-			{
-				clonedComponent.addInternalHorHinge(clonedPortEndPoint);
-			}
-			else if (internalVerHinges.contains(portStartPoint))
-			{	
-				clonedComponent.addInternalVerHinge(clonedPortStartPoint);
-			}
-			else if (internalVerHinges.contains(portEndPoint))
-			{
-				clonedComponent.addInternalVerHinge(clonedPortEndPoint);
-			}
-				
 		}
 		
-		outClonedComponents.add(clonedComponent);
-		return clonedComponent;
+		return parents;			
+	}
+	
+	@Override
+	public List<Component> getChildren()
+	{
+		return new ArrayList<Component>(ports);
 	}
 	
 	@Override

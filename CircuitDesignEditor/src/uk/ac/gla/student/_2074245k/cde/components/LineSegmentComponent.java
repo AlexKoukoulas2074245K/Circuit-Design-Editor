@@ -4,7 +4,6 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -226,18 +225,6 @@ public final class LineSegmentComponent extends Component
 	}
 	
 	@Override
-	public Component clone(Set<Component> outClonedComponents)
-	{
-		Component clonedStartPoint = startPoint.clone(outClonedComponents);
-		Component clonedEndPoint   = endPoint.clone(outClonedComponents);
-		
-		LineSegmentComponent clonedComponent = new LineSegmentComponent(canvas, clonedStartPoint, clonedEndPoint, isMovable);
-		outClonedComponents.add(clonedComponent);
-		
-		return clonedComponent;
-	}
-	
-	@Override
 	public List<Component> getParents()
 	{
 		List<Component> parents = new ArrayList<Component>();
@@ -246,6 +233,7 @@ public final class LineSegmentComponent extends Component
 		{
 			Component nextComp = compIter.next();
 			if (nextComp.getComponentType() == ComponentType.BLACK_BOX ||
+				nextComp.getComponentType() == ComponentType.WHITE_BOX ||
 				nextComp.getComponentType() == ComponentType.GATE)
 			{
 				if (((ConcreteComponent)nextComp).hasPort(this))

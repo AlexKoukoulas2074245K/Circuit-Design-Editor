@@ -9,17 +9,19 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JPanel;
 
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
+import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.gui.PortView.PortLocation;
 import uk.ac.gla.student._2074245k.cde.observables.PortModificationObservable;
 import uk.ac.gla.student._2074245k.cde.observers.PortModificationObserver;
 import uk.ac.gla.student._2074245k.cde.util.Mouse;
 
-public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListener, MouseMotionListener, PortModificationObservable
+public final class ConcreteComponentBuilderViewPanel extends JPanel implements MouseListener, MouseMotionListener, PortModificationObservable
 {	
 	private static final long serialVersionUID = -1384668565961127584L;	
 	private Color backgroundColor = Colors.CANVAS_BKG_COLOR;
@@ -30,27 +32,45 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 	private List<PortModificationObserver> insertionObservers;
 	private List<PortModificationObserver> deletionObservers;
 	
-	private List<PortView> portViews;
-	private MainCanvas canvas;
+	private List<PortView> portViews;	
+	private final MainCanvas canvas;
+	private final boolean shouldBuildWhiteBox;
+	private final Set<Component> selComponents;
 	
-	public BlackBoxBuilderViewPanel(final MainCanvas canvas)
+	public ConcreteComponentBuilderViewPanel(final MainCanvas canvas, 
+			                                 final boolean shouldBuildWhiteBox, 
+			                                 final Set<Component> selComponents)
 	{
-		super();
-		this.canvas = canvas;
-		panelMouse = new Mouse();		
-		portViews = new ArrayList<PortView>();
+		super();		
+		this.canvas              = canvas;
+		this.shouldBuildWhiteBox = shouldBuildWhiteBox;
+		this.selComponents       = selComponents;
+		panelMouse               = new Mouse();		
+		portViews                = new ArrayList<PortView>();
 		
 		insertionObservers = new ArrayList<PortModificationObserver>();
 		deletionObservers = new ArrayList<PortModificationObserver>();
 	}
 	
-	public Component buildBlackBox()
+	public Component buildConcreteComponent()
 	{
-		return new BlackBoxComponent(canvas,
-				                     getComponentRectangle(), 				                     
-				                     BlackBoxBuilderPanel.componentName,
-				                     BlackBoxBuilderPanel.nameXOffset,
-				                     BlackBoxBuilderPanel.nameYOffset);
+		if (shouldBuildWhiteBox)
+		{
+			return new WhiteBoxComponent(canvas,
+					                     getComponentRectangle(), 				     
+					                     selComponents,
+					                     ConcreteComponentBuilderPanel.componentName,					                     
+					                     ConcreteComponentBuilderPanel.nameXOffset,
+					                     ConcreteComponentBuilderPanel.nameYOffset);
+		}
+		else
+		{
+			return new BlackBoxComponent(canvas,
+					                     getComponentRectangle(), 				     					                     
+					                     ConcreteComponentBuilderPanel.componentName,					                     
+					                     ConcreteComponentBuilderPanel.nameXOffset,
+					                     ConcreteComponentBuilderPanel.nameYOffset);
+		}		
 	}
 	
 	public List<PortView> getPortViews()
@@ -113,8 +133,8 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 	{
 		int viewWidth = getWidth();
 		int viewHeight = getHeight();
-		int xmargin = viewWidth / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
-		int ymargin = viewHeight / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;				
+		int xmargin = viewWidth / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
+		int ymargin = viewHeight / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;				
 		return new Rectangle(xmargin, ymargin, viewWidth - 2 * xmargin, viewHeight - 2 * ymargin);
 	}
 
@@ -151,16 +171,16 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 		{
 			g.setColor(new Color(220, 220, 220));
 			
-			int nRows = getHeight() / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
-			int nCols = getWidth() / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
+			int nRows = getHeight() / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
+			int nCols = getWidth() / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 			
 			for (int y = 0; y < nRows; ++y)
 			{
-				g.drawLine(0, y * BlackBoxBuilderPanel.MARGIN_DENOMINATOR, getWidth(), y * BlackBoxBuilderPanel.MARGIN_DENOMINATOR);
+				g.drawLine(0, y * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, getWidth(), y * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
 				
 				for (int x = 0; x < nCols; ++x)
 				{
-					g.drawLine(x * BlackBoxBuilderPanel.MARGIN_DENOMINATOR, 0, x * BlackBoxBuilderPanel.MARGIN_DENOMINATOR, getHeight());
+					g.drawLine(x * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 0, x * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, getHeight());
 				}
 			}						
 		}
@@ -172,10 +192,10 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 		g.setColor(Colors.DEFAULT_COLOR);
 		g.drawRect(componentRect.x, componentRect.y, componentRect.width, componentRect.height);
 		
-		Rectangle2D stringBounds = g.getFontMetrics().getStringBounds(BlackBoxBuilderPanel.componentName, g);
-		g.drawString(BlackBoxBuilderPanel.componentName,
-				     BlackBoxBuilderPanel.nameXOffset + (int)(getWidth() - stringBounds.getWidth())/2,
-				     BlackBoxBuilderPanel.nameYOffset + (int)(getHeight() - stringBounds.getHeight())/2);
+		Rectangle2D stringBounds = g.getFontMetrics().getStringBounds(ConcreteComponentBuilderPanel.componentName, g);
+		g.drawString(ConcreteComponentBuilderPanel.componentName,
+				     ConcreteComponentBuilderPanel.nameXOffset + (int)(getWidth() - stringBounds.getWidth())/2,
+				     ConcreteComponentBuilderPanel.nameYOffset + (int)(getHeight() - stringBounds.getHeight())/2);
 		
 		// Render ports
 		for (PortView portView: portViews)
@@ -186,25 +206,25 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 				{
 					g.drawLine(0,
 							   (int)(portView.normalizedPosition * getHeight()), 
-							   componentRect.x - (portView.isInverted ? BlackBoxBuilderPanel.MARGIN_DENOMINATOR : 0),  
+							   componentRect.x - (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0),  
 							   (int)(portView.normalizedPosition * getHeight()));
 					
 					if (portView.isInverted)
 					{						
-						g.drawOval(componentRect.x - BlackBoxBuilderPanel.MARGIN_DENOMINATOR,
-								   (int)(portView.normalizedPosition * getHeight()) - BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2,
-							       BlackBoxBuilderPanel.MARGIN_DENOMINATOR, 
-								   BlackBoxBuilderPanel.MARGIN_DENOMINATOR);
+						g.drawOval(componentRect.x - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR,
+								   (int)(portView.normalizedPosition * getHeight()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
+							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
+								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
 					}
 					
 					g.drawString(portView.portName, 
 							     componentRect.x + 5, 
-							     (int)(portView.normalizedPosition * getHeight()) + BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2);
+							     (int)(portView.normalizedPosition * getHeight()) + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2);
 				} break;
 				
 				case RIGHT:
 				{
-					g.drawLine(componentRect.x + componentRect.width + (portView.isInverted ? BlackBoxBuilderPanel.MARGIN_DENOMINATOR : 0),
+					g.drawLine(componentRect.x + componentRect.width + (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0),
 							   (int)(portView.normalizedPosition * getHeight()), 
 							   getWidth(), 
 							   (int)(portView.normalizedPosition * getHeight()));
@@ -212,15 +232,15 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 					if (portView.isInverted)
 					{						
 						g.drawOval(componentRect.x + componentRect.width,
-								   (int)(portView.normalizedPosition * getHeight()) - BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2,
-							       BlackBoxBuilderPanel.MARGIN_DENOMINATOR, 
-								   BlackBoxBuilderPanel.MARGIN_DENOMINATOR);
+								   (int)(portView.normalizedPosition * getHeight()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
+							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
+								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
 					}
 					
 					Rectangle2D nameBounds = g.getFontMetrics().getStringBounds(portView.portName, g);
 					g.drawString(portView.portName, 
 							     componentRect.x + componentRect.width - 5 - (int)nameBounds.getWidth(),
-							     (int)(portView.normalizedPosition * getHeight()) + BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2);
+							     (int)(portView.normalizedPosition * getHeight()) + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2);
 				} break;
 				
 				case TOP:
@@ -228,35 +248,35 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 					g.drawLine((int)(portView.normalizedPosition * getWidth()),
 							   0, 
 							   (int)(portView.normalizedPosition * getWidth()), 
-							   componentRect.y - (portView.isInverted ? BlackBoxBuilderPanel.MARGIN_DENOMINATOR : 0));
+							   componentRect.y - (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0));
 					
 					if (portView.isInverted)
 					{						
-						g.drawOval((int)(portView.normalizedPosition * getWidth()) - BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2,
-								   componentRect.y - BlackBoxBuilderPanel.MARGIN_DENOMINATOR,
-							       BlackBoxBuilderPanel.MARGIN_DENOMINATOR, 
-								   BlackBoxBuilderPanel.MARGIN_DENOMINATOR);
+						g.drawOval((int)(portView.normalizedPosition * getWidth()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
+								   componentRect.y - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR,
+							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
+								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
 					}
 					
 					Rectangle2D nameBounds = g.getFontMetrics().getStringBounds(portView.portName, g);
 					g.drawString(portView.portName,
 							     (int)(portView.normalizedPosition * getWidth()) - (int)nameBounds.getWidth()/2,
-							     componentRect.y + BlackBoxBuilderPanel.MARGIN_DENOMINATOR + 5);
+							     componentRect.y + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR + 5);
 				} break;
 				
 				case BOTTOM:
 				{
 					g.drawLine((int)(portView.normalizedPosition * getWidth()),
-							   componentRect.y + componentRect.height + (portView.isInverted ? BlackBoxBuilderPanel.MARGIN_DENOMINATOR : 0), 
+							   componentRect.y + componentRect.height + (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0), 
 							   (int)(portView.normalizedPosition * getWidth()), 
 							   getHeight());
 					
 					if (portView.isInverted)
 					{						
-						g.drawOval((int)(portView.normalizedPosition * getWidth()) - BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2,
+						g.drawOval((int)(portView.normalizedPosition * getWidth()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
 								   componentRect.y + componentRect.height,
-							       BlackBoxBuilderPanel.MARGIN_DENOMINATOR, 
-								   BlackBoxBuilderPanel.MARGIN_DENOMINATOR);
+							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
+								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
 					}
 					
 					Rectangle2D nameBounds = g.getFontMetrics().getStringBounds(portView.portName, g);
@@ -326,52 +346,52 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 			PortView addedPortView = null;
 			if (mouseX < componentRect.x && mouseY > componentRect.y && mouseY < componentRect.y + componentRect.height)
 			{				
-				int row = mouseY / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
+				int row = mouseY / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 				
 				if (deletePortViewOnPositionIfPresent(0, row, PortLocation.LEFT))
 					;
 				else
 				{
-					int actualPosition = row * BlackBoxBuilderPanel.MARGIN_DENOMINATOR + BlackBoxBuilderPanel.MARGIN_DENOMINATOR/2;
+					int actualPosition = row * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2;
 					addedPortView = new PortView(PortLocation.LEFT, actualPosition, (float)actualPosition/getHeight(), "port");
 					portViews.add(addedPortView);					
 				}
 			}
 			else if (mouseX > componentRect.x + componentRect.width && mouseY > componentRect.y && mouseY < componentRect.y + componentRect.height)
 			{
-				int row = mouseY / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
+				int row = mouseY / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 				
 				if (deletePortViewOnPositionIfPresent(0, row, PortLocation.RIGHT))
 					;
 				else
 				{
-					int actualPosition = row * BlackBoxBuilderPanel.MARGIN_DENOMINATOR + BlackBoxBuilderPanel.MARGIN_DENOMINATOR / 2;
+					int actualPosition = row * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR / 2;
 					addedPortView = new PortView(PortLocation.RIGHT, actualPosition, (float)actualPosition/getHeight(), "port"); 
 					portViews.add(addedPortView);					
 				}
 			}
 			else if (mouseY < componentRect.y && mouseX > componentRect.x && mouseX < componentRect.x + componentRect.width)
 			{
-				int col = mouseX / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
+				int col = mouseX / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 				
 				if (deletePortViewOnPositionIfPresent(col, 0, PortLocation.TOP))
 					;
 				else
 				{
-					int actualPosition = col * BlackBoxBuilderPanel.MARGIN_DENOMINATOR + BlackBoxBuilderPanel.MARGIN_DENOMINATOR / 2;
+					int actualPosition = col * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR / 2;
 					addedPortView = new PortView(PortLocation.TOP, actualPosition, (float)actualPosition/getWidth(), "port"); 
 					portViews.add(addedPortView);
 				}
 			}						
 			else if (mouseY > componentRect.y + componentRect.height && mouseX > componentRect.x && mouseX < componentRect.x + componentRect.width)
 			{
-				int col = mouseX / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
+				int col = mouseX / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 				
 				if (deletePortViewOnPositionIfPresent(col, 0, PortLocation.BOTTOM))
 					;
 				else
 				{
-					int actualPosition = col * BlackBoxBuilderPanel.MARGIN_DENOMINATOR + BlackBoxBuilderPanel.MARGIN_DENOMINATOR / 2;
+					int actualPosition = col * ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR / 2;
 					addedPortView = new PortView(PortLocation.BOTTOM, actualPosition, (float)actualPosition/getWidth(), "port"); 
 					portViews.add(addedPortView);					
 				}
@@ -395,8 +415,8 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 		
 		if (!componentRect.contains(mouseX, mouseY))
 		{
-			int row = mouseY / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
-			int col = mouseX / BlackBoxBuilderPanel.MARGIN_DENOMINATOR;
+			int row = mouseY / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
+			int col = mouseX / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 			
 			PortLocation mouseLocation = null;
 			
@@ -420,10 +440,10 @@ public final class BlackBoxBuilderViewPanel extends JPanel implements MouseListe
 		{
 			switch (portView.portLocation)
 			{
-				case LEFT:   if (portView.actualPosition/BlackBoxBuilderPanel.MARGIN_DENOMINATOR == row && mouseLocation == PortLocation.LEFT) portViewToDelete = portView; break;				
-				case RIGHT:  if (portView.actualPosition/BlackBoxBuilderPanel.MARGIN_DENOMINATOR == row && mouseLocation == PortLocation.RIGHT) portViewToDelete = portView; break;				
-				case TOP:    if (portView.actualPosition/BlackBoxBuilderPanel.MARGIN_DENOMINATOR == col && mouseLocation == PortLocation.TOP) portViewToDelete = portView; break;
-				case BOTTOM: if (portView.actualPosition/BlackBoxBuilderPanel.MARGIN_DENOMINATOR == col && mouseLocation == PortLocation.BOTTOM) portViewToDelete = portView; break;
+				case LEFT:   if (portView.actualPosition/ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR == row && mouseLocation == PortLocation.LEFT) portViewToDelete = portView; break;				
+				case RIGHT:  if (portView.actualPosition/ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR == row && mouseLocation == PortLocation.RIGHT) portViewToDelete = portView; break;				
+				case TOP:    if (portView.actualPosition/ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR == col && mouseLocation == PortLocation.TOP) portViewToDelete = portView; break;
+				case BOTTOM: if (portView.actualPosition/ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR == col && mouseLocation == PortLocation.BOTTOM) portViewToDelete = portView; break;
 			}			
 		}
 		
