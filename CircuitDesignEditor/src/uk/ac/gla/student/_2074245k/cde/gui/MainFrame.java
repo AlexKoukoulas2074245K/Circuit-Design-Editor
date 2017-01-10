@@ -98,21 +98,25 @@ public final class MainFrame extends JFrame
     		{
     			@Override
     			public void windowClosing(final WindowEvent __)
-    			{    				   					
-					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_CANCEL_OPTION);
-            		if (selOption == JOptionPane.YES_OPTION)
-            		{            			
-            			displaySaveProjectDialog();
-            			File tempFile = new File(".temp");
-            			if (tempFile.exists()) tempFile.delete();
-            			System.exit(0);
-            		}
-            		else if (selOption == JOptionPane.NO_OPTION)
-            		{
-            			File tempFile = new File(".temp");
-            			if (tempFile.exists()) tempFile.delete();
-            			System.exit(0);                			
-            		}    				
+    			{    	
+    				if (canvasPanel.hasTakenActionSinceLastSave())
+    				{    					
+    					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_CANCEL_OPTION);
+    					if (selOption == JOptionPane.YES_OPTION)
+    					{            			
+    						displaySaveProjectDialog();
+    						File tempFile = new File(".temp");
+    						if (tempFile.exists()) tempFile.delete();
+    						System.exit(0);
+    					}
+    					else if (selOption == JOptionPane.NO_OPTION)
+    					{
+    						File tempFile = new File(".temp");
+    						if (tempFile.exists()) tempFile.delete();
+    						System.exit(0);                			
+    					}    				
+    				}
+    				System.exit(0);
     			}
     		});
     	}

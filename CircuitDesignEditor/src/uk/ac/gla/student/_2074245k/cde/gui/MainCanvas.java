@@ -134,7 +134,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					            executedActionHistory.size(),
 					            undoneActionHistory.size(),
 					            window,
-					            lastSaveLocation);
+					            lastSaveLocation,
+					            hasTakenActionSinceLastSave);
 		}				 
 	}
 
@@ -446,19 +447,21 @@ public final class MainCanvas extends JPanel implements Runnable,
 		setPreferredSize(result.canvasDimension);			
 		revalidate();
 		repaint();
-		
 		JOptionPane.showMessageDialog(null, "Loaded project successfully");
+		hasTakenActionSinceLastSave = false;
 	}
 	
 	public void saveProject()
 	{
-		ProjectPersistenceUtilities.saveProject(lastSaveLocation, components, getSize(), false);		
+		ProjectPersistenceUtilities.saveProject(lastSaveLocation, components, getSize(), false);	
+		hasTakenActionSinceLastSave = false;
 	}
 	
 	public void saveProjectToFile(final File file)
 	{
 		ProjectPersistenceUtilities.saveProject(file, components, getSize(), true);				
 		lastSaveLocation = file;
+		hasTakenActionSinceLastSave = false;
 	}
 	
 	public void exportToSVG(final File svgOutput)
@@ -503,6 +506,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			Action lastAction = executedActionHistory.remove(executedActionHistory.size() - 1);			
 			lastAction.undo();
 			undoneActionHistory.add(lastAction);
+			hasTakenActionSinceLastSave = true;
 		}
 	}
 	
@@ -513,6 +517,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			Action lastUndoneAction = undoneActionHistory.remove(undoneActionHistory.size() - 1);
 			lastUndoneAction.execute();
 			executedActionHistory.add(lastUndoneAction);
+			hasTakenActionSinceLastSave = true;
 		}
 	}
 	
@@ -546,22 +551,23 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{
 			componentSelector.addComponentToSelectionExternally(selComponent);												
 		}				
-		componentSelector.disable();			
+		componentSelector.disable();
+		hasTakenActionSinceLastSave = true;
 	}
 	
 	public void copy()
 	{
 		synchronized (componentSelector)
 		{				
-			this.addChildrenAndParentsToSelection();			
+			addChildrenAndParentsToSelection();			
 			Set<Component> selComponents = new HashSet<Component>();
 			Iterator<Component>selCompsIter = componentSelector.getSelectedComponentsIterator();
 			while (selCompsIter.hasNext())
 			{
 				selComponents.add(selCompsIter.next());
-			}
-						
+			}						
 			ProjectPersistenceUtilities.saveProjectNonPersistent(selComponents, getSize());
+			hasTakenActionSinceLastSave = true;
 		}
 	}
 	
@@ -573,21 +579,19 @@ public final class MainCanvas extends JPanel implements Runnable,
 		pasteAction.execute();
 		executedActionHistory.add(pasteAction);
 		componentSelector.disable();
+		hasTakenActionSinceLastSave = true;
 	}
 	
 	public void delete()
 	{
 		synchronized (componentSelector)
-		{			
-			if (componentSelector.getNumberOfSelectedComponents() > 1)			
-			{				
-				addChildrenAndParentsToSelection();
-			}
-			
+		{								
+			addChildrenAndParentsToSelection();						
 			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
 			while (selCompsIter.hasNext())
 			{
 				selCompsIter.next().delete();
+				hasTakenActionSinceLastSave = true;
 			}
 			
 			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
@@ -597,6 +601,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void toggleOpacity()
 	{
 		WhiteBoxComponent.WHITE_BOX_OPACITY = !WhiteBoxComponent.WHITE_BOX_OPACITY;
+		hasTakenActionSinceLastSave = true;
 	}
 	
 	private void inputUpdates()
@@ -668,6 +673,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				{
 					alignedComponents = componentSelector.getFirstComponent().moveTo(mouse.getX() + selectionDx, mouse.getY() + selectionDy);
 					movingComponents  = true;
+					hasTakenActionSinceLastSave = true;
 				}
 				else if (componentSelector.getNumberOfSelectedComponents() > 1)
 				{															
@@ -697,7 +703,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 							component.setPosition(component.getRectangle().x + deltaX, component.getRectangle().y + deltaY);						
 						}
 					}
-										
+					
+					hasTakenActionSinceLastSave = true;
 					movingComponents = true;
 				}
 			}
@@ -765,6 +772,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			{
 				isNubInContact = false;
 			}
+			hasTakenActionSinceLastSave = true;
 		}
 				
 		mouse.updateOnFrameEnd();		
@@ -924,6 +932,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				for (Component component: componentsToAdd)
 				{					
 					components.add(component);
+					hasTakenActionSinceLastSave = true;
 				}				
 				componentsToAdd.clear();
 			}
@@ -939,6 +948,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				for (Component component: componentsToRemove)
 				{
 					components.remove(component);
+					hasTakenActionSinceLastSave = true;
 				}
 				
 				componentsToRemove.clear();
@@ -1022,6 +1032,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		addComponentToCanvas(new LineSegmentComponent(this, startPoint, endPoint, true));		
 		addComponentToCanvas(startPoint);
 		addComponentToCanvas(endPoint);		
+		hasTakenActionSinceLastSave = true;
 	}
 	
 	private void finalizeNubCreation()
@@ -1098,7 +1109,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					addComponentToCanvas(newSegment2);
 				}						
 			}
-		}		
+			hasTakenActionSinceLastSave = true;
+		}
 	}
 
 	private void constructLinePath(final Component component)
@@ -1201,6 +1213,6 @@ public final class MainCanvas extends JPanel implements Runnable,
 		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
 		
 		lastSaveLocation = saveFile;
-		hasTakenActionSinceLastSave = false;
+		hasTakenActionSinceLastSave = true;
 	}
 }

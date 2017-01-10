@@ -214,8 +214,8 @@ public final class LineSegmentComponent extends Component
 	@Override
 	public void delete()
 	{
-		if (getParents().size() >= 1)
-		{				
+		if (getParents().size() > 0 && !allParentsAreWhiteBoxes())
+		{	
 			return;
 		}
 		
@@ -236,13 +236,10 @@ public final class LineSegmentComponent extends Component
 		Iterator<Component> compIter = canvas.getComponentsIterator(); 
 		while (compIter.hasNext())
 		{
-			Component nextComp = compIter.next();
-			if (nextComp.getComponentType() == ComponentType.BLACK_BOX ||
-				nextComp.getComponentType() == ComponentType.WHITE_BOX ||
-				nextComp.getComponentType() == ComponentType.GATE)
+			Component comp = compIter.next();
+			if (comp.getChildren().contains(this))
 			{
-				if (((ConcreteComponent)nextComp).hasPort(this))
-					parents.add(nextComp);
+				parents.add(comp);
 			}
 		}
 		
@@ -347,5 +344,18 @@ public final class LineSegmentComponent extends Component
 		{
 			return Orientation.HORIZONTAL;		
 		}
+	}
+	
+	private boolean allParentsAreWhiteBoxes()
+	{
+		for (Component comp: getParents())
+		{
+			if (comp.getComponentType() != ComponentType.WHITE_BOX)
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }

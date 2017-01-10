@@ -26,7 +26,8 @@ public final class FrameCounter
 			           final int execActionLength, 
 			           final int undoneActionLength, 
 			           final JFrame frame,
-			           final File selFile)
+			           final File selFile,
+			           final boolean hasTakenActionSinceLastSave)
 	{
 		frameCounter++;
 		long timeNow = System.nanoTime();
@@ -52,6 +53,7 @@ public final class FrameCounter
 			}
 			frame.setTitle(MainFrame.WINDOW_TITLE + " - " +
 			               (selFile == null ? "New Canvas" : selFile.getName()) + 
+			               (hasTakenActionSinceLastSave ? "*" : "") + 
 					       " -  FPS: " + frameCounter + 
 					       "   | BBs: " + nBBs +
 					       ", WBs: " + nWBs +

@@ -218,7 +218,7 @@ public abstract class ConcreteComponent extends Component
 		canvas.removeComponentFromCanvas(this);
 		
 		for (Component comp: getChildren())
-		{
+		{			
 			comp.delete();
 		}
 		

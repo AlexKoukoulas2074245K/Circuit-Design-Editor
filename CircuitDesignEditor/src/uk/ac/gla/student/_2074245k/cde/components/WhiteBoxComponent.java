@@ -168,6 +168,13 @@ public class WhiteBoxComponent extends ConcreteComponent
 	}
 
 	@Override
+	public void delete()
+	{
+		updateInnerComponentsRefs();
+		super.delete();
+	}
+		
+	@Override
 	public List<Component> getParents()
 	{
 		return new ArrayList<Component>();
@@ -176,7 +183,7 @@ public class WhiteBoxComponent extends ConcreteComponent
 	@Override
 	public List<Component> getChildren()
 	{
-		List<Component> children = new ArrayList<Component>(ports);
+		List<Component> children = new ArrayList<Component>(ports);	
 		children.addAll(innerComponents);
 		return children;
 	}
