@@ -18,11 +18,10 @@ import javax.swing.JOptionPane;
 import uk.ac.gla.student._2074245k.cde.Main;
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
-import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
-import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.GateComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
+import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComparator;
 import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.gui.PortView;
@@ -31,7 +30,7 @@ public final class ProjectPersistenceUtilities
 {		
 	private static enum LoadingMode
 	{
-		HINGE, LINE_SEGMENT, GATE, BLACK_BOX
+		HINGE, LINE_SEGMENT, GATE, BLACK_BOX, WHITE_BOX
 	}
 	
 	public static LoadingResult openProjectNonPersistent(final MainCanvas canvas)
@@ -56,8 +55,9 @@ public final class ProjectPersistenceUtilities
 		
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
-		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
-		
+		List<GateComponent> gateComponents               = new ArrayList<GateComponent>();
+		List<BlackBoxComponent> blackBoxComponents       = new ArrayList<BlackBoxComponent>();
+		List<WhiteBoxComponent> whiteBoxComponents       = new ArrayList<WhiteBoxComponent>();
 		Set<Component> loadedComponents                  = new HashSet<Component>();
 		Dimension canvasDimension                        = null;
 		
@@ -125,7 +125,7 @@ public final class ProjectPersistenceUtilities
 					{
 						if (line.startsWith("#"))
 						{
-							for (int i = 0; i < 4; ++i)
+							for (int i = 0; i < 3; ++i)
 								br.readLine();
 							
 							loadingMode = LoadingMode.GATE;
@@ -152,13 +152,11 @@ public final class ProjectPersistenceUtilities
 							continue;						
 						}											
 						
-						GateComponent.GateType gateType = GateComponent.GateType.valueOf(line);
 						
-						line = br.readLine();
-						
-						String[] posComponents = line.split(",");
-						int x = Integer.parseInt(posComponents[0]);
-						int y = Integer.parseInt(posComponents[1]);
+						String[] posComponents = line.split(",");						
+						GateComponent.GateType gateType = GateComponent.GateType.valueOf(posComponents[1]);
+						int x = Integer.parseInt(posComponents[2]);
+						int y = Integer.parseInt(posComponents[3]);
 						
 						GateComponent gateComponent = new GateComponent(canvas, gateType, true, x, y);
 												
@@ -192,24 +190,28 @@ public final class ProjectPersistenceUtilities
 							}							
 						}
 						
-						concreteComponents.add(gateComponent);
+						gateComponents.add(gateComponent);
 					} break;
 					
 					case BLACK_BOX:
 					{
 						if (line.startsWith("#"))
 						{
+							for (int i = 0; i < 4; ++i)
+								br.readLine();
+							
+							loadingMode = LoadingMode.WHITE_BOX;
 							continue;						
 						}
 												
 						String[] coreComponentInfo = line.split(",");
-						Rectangle componentRect = new Rectangle(Integer.parseInt(coreComponentInfo[0]),
-								                                Integer.parseInt(coreComponentInfo[1]),
+						Rectangle componentRect = new Rectangle(Integer.parseInt(coreComponentInfo[1]),
 								                                Integer.parseInt(coreComponentInfo[2]),
-								                                Integer.parseInt(coreComponentInfo[3]));
-						String componentName = coreComponentInfo[4];
-						int nameXOffset = Integer.parseInt(coreComponentInfo[5]);
-						int nameYOffset = Integer.parseInt(coreComponentInfo[6]);
+								                                Integer.parseInt(coreComponentInfo[3]),
+								                                Integer.parseInt(coreComponentInfo[4]));
+						String componentName = coreComponentInfo[5];
+						int nameXOffset = Integer.parseInt(coreComponentInfo[6]);
+						int nameYOffset = Integer.parseInt(coreComponentInfo[7]);
 						
 						BlackBoxComponent blackBox = new BlackBoxComponent(canvas, componentRect, componentName, nameXOffset, nameYOffset);
 						
@@ -243,7 +245,78 @@ public final class ProjectPersistenceUtilities
 							}							
 						}
 																		
-						concreteComponents.add(blackBox);
+						blackBoxComponents.add(blackBox);
+					} break;
+					
+					case WHITE_BOX:
+					{
+						if (line.startsWith("#"))
+						{							
+							continue;						
+						}
+												
+						String[] coreComponentInfo = line.split(",");
+						Rectangle componentRect = new Rectangle(Integer.parseInt(coreComponentInfo[1]),
+								                                Integer.parseInt(coreComponentInfo[2]),
+								                                Integer.parseInt(coreComponentInfo[3]),
+								                                Integer.parseInt(coreComponentInfo[4]));
+						String componentName = coreComponentInfo[5];
+						int nameXOffset = Integer.parseInt(coreComponentInfo[6]);
+						int nameYOffset = Integer.parseInt(coreComponentInfo[7]);
+						
+						WhiteBoxComponent whiteBox = new WhiteBoxComponent(canvas, componentRect, null, componentName, nameXOffset, nameYOffset);
+						
+						line = br.readLine();
+						if (line.length() > 0)
+						{							
+							String[] portIndices = line.split(",");
+							for (String portIndex: portIndices)
+							{
+								whiteBox.addPort(lineSegmentComponents.get(Integer.parseInt(portIndex)));
+							}
+						}
+						
+						line = br.readLine();												
+						if (line.length() > 0)
+						{							
+							String[] internalHorHingeIndices = line.split(",");						
+							for (String internalHorHingeIndex: internalHorHingeIndices)
+							{
+								whiteBox.addInternalHorHinge(hingeComponents.get(Integer.parseInt(internalHorHingeIndex)));							
+							}
+						}
+						
+						line = br.readLine();						
+						if (line.length() > 0)
+						{
+							String[] internalVerHingeIndices = line.split(",");
+							for (String internalVerHingeIndex: internalVerHingeIndices)
+							{
+								whiteBox.addInternalVerHinge(hingeComponents.get(Integer.parseInt(internalVerHingeIndex)));							
+							}							
+						}
+						
+						line = br.readLine();
+						if (line.length() > 0)
+						{
+							String[] innerComponents = line.split(",");
+							
+							for (String innerComponentString: innerComponents)
+							{
+								Component.ComponentType innerComponentType = Component.ComponentType.valueOf(innerComponentString.split("-")[0]);
+								int innerComponentBucketIndex = Integer.parseInt(innerComponentString.split("-")[1]);
+								
+								switch (innerComponentType)
+								{
+									case HINGE:        whiteBox.addInnerComponentExternally(hingeComponents.get(innerComponentBucketIndex));break;
+									case LINE_SEGMENT: whiteBox.addInnerComponentExternally(lineSegmentComponents.get(innerComponentBucketIndex)); break;
+									case GATE:         whiteBox.addInnerComponentExternally(gateComponents.get(innerComponentBucketIndex)); break;
+									case BLACK_BOX:    whiteBox.addInnerComponentExternally(blackBoxComponents.get(innerComponentBucketIndex));break;
+									case WHITE_BOX:    whiteBox.addInnerComponentExternally(whiteBoxComponents.get(innerComponentBucketIndex));break;
+								}
+							}
+						}
+						whiteBoxComponents.add(whiteBox);
 					}
 				}						
 			}
@@ -266,7 +339,7 @@ public final class ProjectPersistenceUtilities
 				loadedComponents.add(comp);
 			}
 			
-			for (Component comp: concreteComponents)
+			for (Component comp: gateComponents)
 			{
 				if (!nonPersistMode)				
 				{
@@ -275,13 +348,27 @@ public final class ProjectPersistenceUtilities
 				loadedComponents.add(comp);
 			}						
 			
-			if (!nonPersistMode)
-			{				
-				JOptionPane.showMessageDialog(null, "Loaded project successfully");
-			}			
+			for (Component comp: blackBoxComponents)
+			{
+				if (!nonPersistMode)
+				{
+					canvas.addComponentToCanvas(comp);
+				}
+				loadedComponents.add(comp);
+			}
+			
+			for (Component comp: whiteBoxComponents)
+			{
+				if (!nonPersistMode)
+				{
+					canvas.addComponentToCanvas(comp);
+				}
+				loadedComponents.add(comp);
+			}					
 		}
 		catch (Exception e)
 		{			
+			e.printStackTrace();
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
@@ -298,16 +385,19 @@ public final class ProjectPersistenceUtilities
 		boolean nonPersistMode = file.getName().equals(".temp");
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
-		List<ConcreteComponent> concreteComponents       = new ArrayList<ConcreteComponent>();
+		List<GateComponent> gateComponents               = new ArrayList<GateComponent>();
+		List<BlackBoxComponent> blackBoxComponents       = new ArrayList<BlackBoxComponent>();
 		List<WhiteBoxComponent> whiteBoxComponents       = new ArrayList<WhiteBoxComponent>();
+		
 		for (Component component: components)
 		{
 			switch (component.getComponentType())
 			{
 				case LINE_SEGMENT: lineSegmentComponents.add((LineSegmentComponent)component); break;
 				case HINGE:        hingeComponents.add((HingeComponent)component); break;
-				case GATE: case BLACK_BOX: concreteComponents.add((ConcreteComponent)component); break;
-				case WHITE_BOX: whiteBoxComponents.add((WhiteBoxComponent)component); break;
+				case GATE:         gateComponents.add((GateComponent)component); break;
+				case BLACK_BOX:    blackBoxComponents.add((BlackBoxComponent)component); break;
+				case WHITE_BOX:    whiteBoxComponents.add((WhiteBoxComponent)component); break;
 			}
 		}
 		
@@ -346,19 +436,18 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();
 			}
 			
-			bw.write("#Gate First Line:  gateType\n" +
-					 "#Gate Second Line: x,y\n" + 
-					 "#Gate Third Line:  port0Index,port1Index,port2Index, ... ,portN-1Index\n" +
-					 "#Gate Fourth Line: internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +
-					 "#Gate Fifth Line:  internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index");
+			bw.write("#Gate First Line: gateIndex,gateType,x,y\n" + 
+					 "#Gate Second Line:  port0Index,port1Index,port2Index, ... ,portN-1Index\n" +
+					 "#Gate Thrid Line: internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +
+					 "#Gate Fourth Line:  internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index");
 			bw.newLine();
 			
-			for (ConcreteComponent gate: concreteComponents)
+			for (int i = 0; i < gateComponents.size(); ++i)
 			{
-				if (gate.getComponentType() != ComponentType.GATE)
-					continue;
+				GateComponent gate = gateComponents.get(i);
 				
-				bw.write(gate.serialize());
+				bw.write(i + "," + gate.serialize());
+				bw.newLine();
 				
 				Iterator<Component> portIter = gate.getPortsIterator();
 				while (portIter.hasNext())
@@ -394,19 +483,17 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();										
 			}
 			
-			bw.write("#Black Box First Line:  x,y,width,height,name,nameXOffset,nameYOffset\n"                                +					 
+			bw.write("#Black Box First Line:  blackBoxIndex,x,y,width,height,name,nameXOffset,nameYOffset\n"                                +					 
 					 "#Black Box Second Line: port0Index,port1Index,port2Index, ... ,portN-1Index\n"                          +
 					 "#Black Box Third Line:  internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +					 					 
-					 "#Black Box Fourth Line: internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index");
-			
+					 "#Black Box Fourth Line: internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index");			
 			bw.newLine();
 			
-			for (ConcreteComponent bb: concreteComponents)
+			for (int i = 0; i < blackBoxComponents.size(); ++i)
 			{
-				if (bb.getComponentType() != ComponentType.BLACK_BOX)
-					continue;
-				
-				bw.write(bb.serialize());
+				BlackBoxComponent bb = blackBoxComponents.get(i);
+				bw.write(i + "," + bb.serialize());
+				bw.newLine();
 				
 				Iterator<Component> portsIter = bb.getPortsIterator();
 				while (portsIter.hasNext())
@@ -440,6 +527,77 @@ public final class ProjectPersistenceUtilities
 						bw.write(",");
 				}
 				bw.newLine();				
+			}
+			
+			bw.write("#White Box First Line:  whiteBoxIndex,x,y,width,height,name,nameXOffset,nameYOffset\n"                                +					 
+					 "#White Box Second Line: port0Index,port1Index,port2Index, ... ,portN-1Index\n"                          +
+					 "#White Box Third Line:  internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +					 					 
+					 "#White Box Fourth Line: internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index\n" +
+					 "#White Box Fifth Line:  innerComponent0Index,innerComponent1Index, ... ,innerComponentN-1Index");			
+			bw.newLine();
+			
+			whiteBoxComponents.sort(new WhiteBoxComparator(false));
+			
+			for (int i = 0; i < whiteBoxComponents.size(); ++i)
+			{
+				WhiteBoxComponent wb = whiteBoxComponents.get(i);
+				bw.write(i + "," + wb.serialize());
+				bw.newLine();
+				
+				Iterator<Component> portsIter = wb.getPortsIterator();
+				while (portsIter.hasNext())
+				{
+					Component port = portsIter.next();
+					bw.write(String.valueOf(lineSegmentComponents.indexOf(port)));
+					
+					if (portsIter.hasNext())
+						bw.write(",");
+				}				
+				bw.newLine();
+				
+				Iterator<Component> internalHorIter = wb.getInternalHorHingeIterator();
+				while (internalHorIter.hasNext())
+				{
+					Component internalHorHinge = internalHorIter.next();
+					bw.write(String.valueOf(hingeComponents.indexOf(internalHorHinge)));
+					
+					if (internalHorIter.hasNext())
+						bw.write(",");
+				}
+				bw.newLine();				
+				
+				Iterator<Component> internalVerIter = wb.getInternalVerHingeIterator();
+				while (internalVerIter.hasNext())
+				{
+					Component internalVerHinge = internalVerIter.next();
+					bw.write(String.valueOf(hingeComponents.indexOf(internalVerHinge)));
+					
+					if (internalVerIter.hasNext())
+						bw.write(",");
+				}
+				bw.newLine();				
+				
+				Iterator<Component> innerComponentsIter = wb.getInnerComponentsIter();
+				while (innerComponentsIter.hasNext())
+				{
+					Component innerComponent = innerComponentsIter.next();
+					bw.write(innerComponent.getComponentType() + "-");
+					
+					switch (innerComponent.getComponentType())
+					{
+						case HINGE:        bw.write(String.valueOf(hingeComponents.indexOf(innerComponent)));break;
+						case LINE_SEGMENT: bw.write(String.valueOf(lineSegmentComponents.indexOf(innerComponent)));break;
+						case GATE:         bw.write(String.valueOf(gateComponents.indexOf(innerComponent)));break;
+						case BLACK_BOX:    bw.write(String.valueOf(blackBoxComponents.indexOf(innerComponent)));break;
+						case WHITE_BOX:    bw.write(String.valueOf(whiteBoxComponents.indexOf(innerComponent)));break;
+					}
+					
+					if (innerComponentsIter.hasNext())
+						bw.write(",");
+				}
+				
+				if (i <= whiteBoxComponents.size() - 1)
+					bw.newLine();
 			}
 			
 			if (!nonPersistMode && promptOnCompletion)

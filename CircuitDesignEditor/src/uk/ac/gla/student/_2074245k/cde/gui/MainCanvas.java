@@ -93,6 +93,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private List<int[]> targetPositions;		
 	
 	private File lastSaveLocation = null;
+	private boolean hasTakenActionSinceLastSave = false;
 	
 	public MainCanvas(final JFrame window)
 	{		
@@ -132,7 +133,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					            componentSelector, 
 					            executedActionHistory.size(),
 					            undoneActionHistory.size(),
-					            window);
+					            window,
+					            lastSaveLocation);
 		}				 
 	}
 
@@ -180,15 +182,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	}
 	
 	@Override
-	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs);
-		synchronized (componentSelector)
-		{
-			if (componentSelector.getNumberOfSelectedComponents() == 1)
-			{
-				System.out.println(componentSelector.getFirstComponent().getChildren());
-			}					
-		}
-	}
+	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
 
 	@Override
 	public void mouseEntered(MouseEvent __) {}
@@ -440,6 +434,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 		return lastSaveLocation;
 	}
 	
+	public boolean hasTakenActionSinceLastSave()
+	{
+		return hasTakenActionSinceLastSave;
+	}
+	
 	public void openProjectFromFile(final File file)	
 	{
 		init(file);
@@ -447,6 +446,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 		setPreferredSize(result.canvasDimension);			
 		revalidate();
 		repaint();
+		
+		JOptionPane.showMessageDialog(null, "Loaded project successfully");
 	}
 	
 	public void saveProject()
@@ -1199,6 +1200,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		domImpl = GenericDOMImplementation.getDOMImplementation();
 		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
 		
-		lastSaveLocation = saveFile;		
+		lastSaveLocation = saveFile;
+		hasTakenActionSinceLastSave = false;
 	}
 }

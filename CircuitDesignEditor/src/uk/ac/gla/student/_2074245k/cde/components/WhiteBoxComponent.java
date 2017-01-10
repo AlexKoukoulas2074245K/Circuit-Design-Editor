@@ -33,8 +33,12 @@ public class WhiteBoxComponent extends ConcreteComponent
 		this.componentRect   = componentRect;
 		this.name            = name;
 		this.nameXOffset     = nameXOffset;
-		this.nameYOffset     = nameYOffset;				
-		this.innerComponents = selComponents;				
+		this.nameYOffset     = nameYOffset;
+		
+		if (selComponents == null || selComponents.size() == 0)
+			this.innerComponents = new HashSet<Component>();
+		else
+			this.innerComponents = selComponents;
 	}
 	
 	@Override
@@ -186,7 +190,7 @@ public class WhiteBoxComponent extends ConcreteComponent
 			   componentRect.height + "," +
 			   name + "," + 
 			   nameXOffset + "," + 
-			   nameYOffset + "\n";
+			   nameYOffset;
 	}
 
 	@Override
@@ -200,14 +204,14 @@ public class WhiteBoxComponent extends ConcreteComponent
 		return innerComponents.iterator();
 	}		
 	
-	public void addInnerComponentExternally(final Component component)
-	{
-		innerComponents.add(component);
-	}
-	
 	public boolean isInnerComponent(final Component comp)
 	{
 		return innerComponents.contains(comp);
+	}
+	
+	public void addInnerComponentExternally(final Component component)
+	{
+		addComponentChildrenAndParents(component);
 	}
 	
 	private void updateInnerComponentsRefs()

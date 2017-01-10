@@ -1,5 +1,6 @@
 package uk.ac.gla.student._2074245k.cde.util;
 
+import java.io.File;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -24,7 +25,8 @@ public final class FrameCounter
 			           final ComponentSelector selector, 
 			           final int execActionLength, 
 			           final int undoneActionLength, 
-			           final JFrame frame)
+			           final JFrame frame,
+			           final File selFile)
 	{
 		frameCounter++;
 		long timeNow = System.nanoTime();
@@ -48,7 +50,8 @@ public final class FrameCounter
 					case WHITE_BOX:    nWBs++; break;
 				}				
 			}
-			frame.setTitle(MainFrame.WINDOW_TITLE + 
+			frame.setTitle(MainFrame.WINDOW_TITLE + " - " +
+			               (selFile == null ? "New Canvas" : selFile.getName()) + 
 					       " -  FPS: " + frameCounter + 
 					       "   | BBs: " + nBBs +
 					       ", WBs: " + nWBs +

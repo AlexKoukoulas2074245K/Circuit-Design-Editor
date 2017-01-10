@@ -106,7 +106,7 @@ public final class BlackBoxComponent extends ConcreteComponent
 			   componentRect.height + "," +
 			   name + "," + 
 			   nameXOffset + "," + 
-			   nameYOffset + "\n";
+			   nameYOffset;
 	}
 
 	@Override

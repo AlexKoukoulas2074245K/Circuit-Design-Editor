@@ -88,7 +88,7 @@ public final class GateComponent extends ConcreteComponent
 	@Override
 	public String serialize() 
 	{		
-		return gateType + "\n" + componentRect.x + "," + componentRect.y + "\n";	
+		return gateType + "," + componentRect.x + "," + componentRect.y;	
 	}
 	
 	@Override
