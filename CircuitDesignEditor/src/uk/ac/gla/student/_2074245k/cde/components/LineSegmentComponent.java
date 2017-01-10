@@ -222,6 +222,11 @@ public final class LineSegmentComponent extends Component
 		canvas.removeComponentFromCanvas(this);			
 		startPoint.delete();
 		endPoint.delete();
+		
+		for (Component comp: getParents())
+		{
+			comp.removeChild(this);
+		}
 	}
 	
 	@Override
@@ -251,6 +256,12 @@ public final class LineSegmentComponent extends Component
 		children.add(startPoint);
 		children.add(endPoint);
 		return children;
+	}
+	
+	@Override
+	public void removeChild(final Component component)
+	{
+		
 	}
 	
 	@Override

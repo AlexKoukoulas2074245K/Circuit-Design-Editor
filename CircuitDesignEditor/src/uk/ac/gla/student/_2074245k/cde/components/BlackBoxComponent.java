@@ -30,7 +30,7 @@ public final class BlackBoxComponent extends ConcreteComponent
 		this.nameXOffset       = nameXOffset;
 		this.nameYOffset       = nameYOffset;		
 	}
-
+		
 	@Override
 	public void render(final GraphicsGenerator g,
 			           final boolean highlighted, 

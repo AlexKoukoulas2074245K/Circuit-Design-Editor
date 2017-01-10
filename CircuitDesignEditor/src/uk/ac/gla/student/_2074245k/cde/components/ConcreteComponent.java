@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 
@@ -15,6 +16,8 @@ public abstract class ConcreteComponent extends Component
 	protected List<Component> internalHorHinges;
 	protected List<Component> internalVerHinges;
 	protected List<Component> ports;
+	protected Set<Component> innerComponents;
+	
 	protected Rectangle componentRect;
 	private int alignmentDx, alignmentDy;
 	private int moveTargetX, moveTargetY;
@@ -214,30 +217,29 @@ public abstract class ConcreteComponent extends Component
 	{
 		canvas.removeComponentFromCanvas(this);
 		
-		Iterator<Component> portsIter = getPortsIterator();
-		while (portsIter.hasNext())
+		for (Component comp: getChildren())
 		{
-			Component port = portsIter.next();
-			port.delete();
-			portsIter.remove();
+			comp.delete();
 		}
 		
-		Iterator<Component> internalHorHingeIter = getInternalHorHingeIterator();
-		while (internalHorHingeIter.hasNext())
-		{	
-			Component internalHorHinge = internalHorHingeIter.next();
-			internalHorHinge.delete();
-			internalHorHingeIter.remove();
-		}
-		
-		Iterator<Component> internalVerHingeIter = getInternalVerHingeIterator();
-		while (internalVerHingeIter.hasNext())
-		{	
-			Component internalVerHinge = internalVerHingeIter.next();
-			internalVerHinge.delete();
-			internalVerHingeIter.remove();
-		}	
+		for (Component comp: getParents())
+		{
+			comp.removeChild(this);
+		}		
 	}		
+	
+	@Override
+	public void removeChild(final Component component)
+	{
+		if (hasPort(component))
+		{
+			removePort(component);
+		}
+		else
+		{
+			innerComponents.remove(component);
+		}
+	}
 	
 	@Override
 	public Rectangle getRectangle() 

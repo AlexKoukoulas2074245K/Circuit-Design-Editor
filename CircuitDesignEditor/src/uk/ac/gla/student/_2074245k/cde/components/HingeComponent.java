@@ -186,6 +186,11 @@ public final class HingeComponent extends Component
 			return;
 		
 		canvas.removeComponentFromCanvas(this);
+		
+		for (Component comp: getParents())
+		{
+			comp.removeChild(this);
+		}
 	}
 	
 	@Override
@@ -213,6 +218,12 @@ public final class HingeComponent extends Component
 	public List<Component> getChildren()
 	{
 		return new ArrayList<Component>();
+	}
+	
+	@Override
+	public void removeChild(final Component component)
+	{
+		
 	}
 	
 	@Override

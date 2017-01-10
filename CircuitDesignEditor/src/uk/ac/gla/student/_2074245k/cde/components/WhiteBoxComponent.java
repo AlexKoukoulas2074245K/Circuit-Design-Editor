@@ -21,7 +21,6 @@ public class WhiteBoxComponent extends ConcreteComponent
 	private final String name;
 	private final int nameXOffset;
 	private final int nameYOffset;
-	private final Set<Component> innerComponents;
 	
 	public WhiteBoxComponent(final MainCanvas canvas,
 			                 final Rectangle componentRect,
@@ -117,16 +116,6 @@ public class WhiteBoxComponent extends ConcreteComponent
 	}
 	
 	@Override
-	public void delete()
-	{
-		super.delete();
-		for (Component comp: innerComponents)
-		{
-			comp.delete();
-		}
-	}
-	
-	@Override
 	public void render(final GraphicsGenerator g,
 			           final boolean highlighted, 
 			           final boolean selected, 
@@ -209,7 +198,7 @@ public class WhiteBoxComponent extends ConcreteComponent
 	public Iterator<Component> getInnerComponentsIter()
 	{
 		return innerComponents.iterator();
-	}
+	}		
 	
 	public void addInnerComponentExternally(final Component component)
 	{
@@ -223,8 +212,19 @@ public class WhiteBoxComponent extends ConcreteComponent
 	
 	private void updateInnerComponentsRefs()
 	{
-		Set<Component> currentInnerComponents = new HashSet<Component>(innerComponents);
+		// Check for expired references
+		Iterator<Component> innerComponentsIter = innerComponents.iterator();
+		while (innerComponentsIter.hasNext())		
+		{
+			Component innerComp = innerComponentsIter.next();
+			if (canvas.hasComponentExpired(innerComp))
+			{
+				innerComponentsIter.remove();
+			}
+		}
 		
+		// Flood-Fill-add all components that form a system contained by this white box
+		Set<Component> currentInnerComponents = new HashSet<Component>(innerComponents);		
 		for (Component component: currentInnerComponents)
 		{
 			addComponentChildrenAndParents(component);

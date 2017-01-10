@@ -157,7 +157,12 @@ public final class MainCanvas extends JPanel implements Runnable,
 	{
 		requestFocus();
 		mouse.updateOnMouseReleased(eventArgs);
-		lineSegmentPath.clear();
+		
+		synchronized (lineSegmentPath)
+		{
+			lineSegmentPath.clear();			
+		}
+		
 		selectionDx = selectionDy = 0;
 		
 		if (movingComponents)
@@ -175,7 +180,15 @@ public final class MainCanvas extends JPanel implements Runnable,
 	}
 	
 	@Override
-	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
+	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs);
+		synchronized (componentSelector)
+		{
+			if (componentSelector.getNumberOfSelectedComponents() == 1)
+			{
+				System.out.println(componentSelector.getFirstComponent().getChildren());
+			}					
+		}
+	}
 
 	@Override
 	public void mouseEntered(MouseEvent __) {}
@@ -317,9 +330,6 @@ public final class MainCanvas extends JPanel implements Runnable,
 				}
 			}
 			
-			System.out.println(concComp.getRectangle().x + ", " + componentWithMinX.getRectangle().x);
-			System.out.println(concComp.getRectangle().y + ", " + componentWithMinY.getRectangle().y);
-			
 			int dx = componentWithMinX.getRectangle().x - (concComp.getRectangle().x + 32);
 			int dy = componentWithMinY.getRectangle().y - (concComp.getRectangle().y + 32);
 			
@@ -356,6 +366,20 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{
 			componentsToRemove.add(component);
 		}
+	}
+	
+	public boolean hasComponentExpired(final Component component)
+	{
+		Iterator<Component> aliveComponents = getComponentsIterator();
+		while (aliveComponents.hasNext())
+		{
+			if (aliveComponents.next() == component)
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	public Iterator<Component> getComponentsIterator()
@@ -581,7 +605,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 		// On Left Mouse Button Tap
 		if (mouse.isButtonTapped(Mouse.LEFT_BUTTON))
 		{	
-			lineSegmentPath.clear();	
+			synchronized (lineSegmentPath)
+			{
+				lineSegmentPath.clear();					
+			}
 			startPositions.clear();
 			targetPositions.clear();
 			
@@ -839,13 +866,16 @@ public final class MainCanvas extends JPanel implements Runnable,
 			Component component = iter.next();
 			if (component.getComponentType() == ComponentType.LINE_SEGMENT)
 			{
-				for (Component pathComponent: lineSegmentPath)
+				synchronized (lineSegmentPath)
 				{
-					if (component != pathComponent)
+					for (Component pathComponent: lineSegmentPath)
 					{
-						((LineSegmentComponent)pathComponent).renderAsPathEdge(gfx);				
-					}
-				}				
+						if (component != pathComponent)
+						{
+							((LineSegmentComponent)pathComponent).renderAsPathEdge(gfx);				
+						}
+					}									
+				}
 			}
 		}	
 	}
@@ -1072,27 +1102,30 @@ public final class MainCanvas extends JPanel implements Runnable,
 
 	private void constructLinePath(final Component component)
 	{
-		lineSegmentPath.add(component);
-		for (int i = 0; i < lineSegmentPath.size(); ++i)
-		{
-			Component selectedSegment = lineSegmentPath.get(i);
-			for (Component comp: components)
+		synchronized (lineSegmentPath)
+		{			
+			lineSegmentPath.add(component);
+			for (int i = 0; i < lineSegmentPath.size(); ++i)
 			{
-				if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
-					continue;
-				
-				if (lineSegmentPath.contains(comp))
-					continue;
-				
-				Component startPoint = comp.getChildren().get(0);
-				Component endPoint = comp.getChildren().get(1);
-				
-				if (startPoint == selectedSegment.getChildren().get(0) ||
-					endPoint   == selectedSegment.getChildren().get(1)||
-					startPoint == selectedSegment.getChildren().get(1)||
-				    endPoint   == selectedSegment.getChildren().get(0))
+				Component selectedSegment = lineSegmentPath.get(i);
+				for (Component comp: components)
+				{
+					if (comp.getComponentType() != ComponentType.LINE_SEGMENT)
+						continue;
+					
+					if (lineSegmentPath.contains(comp))
+						continue;
+					
+					Component startPoint = comp.getChildren().get(0);
+					Component endPoint = comp.getChildren().get(1);
+					
+					if (startPoint == selectedSegment.getChildren().get(0) ||
+							endPoint   == selectedSegment.getChildren().get(1)||
+							startPoint == selectedSegment.getChildren().get(1)||
+							endPoint   == selectedSegment.getChildren().get(0))
 						lineSegmentPath.add(comp);					
-			}											
+				}											
+			}
 		}
 	}
 	

@@ -48,6 +48,7 @@ public abstract class Component
 	public abstract void delete();	
 	public abstract List<Component> getParents();
 	public abstract List<Component> getChildren();
+	public abstract void removeChild(final Component component);
 	public abstract String serialize();	
 	public abstract Rectangle getRectangle();
 	public abstract void setPosition(final int x, final int y);

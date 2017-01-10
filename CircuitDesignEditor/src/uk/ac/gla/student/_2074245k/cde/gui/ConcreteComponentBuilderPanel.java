@@ -166,7 +166,7 @@ public final class ConcreteComponentBuilderPanel extends JPanel implements PortM
 			public void propertyChange(PropertyChangeEvent evt)
 			{
 				int canvasHeight = concreteComponentView.getHeight();
-				int canvasWidth  = (int)evt.getNewValue() + (int)evt.getNewValue() / MARGIN_DENOMINATOR;
+				int canvasWidth  = (int)evt.getNewValue() + 2 * ((int)evt.getNewValue() / MARGIN_DENOMINATOR);
 				Dimension newCanvasDimension = new Dimension(canvasWidth, canvasHeight);	
 				
 				concreteComponentView.setSize(newCanvasDimension);
@@ -195,7 +195,7 @@ public final class ConcreteComponentBuilderPanel extends JPanel implements PortM
 			public void propertyChange(PropertyChangeEvent evt)
 			{
 				int canvasWidth  = concreteComponentView.getWidth(); 
-				int canvasHeight = (int)evt.getNewValue() + (int)evt.getNewValue() / MARGIN_DENOMINATOR;
+				int canvasHeight = (int)evt.getNewValue() + 2 * ((int)evt.getNewValue() / MARGIN_DENOMINATOR);
 				Dimension newCanvasDimension = new Dimension(canvasWidth, canvasHeight);
 								
 				concreteComponentView.setSize(newCanvasDimension);
