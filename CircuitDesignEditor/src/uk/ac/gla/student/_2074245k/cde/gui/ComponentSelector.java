@@ -137,15 +137,11 @@ public final class ComponentSelector
 			}
 			
 			for (Component parent: component.getParents())
-			{
-				// TODO: check if this test should be here
-				if (parent.getComponentType() != ComponentType.WHITE_BOX)
-				{					
-					if (!selectedComponents.contains(parent))
-					{
-						addComponentToSelection(parent);					
-					}
-				}
+			{								
+				if (!selectedComponents.contains(parent))
+				{
+					addComponentToSelection(parent);					
+				}			
 			}
 		}
 	}	

@@ -49,41 +49,42 @@ public class WhiteBoxComponent extends ConcreteComponent
 		int prevX = componentRect.x;
 		int prevY = componentRect.y;
 		AlignedComponentsList alignedComponents = super.moveTo(x, y);
-		
-		Iterator<Component> horAlignedComponentsIter = alignedComponents.getHorAlignedComponents().iterator();
-		while (horAlignedComponentsIter.hasNext())
-		{
-			Component alignedComp = horAlignedComponentsIter.next();
-			if (isInnerComponent(alignedComp))
-			{
-				horAlignedComponentsIter.remove();
-			}
-			
-			for (Component comp: ports)
-			{
-				if (comp.getChildren().contains(alignedComp))
-				{
-					horAlignedComponentsIter.remove();
-				}
-			}
-		}
-		Iterator<Component> verAlignedComponentsIter = alignedComponents.getVerAlignedComponents().iterator();
-		while (verAlignedComponentsIter.hasNext())
-		{
-			Component alignedComp = verAlignedComponentsIter.next();
-			if (isInnerComponent(alignedComp))
-			{
-				verAlignedComponentsIter.remove();		
-			}
-			
-			for (Component comp: ports)
-			{
-				if (comp.getChildren().contains(alignedComp))
-				{
-					verAlignedComponentsIter.remove();
-				}
-			}
-		}
+		alignedComponents.getHorAlignedComponents().clear();
+		alignedComponents.getVerAlignedComponents().clear();
+//		Iterator<Component> horAlignedComponentsIter = alignedComponents.getHorAlignedComponents().iterator();
+//		while (horAlignedComponentsIter.hasNext())
+//		{
+//			Component alignedComp = horAlignedComponentsIter.next();
+//			if (isInnerComponent(alignedComp))
+//			{
+//				horAlignedComponentsIter.remove();
+//			}
+//			
+//			for (Component comp: ports)
+//			{
+//				if (comp.getChildren().contains(alignedComp))
+//				{
+//					horAlignedComponentsIter.remove();
+//				}
+//			}
+//		}
+//		Iterator<Component> verAlignedComponentsIter = alignedComponents.getVerAlignedComponents().iterator();
+//		while (verAlignedComponentsIter.hasNext())
+//		{
+//			Component alignedComp = verAlignedComponentsIter.next();
+//			if (isInnerComponent(alignedComp))
+//			{
+//				verAlignedComponentsIter.remove();		
+//			}
+//			
+//			for (Component comp: ports)
+//			{
+//				if (comp.getChildren().contains(alignedComp))
+//				{
+//					verAlignedComponentsIter.remove();
+//				}
+//			}
+//		}
 		
 		int dx = componentRect.x - prevX;
 		int dy = componentRect.y - prevY;
@@ -254,14 +255,13 @@ public class WhiteBoxComponent extends ConcreteComponent
 		}
 		
 		for (Component parent: component.getParents())
-		{			
-			if (parent.getComponentType() != ComponentType.WHITE_BOX)
-			{					
-				if (!innerComponents.contains(parent))
-				{
-					addComponentChildrenAndParents(parent);					
-				}
-			}
+		{										
+			if (!innerComponents.contains(parent) &&
+				parent != this && 
+				new WhiteBoxComparator(false).compare(this, parent) > 0)
+			{				
+				addComponentChildrenAndParents(parent);					
+			}			
 		}
 	}
 }

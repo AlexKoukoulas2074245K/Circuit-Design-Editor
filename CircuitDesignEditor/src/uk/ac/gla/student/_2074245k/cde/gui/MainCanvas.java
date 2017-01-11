@@ -32,6 +32,7 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
 import uk.ac.gla.student._2074245k.cde.actions.Action;
+import uk.ac.gla.student._2074245k.cde.actions.DeleteAction;
 import uk.ac.gla.student._2074245k.cde.actions.MoveAction;
 import uk.ac.gla.student._2074245k.cde.actions.MultiMoveAction;
 import uk.ac.gla.student._2074245k.cde.actions.PasteAction;
@@ -585,15 +586,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void delete()
 	{
 		synchronized (componentSelector)
-		{								
-			addChildrenAndParentsToSelection();						
-			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
-			while (selCompsIter.hasNext())
-			{
-				selCompsIter.next().delete();
-				hasTakenActionSinceLastSave = true;
-			}
-			
+		{																
+			Action deleteAction = new DeleteAction(this, componentSelector);
+			deleteAction.execute();
+			executedActionHistory.add(deleteAction);
+			hasTakenActionSinceLastSave = true;
 			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 		}
 	}
