@@ -22,7 +22,8 @@ public final class HingeComponent extends Component
 	public static final int HINGE_DIAMETER = 18;
 	public static final int NUB_DIAMETER  = 20;
 	
-	private int x, y, nameX, nameY;
+	private Rectangle rect;
+	private int nameX, nameY;
 	private boolean hasNub;
 	private boolean shouldFinalizeMovement;
 	private boolean isMousePerformingHorizontalMotion;
@@ -34,8 +35,7 @@ public final class HingeComponent extends Component
 	public HingeComponent(final MainCanvas canvas, final int x, final int y, final boolean movable)
 	{
 		super(canvas, movable);
-		this.x = x;
-		this.y = y;
+		rect = new Rectangle(x, y, HINGE_DIAMETER, HINGE_DIAMETER);		
 		shouldFinalizeMovement = false;
 		isMousePerformingHorizontalMotion = true;
 		isInternalHinge = false;
@@ -78,7 +78,7 @@ public final class HingeComponent extends Component
 	{		
 		if (isInternalHinge)
 			return false;
-		return Math.hypot(mouseX - x - HINGE_DIAMETER/2, mouseY - y - HINGE_DIAMETER/2) <= HINGE_DIAMETER/2;
+		return Math.hypot(mouseX - rect.x - HINGE_DIAMETER/2, mouseY - rect.y - HINGE_DIAMETER/2) <= HINGE_DIAMETER/2;
 	}
 	
 	@Override
@@ -103,9 +103,9 @@ public final class HingeComponent extends Component
 				}
 				g.setColor(Color.white);
 				g.setStroke(Strokes.THIN_STROKE);
-				g.fillRect(x + xOffset, y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
+				g.fillRect(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
 				g.setColor(Colors.DEFAULT_COLOR);
-				g.drawOval(x + xOffset, y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
+				g.drawOval(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
 			}			
 			return;
 		}
@@ -229,8 +229,8 @@ public final class HingeComponent extends Component
 	@Override
 	public String serialize() 
 	{	
-		return x + "," + 
-	           y + "," + 
+		return rect.x + "," + 
+	           rect.y + "," + 
 			   hasNub + "," + 
 	           isMovable + "," + 
 			   isInternalHinge + "," + 
@@ -242,14 +242,14 @@ public final class HingeComponent extends Component
 	@Override
 	public Rectangle getRectangle() 
 	{	
-		return new Rectangle(x, y, HINGE_DIAMETER, HINGE_DIAMETER);
+		return rect;
 	}
 	
 	@Override
 	public void setPosition(final int x, final int y)
 	{
-		this.x = x;
-		this.y = y;
+		rect.x = x;
+		rect.y = y;
 	}
 			
 	@Override
@@ -306,17 +306,17 @@ public final class HingeComponent extends Component
 		int targetY = y;
 		
 		if (isMousePerformingHorizontalMotion && globalHingeDraggingMode == HingeDraggingMode.MOVE_AXIS_RES)
-			targetY = this.y;
+			targetY = rect.y;
 		if (!isMousePerformingHorizontalMotion && globalHingeDraggingMode == HingeDraggingMode.MOVE_AXIS_RES)
-			targetX = this.x;
+			targetX = rect.x;
 		
-		this.x = targetX;
-		this.y = targetY;
+		rect.x = targetX;
+		rect.y = targetY;
 		
 		
 		if (globalAlignmentEnabled)
 		{			
-			Rectangle hingeMouseDistanceRect = new Rectangle(this.x - HINGE_DIAMETER, this.y - HINGE_DIAMETER, HINGE_DIAMETER * 2, HINGE_DIAMETER * 2);			
+			Rectangle hingeMouseDistanceRect = new Rectangle(rect.x - HINGE_DIAMETER, rect.y - HINGE_DIAMETER, HINGE_DIAMETER * 2, HINGE_DIAMETER * 2);			
 			if (hingeMouseDistanceRect.contains(x, y))
 			{	
 				Iterator<Component> compIter = canvas.getComponentsIterator();
@@ -327,9 +327,9 @@ public final class HingeComponent extends Component
 					if (component == this || component.getComponentType() != ComponentType.HINGE)
 						continue;
 					
-					if (Math.abs(component.getRectangle().x - this.x) < ALIGNMENT_THRESHOLD)
+					if (Math.abs(component.getRectangle().x - rect.x) < ALIGNMENT_THRESHOLD)
 						alignedComponents.addHorAlignedComponentOrReplaceFirst(component);
-					if (Math.abs(component.getRectangle().y - this.y) < ALIGNMENT_THRESHOLD)
+					if (Math.abs(component.getRectangle().y - rect.y) < ALIGNMENT_THRESHOLD)
 						alignedComponents.addVerAlignedComponentOrReplaceFirst(component);
 				}
 			}
@@ -366,10 +366,10 @@ public final class HingeComponent extends Component
 	private void finalizeHingeMovement(final AlignedComponentsList alignedComponents)
 	{		
 		if (alignedComponents.hasHorAlignedComponents())
-			this.x = alignedComponents.getHorAlignedComponents().get(0).getRectangle().x;
+			rect.x = alignedComponents.getHorAlignedComponents().get(0).getRectangle().x;
 		
 		if (alignedComponents.hasVerAlignedComponents())
-			this.y = alignedComponents.getVerAlignedComponents().get(0).getRectangle().y;
+			rect.y = alignedComponents.getVerAlignedComponents().get(0).getRectangle().y;
 	}
 	
 	private void finalizeSpawnLineSegment(final AlignedComponentsList alignedComponents)
@@ -474,23 +474,23 @@ public final class HingeComponent extends Component
 		
 			case LEFT:
 			{
-				nameX = x + HINGE_DIAMETER;
-				nameY = y + HINGE_DIAMETER/2 + (int)nameBounds.getHeight()/3;
+				nameX = rect.x + HINGE_DIAMETER;
+				nameY = rect.y + HINGE_DIAMETER/2 + (int)nameBounds.getHeight()/3;
 			}  break;
 			case RIGHT:
 			{
-				nameX = x + HINGE_DIAMETER/2 - 5 - (int)nameBounds.getWidth(); 
-				nameY = y + HINGE_DIAMETER/2 + (int)nameBounds.getHeight()/3; 
+				nameX = rect.x + HINGE_DIAMETER/2 - 5 - (int)nameBounds.getWidth(); 
+				nameY = rect.y + HINGE_DIAMETER/2 + (int)nameBounds.getHeight()/3; 
 			} break;
 			case TOP:
 			{
-				nameX = x - (int)nameBounds.getWidth()/2 + HINGE_DIAMETER/2;
-				nameY = y + HINGE_DIAMETER + 8;
+				nameX = rect.x - (int)nameBounds.getWidth()/2 + HINGE_DIAMETER/2;
+				nameY = rect.y + HINGE_DIAMETER + 8;
 			} break;
 			case BOTTOM:
 			{
-				nameX = x - (int)nameBounds.getWidth()/2 + HINGE_DIAMETER/2;
-				nameY = y + 5;
+				nameX = rect.x - (int)nameBounds.getWidth()/2 + HINGE_DIAMETER/2;
+				nameY = rect.y + 5;
 			} break;
 		}
 	}

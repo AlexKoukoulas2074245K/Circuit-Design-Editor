@@ -2,11 +2,11 @@ package uk.ac.gla.student._2074245k.cde.components;
 
 import java.util.Comparator;
 
-public class WhiteBoxComparator implements Comparator<Component>
+public class ComponentRectangleComparator implements Comparator<Component>
 {
 	private final boolean reversed;
 	
-	public WhiteBoxComparator(final boolean reversed)
+	public ComponentRectangleComparator(final boolean reversed)
 	{
 		this.reversed = reversed;
 	}
@@ -36,9 +36,13 @@ public class WhiteBoxComparator implements Comparator<Component>
 			{
 				return reversed ? 1 : -1;				
 			}
-			else
+			else if (aArea > bArea)
 			{
 				return reversed ? -1 : 1;
+			}
+			else
+			{
+				return 0;
 			}
 		}
 	}		

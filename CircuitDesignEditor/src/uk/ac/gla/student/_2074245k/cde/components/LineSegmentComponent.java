@@ -18,36 +18,8 @@ public final class LineSegmentComponent extends Component
 	private static final double MOUSE_INTERSECTION_THRESHOLD = -1.0f; 
 		
 	private Component startPoint, endPoint;	
+	private Rectangle lineRect;
 	
-	public LineSegmentComponent(final MainCanvas canvas, final int x, final int y, final int x2, final int y2, final boolean movable)
-	{
-		super(canvas, movable);
-		
-		startPoint  = new HingeComponent(canvas, x  - HingeComponent.HINGE_DIAMETER/2, y  - HingeComponent.HINGE_DIAMETER/2, movable);
-		endPoint    = new HingeComponent(canvas, x2 - HingeComponent.HINGE_DIAMETER/2, y2 - HingeComponent.HINGE_DIAMETER/2, movable);		
-				
-		canvas.addComponentToCanvas(startPoint);
-		canvas.addComponentToCanvas(endPoint);		
-	}
-	
-	public LineSegmentComponent(final MainCanvas canvas, final Component startPoint, final int x2, final int y2, final boolean movable)
-	{
-		super(canvas, movable);
-		
-		this.startPoint = startPoint;
-		this.endPoint   = new HingeComponent(canvas, x2 - HingeComponent.HINGE_DIAMETER/2, y2 - HingeComponent.HINGE_DIAMETER/2, movable);
-		
-		canvas.addComponentToCanvas(endPoint);
-	}
-	
-	public LineSegmentComponent(final MainCanvas canvas, final int x, final int y, final Component endPoint, final boolean movable)
-	{
-		super(canvas, movable);
-		this.startPoint = new HingeComponent(canvas, x  - HingeComponent.HINGE_DIAMETER/2, y  - HingeComponent.HINGE_DIAMETER/2, movable);		
-		this.endPoint   = endPoint;
-				
-		canvas.addComponentToCanvas(startPoint);	
-	}
 	
 	public LineSegmentComponent(final MainCanvas canvas, final Component startPoint, final Component endPoint, final boolean movable)
 	{
@@ -55,6 +27,12 @@ public final class LineSegmentComponent extends Component
 		
 		this.startPoint = startPoint;
 		this.endPoint   = endPoint;		
+		
+		lineRect = new Rectangle();
+		lineRect.x = (int)startPoint.getRectangle().getCenterX();
+		lineRect.y = (int)startPoint.getRectangle().getCenterY();
+	    lineRect.width = (int)endPoint.getRectangle().getCenterX() - (int)startPoint.getRectangle().getCenterX();
+        lineRect.height = (int)endPoint.getRectangle().getCenterY() - (int) startPoint.getRectangle().getCenterY();		
 	}
 	
 	@Override
@@ -269,11 +247,13 @@ public final class LineSegmentComponent extends Component
 	
 	@Override
 	public Rectangle getRectangle()
-	{
-		return new Rectangle((int)startPoint.getRectangle().getCenterX(),
-				             (int)startPoint.getRectangle().getCenterY(),
-				             (int)endPoint.getRectangle().getCenterX() - (int)startPoint.getRectangle().getCenterX(), 
-				             (int)endPoint.getRectangle().getCenterY() - (int) startPoint.getRectangle().getCenterY()); 
+	{		
+		lineRect.x = (int)startPoint.getRectangle().getCenterX();
+		lineRect.y = (int)startPoint.getRectangle().getCenterY();
+	    lineRect.width = (int)endPoint.getRectangle().getCenterX() - (int)startPoint.getRectangle().getCenterX();
+        lineRect.height = (int)endPoint.getRectangle().getCenterY() - (int) startPoint.getRectangle().getCenterY();
+                                 
+		return lineRect;
 	}
 	
 	@Override

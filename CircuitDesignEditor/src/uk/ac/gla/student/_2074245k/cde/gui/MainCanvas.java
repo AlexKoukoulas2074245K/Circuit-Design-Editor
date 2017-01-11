@@ -44,7 +44,7 @@ import uk.ac.gla.student._2074245k.cde.components.Component.Orientation;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
-import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComparator;
+import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
 import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.observers.ConcreteComponentCreationObserver;
 import uk.ac.gla.student._2074245k.cde.util.FrameCounter;
@@ -100,7 +100,34 @@ public final class MainCanvas extends JPanel implements Runnable,
 	{		
 		super();
 		this.window = window;		
-		init(null);	
+		init(null);
+	}
+	
+	public void init(final File saveFile)
+	{
+		selectionDx = selectionDy = dragNubX = dragNubY = 0;		
+		highlightedComponent = null;
+		
+		components            = new HashSet<Component>();
+		lineSegmentPath       = new ArrayList<Component>();
+		nubPlacementIncidentComponents  = new ArrayList<Component>();		
+		componentsToAdd       = new ArrayList<Component>();
+		componentsToRemove    = new ArrayList<Component>();
+		executedActionHistory = new ArrayList<Action>();
+		undoneActionHistory   = new ArrayList<Action>();
+		startPositions        = new ArrayList<int[]>();
+		targetPositions       = new ArrayList<int[]>();				
+		componentSelector     = new ComponentSelector(0, 0);
+		mouse                 = new Mouse();	
+		
+		isCreatingNub = isNubInContact = movingComponents = false;		
+		
+		alignedComponents = prevAlignedComponents = null;
+		domImpl = GenericDOMImplementation.getDOMImplementation();
+		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
+		
+		lastSaveLocation = saveFile;
+		hasTakenActionSinceLastSave = true;
 	}
 	
 	@Override
@@ -143,8 +170,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 	@Override
 	public void paintComponent(final Graphics g)
 	{
-		GraphicsGenerator gfxGen = new GraphicsGenerator((Graphics2D)g);
+		Graphics2D gfxCopy = (Graphics2D)g.create();
+		GraphicsGenerator gfxGen = new GraphicsGenerator(gfxCopy);
 		display(gfxGen);
+		gfxCopy.dispose();
 	}
 
 	@Override
@@ -902,11 +931,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{
 			if (WhiteBoxComponent.WHITE_BOX_OPACITY)
 			{
-				whiteBoxes.sort(new WhiteBoxComparator(false));
+				whiteBoxes.sort(new ComponentRectangleComparator(false));
 			}
 			else
 			{
-				whiteBoxes.sort(new WhiteBoxComparator(true));
+				whiteBoxes.sort(new ComponentRectangleComparator(true));
 			}
 			
 			for (Component comp: whiteBoxes)			
@@ -955,56 +984,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private Component getHoveredComponent(final int mouseX, final int mouseY)
 	{		
-		List<Component> opaqueWBs      = new LinkedList<Component>();
-		List<Component> gates          = new LinkedList<Component>();
-		List<Component> hinges         = new LinkedList<Component>();
-		List<Component> lses           = new LinkedList<Component>();
-		List<Component> bbs            = new LinkedList<Component>();
-		List<Component> transpWBs      = new LinkedList<Component>();
-		
-		for (Iterator<Component> componentIter = components.iterator(); componentIter.hasNext();)
-		{
-			Component component = componentIter.next();
-			switch (component.getComponentType())
-			{
-				case GATE:         gates.add(component); break;
-				case HINGE:        hinges.add(component); break;
-				case LINE_SEGMENT: lses.add(component); break;
-				case BLACK_BOX:    bbs.add(component); break;
-				case WHITE_BOX:    
-				{
-					if (WhiteBoxComponent.WHITE_BOX_OPACITY)
-					{
-						opaqueWBs.add(component);
-					}
-					else
-					{
-						transpWBs.add(component);
-					}
-				} break;
-			}
-		}
-		
-		opaqueWBs.sort(new WhiteBoxComparator(true));
-		transpWBs.sort(new WhiteBoxComparator(false));		
-		
-		Component highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, opaqueWBs);
-		if (highlightedComponent != null) return highlightedComponent;
-		
-		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, gates);
-		if (highlightedComponent != null) return highlightedComponent;
-		
-		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, hinges);
-		if (highlightedComponent != null) return highlightedComponent;
-		
-		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, lses);
-		if (highlightedComponent != null) return highlightedComponent;
-		
-		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, bbs);
-		if (highlightedComponent != null) return highlightedComponent;
-		
-		highlightedComponent = getHoveredComponentInBucket(mouseX, mouseY, transpWBs);
-		return highlightedComponent;
+		List<Component> componentsList = new ArrayList<Component>(components);
+		componentsList.sort(new ComponentRectangleComparator(false));
+		return getHoveredComponentInBucket(mouseX, mouseY, componentsList);
 	}
 	
 	private Component getHoveredComponentInBucket(final int mouseX, 
@@ -1186,30 +1168,5 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}	
 	}
 	
-	private void init(final File saveFile)
-	{
-		selectionDx = selectionDy = dragNubX = dragNubY = 0;		
-		highlightedComponent = null;
-		
-		components            = new HashSet<Component>();
-		lineSegmentPath       = new ArrayList<Component>();
-		nubPlacementIncidentComponents  = new ArrayList<Component>();		
-		componentsToAdd       = new ArrayList<Component>();
-		componentsToRemove    = new ArrayList<Component>();
-		executedActionHistory = new ArrayList<Action>();
-		undoneActionHistory   = new ArrayList<Action>();
-		startPositions        = new ArrayList<int[]>();
-		targetPositions       = new ArrayList<int[]>();				
-		componentSelector     = new ComponentSelector(0, 0);
-		mouse                 = new Mouse();	
-		
-		isCreatingNub = isNubInContact = movingComponents = false;		
-		
-		alignedComponents = prevAlignedComponents = null;
-		domImpl = GenericDOMImplementation.getDOMImplementation();
-		document = domImpl.createDocument("https://www.w3.org/2000/svg", "svg", null);
-		
-		lastSaveLocation = saveFile;
-		hasTakenActionSinceLastSave = true;
-	}
+	
 }

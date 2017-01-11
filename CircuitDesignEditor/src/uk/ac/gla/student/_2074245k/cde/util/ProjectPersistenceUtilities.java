@@ -21,7 +21,7 @@ import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.GateComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
-import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComparator;
+import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
 import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.gui.PortView;
@@ -366,9 +366,8 @@ public final class ProjectPersistenceUtilities
 				loadedComponents.add(comp);
 			}					
 		}
-		catch (Exception e)
-		{			
-			e.printStackTrace();
+		catch (Exception __)
+		{						
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
@@ -536,7 +535,7 @@ public final class ProjectPersistenceUtilities
 					 "#White Box Fifth Line:  innerComponent0Index,innerComponent1Index, ... ,innerComponentN-1Index");			
 			bw.newLine();
 			
-			whiteBoxComponents.sort(new WhiteBoxComparator(false));
+			whiteBoxComponents.sort(new ComponentRectangleComparator(false));
 			
 			for (int i = 0; i < whiteBoxComponents.size(); ++i)
 			{

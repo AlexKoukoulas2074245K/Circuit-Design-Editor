@@ -27,7 +27,23 @@ public class DeleteAction implements Action
 	{
 		if (state == ActionState.IDLE)
 		{			
-			canvas.addChildrenAndParentsToSelection();
+			if (selector.getNumberOfSelectedComponents() == 1)
+			{
+				Component selComp = selector.getFirstComponent();
+				switch (selComp.getComponentType())
+				{
+				case HINGE: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
+				case LINE_SEGMENT: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
+				case GATE: canvas.addChildrenAndParentsToSelection(); break;
+				case BLACK_BOX: canvas.addChildrenAndParentsToSelection(); break;
+				case WHITE_BOX: canvas.addChildrenAndParentsToSelection(); break;
+				}
+			}
+			else
+			{				
+				canvas.addChildrenAndParentsToSelection();
+			}
+			
 			Set<Component> components          = new HashSet<Component>();
 			Iterator<Component> componentsIter = canvas.getComponentsIterator();
 			while (componentsIter.hasNext()) components.add(componentsIter.next());

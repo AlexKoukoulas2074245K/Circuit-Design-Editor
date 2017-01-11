@@ -63,7 +63,7 @@ public final class FrameCounter
 					       ", Sel: " + selector.getNumberOfSelectedComponents() +
 					       " | Exec: " + execActionLength + 
 					       " Undo: " + undoneActionLength +
-					       " | Mem: " + ((runtime.totalMemory() - runtime.freeMemory())/(1024L * 1024L)) + "MB");
+					       " | Mem: " + (((runtime.totalMemory() - runtime.freeMemory())/1024L)/1024L) + "MB");
 			
 			frameCounter = 0;				
 		}	

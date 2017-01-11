@@ -85,7 +85,7 @@ public final class MainFrame extends JFrame
     private void init(final Dimension canvasDimension, final String lookAndFeelClassName)
     {
     	try 
-    	{ 
+    	{     		
     		setContentPane(createComponents(this, canvasDimension));
     		changeLookAndFeel(lookAndFeelClassName);
             setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -93,7 +93,7 @@ public final class MainFrame extends JFrame
             setMinimumSize(DEFAULT_WINDOW_MIN_DIM);
             setLocationRelativeTo(null);
             setVisible(true);   
-            
+            System.out.println(getContentPane().getComponents().length);
     		addWindowListener(new WindowAdapter()
     		{
     			@Override
@@ -399,10 +399,10 @@ public final class MainFrame extends JFrame
                 		if (selOption == JOptionPane.YES_OPTION)
                 		{            			
                 			displaySaveProjectDialog();   	
-                		}
-                		init(new Dimension((int)widthField.getValue(), (int)heightField.getValue()), UIManager.getLookAndFeel().getClass().getName());
-                        jDialog.dispose();
-                        
+                		}      
+                		canvasPanel.init(null);
+                		canvasPanel.setPreferredSize(new Dimension((int)widthField.getValue(), (int)heightField.getValue()));                		
+                        jDialog.dispose();                        
         			}			
         		});
         		

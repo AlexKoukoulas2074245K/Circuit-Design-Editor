@@ -15,6 +15,7 @@ public final class ComponentSelector
 	private Component firstSelectedComponent;
 	private int startX, startY, endX, endY;
 	private boolean isEnabled;
+	private Rectangle absRect;
 	
 	public ComponentSelector(final int startX, final int startY)
 	{
@@ -23,6 +24,7 @@ public final class ComponentSelector
 		selectedComponents = new HashSet<Component>();
 		firstSelectedComponent = null;
 		isEnabled = false;
+		absRect = new Rectangle();
 	}
 	
 	public void update(final int endX, final int endY, final Set<Component> allComponents)
@@ -30,7 +32,7 @@ public final class ComponentSelector
 		this.endX = endX;
 		this.endY = endY;
 		
-		Rectangle absRect = getAbsoluteRectangle();
+		constructAbsoluteRectangle();
 		
 		selectedComponents.clear();
 		firstSelectedComponent = null;
@@ -81,8 +83,7 @@ public final class ComponentSelector
 	{
 		if (!isEnabled)
 			return;
-		
-		Rectangle absRect = getAbsoluteRectangle();
+				
 		gfx.setStroke(Strokes.THIN_STROKE);
 		gfx.setColor(Colors.SELECTION_COLOR);
 		gfx.drawRect(absRect.x, absRect.y, absRect.width, absRect.height);
@@ -96,7 +97,7 @@ public final class ComponentSelector
 	public void disable() { isEnabled = false; }
 	public void setEnabled(final boolean enabled) { isEnabled = enabled; }
 	
-	private Rectangle getAbsoluteRectangle()
+	private Rectangle constructAbsoluteRectangle()
 	{
 		int rectX = startX;
 		int rectY = startY;
@@ -114,7 +115,12 @@ public final class ComponentSelector
 			rectY2 = startY;
 		}
 		
-		return new Rectangle(rectX, rectY, rectX2 - rectX, rectY2 - rectY);
+		absRect.x = rectX;
+		absRect.y = rectY;
+		absRect.width = rectX2 - rectX;
+		absRect.height = rectY2 - rectY;
+		
+		return absRect;
 	}
 	
 	private void addComponentToSelection(final Component component)
