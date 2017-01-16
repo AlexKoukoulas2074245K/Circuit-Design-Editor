@@ -1,6 +1,7 @@
 package uk.ac.gla.student._2074245k.cde.util;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -74,7 +75,8 @@ public final class GraphicsGenerator
 	
 	public void setColor(final Color color) { gfx.setColor(color); }
 	public void setStroke(final Stroke stroke) { gfx.setStroke(stroke); }
-
+	public void setFont(final Font font) { gfx.setFont(font); };
+	
 	public void drawImage(final Image image, final int x, final int y, final int dx, final int dy) { gfx.drawImage(image, x, y, dx, dy, null); }
 	public void drawImage(final Image image, final int x, final int y) { gfx.drawImage(image, x, y, null); }   
 	public void drawString(final String str, final int x, final int y) { gfx.drawString(str, x, y); }

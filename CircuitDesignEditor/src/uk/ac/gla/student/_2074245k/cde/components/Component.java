@@ -10,7 +10,7 @@ public abstract class Component
 {	
 	public enum ComponentType
 	{
-		LINE_SEGMENT, HINGE, GATE, BLACK_BOX, WHITE_BOX
+		LINE_SEGMENT, HINGE, GATE, BLACK_BOX, WHITE_BOX, TEXT_BOX
 	}
 	
 	public enum MovementType

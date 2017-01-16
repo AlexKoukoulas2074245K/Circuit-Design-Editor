@@ -12,12 +12,14 @@ public final class Mouse
 	private int x, y, prevX, prevY, prePressX, prePressY;
 	private boolean[] currentState;
 	private boolean[] previousState;
+	private boolean doubleClick;
 	
 	public Mouse()
 	{
 		x = y = prevX = prevY = prePressX = prePressY = 0;
 		currentState  = new boolean[MouseInfo.getNumberOfButtons()];
-		previousState = new boolean[MouseInfo.getNumberOfButtons()];		
+		previousState = new boolean[MouseInfo.getNumberOfButtons()];
+		doubleClick   = false;
 	}
 	
 	public int getX() { return x; }
@@ -32,6 +34,7 @@ public final class Mouse
 	public int getDx() { return x - prevX; }
 	public int getDy() { return y - prevY; }
 	
+	public boolean doubleClick() { return doubleClick; }
 	public boolean isButtonDown(final int buttonNum) { return currentState[buttonNum] && !isButtonTapped(buttonNum); }
 	public boolean isButtonTapped(final int buttonNum) { return currentState[buttonNum] && !previousState[buttonNum]; }
 	public boolean isButtonJustReleased(final int buttonNum) { return !currentState[buttonNum] && previousState[buttonNum]; }
@@ -51,17 +54,19 @@ public final class Mouse
 	}
 	
 	public void updateOnMousePressed(final MouseEvent eventArgs)
-	{
+	{		
+		doubleClick = false;
 		prePressX = eventArgs.getX();
 		prePressY = eventArgs.getY();
 		currentState[eventArgs.getButton()] = true;
 	}
 	
 	public void updateOnMouseReleased(final MouseEvent eventArgs)
-	{
+	{		
 		prePressX = eventArgs.getX();
 		prePressY = eventArgs.getY();
 		currentState[eventArgs.getButton()] = false;
+		doubleClick = eventArgs.getClickCount() == 2;		
 	}
 	
 	public void updateOnFrameEnd()
@@ -69,6 +74,6 @@ public final class Mouse
 		for (int i = 0; i < currentState.length; ++i)
 			previousState[i] = currentState[i];
 		prevX = x;
-		prevY = y;
+		prevY = y;		
 	}
 }

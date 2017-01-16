@@ -6,6 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -41,10 +43,11 @@ import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
 import uk.ac.gla.student._2074245k.cde.components.Component.Orientation;
+import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
 import uk.ac.gla.student._2074245k.cde.components.ConcreteComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
-import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
+import uk.ac.gla.student._2074245k.cde.components.TextBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.observers.ConcreteComponentCreationObserver;
 import uk.ac.gla.student._2074245k.cde.util.FrameCounter;
@@ -57,6 +60,7 @@ import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 public final class MainCanvas extends JPanel implements Runnable,											                                                          
                                                         MouseListener,
                                                         MouseMotionListener,
+                                                        KeyListener,
                                                         ComponentListener,
                                                         ConcreteComponentCreationObserver
 {
@@ -84,9 +88,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private DOMImplementation domImpl;
 	private Document document;
 	
-	private int selectionDx, selectionDy, dragNubX, dragNubY, incidentNubX, incidentNubY;			
+	private int selectionDx, selectionDy, dragNubX, dragNubY, dragTextboxX, dragTextboxY, incidentNubX, incidentNubY;			
 	private AlignedComponentsList alignedComponents, prevAlignedComponents;
-	private boolean isCreatingNub, isNubInContact, movingComponents;
+	private boolean isCreatingNub, isCreatingTextbox, isNubInContact, movingComponents;
 	
 	private List<Action> executedActionHistory;
 	private List<Action> undoneActionHistory;
@@ -100,12 +104,12 @@ public final class MainCanvas extends JPanel implements Runnable,
 	{		
 		super();
 		this.window = window;		
-		init(null);
+		init(null);		
 	}
 	
 	public void init(final File saveFile)
 	{
-		selectionDx = selectionDy = dragNubX = dragNubY = 0;		
+		selectionDx = selectionDy = dragNubX = dragNubY = dragTextboxX = dragTextboxY = 0;		
 		highlightedComponent = null;
 		
 		components            = new HashSet<Component>();
@@ -120,7 +124,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		componentSelector     = new ComponentSelector(0, 0);
 		mouse                 = new Mouse();	
 		
-		isCreatingNub = isNubInContact = movingComponents = false;		
+		isCreatingNub = isNubInContact = movingComponents = isCreatingTextbox = false;		
 		
 		alignedComponents = prevAlignedComponents = null;
 		domImpl = GenericDOMImplementation.getDOMImplementation();
@@ -139,8 +143,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{
 			mainCanvasThread = new Thread(this);			
 			addMouseListener(this);
-			addMouseMotionListener(this);		
+			addMouseMotionListener(this);			
 			addComponentListener(this);
+			addKeyListener(this);
 			mainCanvasThread.start();
 		}
 	}
@@ -175,20 +180,48 @@ public final class MainCanvas extends JPanel implements Runnable,
 		display(gfxGen);
 		gfxCopy.dispose();
 	}
-
-	@Override
-	public void mouseDragged(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseDrag(eventArgs); }
 	
 	@Override
-	public void mouseMoved(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseMove(eventArgs); }
+	public void keyPressed(KeyEvent evt) 
+	{
+		synchronized (componentSelector)
+		{
+			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompsIter.hasNext())
+			{
+				Component comp = selCompsIter.next();
+				if (comp.getComponentType() == ComponentType.TEXT_BOX)
+				{
+					TextBoxComponent tb = (TextBoxComponent)comp;
+					if (tb.isInEditMode())
+					{
+						tb.updateText(evt);
+					}
+				}				
+			}
+		}
+	}
 
 	@Override
-	public void mousePressed(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMousePressed(eventArgs); }
+	public void keyReleased(KeyEvent __) 
+	{		
+	}
+	
+	@Override
+	public void keyTyped(KeyEvent __) {}
+	
+	@Override
+	public void mouseDragged(MouseEvent eventArgs) { mouse.updateOnMouseDrag(eventArgs); }
+	
+	@Override
+	public void mouseMoved(MouseEvent eventArgs) { mouse.updateOnMouseMove(eventArgs); }
+
+	@Override
+	public void mousePressed(MouseEvent eventArgs) { mouse.updateOnMousePressed(eventArgs); }
 	
 	@Override
 	public void mouseReleased(MouseEvent eventArgs) 
-	{
-		requestFocus();
+	{		
 		mouse.updateOnMouseReleased(eventArgs);
 		
 		synchronized (lineSegmentPath)
@@ -213,14 +246,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 	}
 	
 	@Override
-	public void mouseClicked(MouseEvent eventArgs) { requestFocus(); mouse.updateOnMouseReleased(eventArgs); }
+	public void mouseClicked(MouseEvent eventArgs) { mouse.updateOnMouseReleased(eventArgs); }
 
 	@Override
 	public void mouseEntered(MouseEvent __) {}
 
 	@Override
 	public void mouseExited(MouseEvent __) {}
-	
+
 	@Override
 	public void componentHidden(ComponentEvent __) {}
 	
@@ -424,7 +457,26 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 	public void finalizeWirePosition(final int x, final int y)
 	{					
-		finalizeWireCreation(x, y);								
+		finalizeWireCreation(x, y);			
+		grabFocus();
+	}
+	
+	public void startCreatingTextbox(final int x, final int y)
+	{
+		isCreatingTextbox = true;
+		dragTextboxX = x;
+		dragTextboxY = y;
+	}
+	
+	public void setTextboxCreationPosition(final int x, final int y)
+	{
+		dragTextboxX = x;
+		dragTextboxY = y;
+	}
+	
+	public void finalizeTextboxPosition(final int x, final int y)
+	{
+		finalizeTextboxCreation();	
 	}
 	
 	public void startCreatingNub(final int x, final int y)
@@ -442,7 +494,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	public void finalizeNubPosition(final int x, final int y)
 	{
-		finalizeNubCreation();
+		finalizeNubCreation();		
 	}
 	
 	public int getNumberOfSelectedComponents()
@@ -477,7 +529,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 		setPreferredSize(result.canvasDimension);			
 		revalidate();
 		repaint();
-		JOptionPane.showMessageDialog(null, "Loaded project successfully");
+		
+		if (result.loadedComponents.size() == 0) { JOptionPane.showMessageDialog(null, "Could not load project"); }
+		else { JOptionPane.showMessageDialog(null, "Loaded project successfully"); }
 		hasTakenActionSinceLastSave = false;
 	}
 	
@@ -637,6 +691,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		// On Left Mouse Button Tap
 		if (mouse.isButtonTapped(Mouse.LEFT_BUTTON))
 		{	
+			grabFocus();
 			synchronized (lineSegmentPath)
 			{
 				lineSegmentPath.clear();					
@@ -825,6 +880,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	private void render(final GraphicsGenerator gfx)
 	{							
+		renderComponents(gfx, ComponentType.TEXT_BOX);
 		renderComponents(gfx, ComponentType.LINE_SEGMENT);
 		renderPathSegments(gfx);
 		renderComponents(gfx, ComponentType.GATE);
@@ -834,10 +890,17 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		if (isCreatingNub)
 		{
-			gfx.setColor(isNubInContact ? Colors.DEFAULT_COLOR : Colors.NUB_TRANSP_COLOR);
+			gfx.setColor(isNubInContact ? Colors.DEFAULT_COLOR : Colors.TRANSP_COLOR);
 			gfx.fillOval(dragNubX - HingeComponent.NUB_DIAMETER/2, dragNubY - HingeComponent.NUB_DIAMETER/2, HingeComponent.NUB_DIAMETER, HingeComponent.NUB_DIAMETER);
 		}
-				
+		
+		if (isCreatingTextbox)
+		{
+			gfx.setColor(Colors.TRANSP_COLOR);			
+						
+			gfx.drawString("Text", dragTextboxX - 20, dragTextboxY);						
+		}
+		
 		componentSelector.render(gfx);
 		
 		if (prevAlignedComponents != null)
@@ -1092,6 +1155,16 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 	}
 
+	private void finalizeTextboxCreation()
+	{		
+		int textboxX = Math.max(40, dragTextboxX - 20);
+		int textboxY = Math.max(40, dragTextboxY);
+		
+		addComponentToCanvas(new TextBoxComponent(this, "Text", textboxX, textboxY));
+		hasTakenActionSinceLastSave = true;
+		isCreatingTextbox = false;
+	}
+	
 	private void constructLinePath(final Component component)
 	{
 		synchronized (lineSegmentPath)
@@ -1167,6 +1240,4 @@ public final class MainCanvas extends JPanel implements Runnable,
 			}
 		}	
 	}
-	
-	
 }

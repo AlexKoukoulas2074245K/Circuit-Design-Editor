@@ -21,6 +21,7 @@ import uk.ac.gla.student._2074245k.cde.components.Component;
 import uk.ac.gla.student._2074245k.cde.components.GateComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
+import uk.ac.gla.student._2074245k.cde.components.TextBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
 import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
@@ -30,7 +31,7 @@ public final class ProjectPersistenceUtilities
 {		
 	private static enum LoadingMode
 	{
-		HINGE, LINE_SEGMENT, GATE, BLACK_BOX, WHITE_BOX
+		TEXT_BOX, HINGE, LINE_SEGMENT, GATE, BLACK_BOX, WHITE_BOX
 	}
 	
 	public static LoadingResult openProjectNonPersistent(final MainCanvas canvas)
@@ -58,6 +59,7 @@ public final class ProjectPersistenceUtilities
 		List<GateComponent> gateComponents               = new ArrayList<GateComponent>();
 		List<BlackBoxComponent> blackBoxComponents       = new ArrayList<BlackBoxComponent>();
 		List<WhiteBoxComponent> whiteBoxComponents       = new ArrayList<WhiteBoxComponent>();
+		List<TextBoxComponent> textBoxComponents         = new ArrayList<TextBoxComponent>();
 		Set<Component> loadedComponents                  = new HashSet<Component>();
 		Dimension canvasDimension                        = null;
 		
@@ -82,12 +84,41 @@ public final class ProjectPersistenceUtilities
 			canvasDimension = new Dimension(Integer.parseInt(line.split(",")[0]), Integer.parseInt(line.split(",")[1]));
 			
 			line = br.readLine();
-			LoadingMode loadingMode = LoadingMode.HINGE;
+			LoadingMode loadingMode = LoadingMode.TEXT_BOX;
 			
 			while ((line = br.readLine()) != null)
 			{				
 				switch (loadingMode)
 				{
+				    case TEXT_BOX:
+				    {	
+				    	if (line.startsWith("#"))
+				    	{
+				    		loadingMode = LoadingMode.HINGE;
+				    		continue;
+				    	}
+				    	
+				    	String[] lineComponents = line.split(",");
+				    	Rectangle textBoxRect = new Rectangle(Integer.parseInt(lineComponents[1]),
+				    			                              Integer.parseInt(lineComponents[2]),
+				    			                              Integer.parseInt(lineComponents[3]),
+				    			                              Integer.parseInt(lineComponents[4]));
+				    	
+				    	String textsString = lineComponents[5];
+				    	textsString = textsString.substring(1, textsString.length() - 1);
+				    	String[] texts = textsString.split("-");
+				    	List<String> correctedTexts = new ArrayList<String>();
+				    	for (String text: texts)
+				    	{
+				    		correctedTexts.add(text.replace("@", " "));
+				    	}
+				    	
+				    	TextBoxComponent tb = new TextBoxComponent(canvas, "", 0, 0);
+				    	tb.setRectangle(textBoxRect);
+				    	tb.setTexts(correctedTexts);
+				    	textBoxComponents.add(tb);
+				    } break;
+				    
 					case HINGE:
 					{
 						if (line.startsWith("#"))
@@ -313,6 +344,7 @@ public final class ProjectPersistenceUtilities
 									case GATE:         whiteBox.addInnerComponentExternally(gateComponents.get(innerComponentBucketIndex)); break;
 									case BLACK_BOX:    whiteBox.addInnerComponentExternally(blackBoxComponents.get(innerComponentBucketIndex));break;
 									case WHITE_BOX:    whiteBox.addInnerComponentExternally(whiteBoxComponents.get(innerComponentBucketIndex));break;
+									case TEXT_BOX:     whiteBox.addInnerComponentExternally(textBoxComponents.get(innerComponentBucketIndex));break;
 								}
 							}
 						}
@@ -321,6 +353,14 @@ public final class ProjectPersistenceUtilities
 				}						
 			}
 						
+			for (Component comp: textBoxComponents)
+			{
+				if (!nonPersistMode)
+				{
+					canvas.addComponentToCanvas(comp);
+				}
+				loadedComponents.add(comp);
+			}
 			for (Component comp: hingeComponents)
 			{
 				if (!nonPersistMode)				
@@ -367,7 +407,7 @@ public final class ProjectPersistenceUtilities
 			}					
 		}
 		catch (Exception __)
-		{						
+		{					
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
@@ -387,6 +427,7 @@ public final class ProjectPersistenceUtilities
 		List<GateComponent> gateComponents               = new ArrayList<GateComponent>();
 		List<BlackBoxComponent> blackBoxComponents       = new ArrayList<BlackBoxComponent>();
 		List<WhiteBoxComponent> whiteBoxComponents       = new ArrayList<WhiteBoxComponent>();
+		List<TextBoxComponent> textBoxComponents         = new ArrayList<TextBoxComponent>();
 		
 		for (Component component: components)
 		{
@@ -397,7 +438,8 @@ public final class ProjectPersistenceUtilities
 				case GATE:         gateComponents.add((GateComponent)component); break;
 				case BLACK_BOX:    blackBoxComponents.add((BlackBoxComponent)component); break;
 				case WHITE_BOX:    whiteBoxComponents.add((WhiteBoxComponent)component); break;
-			}
+				case TEXT_BOX:     textBoxComponents.add((TextBoxComponent)component); break;
+			}			
 		}
 		
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(file)))
@@ -413,6 +455,15 @@ public final class ProjectPersistenceUtilities
 						
 			bw.write(canvasDimension.width + "," + canvasDimension.height);
 			bw.newLine();
+			
+			bw.write("#TextBoxes: textboxIndex,textboxX,textboxY,textboxWidth,textboxHeight,[textboxText1-textboxText2-...-textboxTextN-1]");
+			bw.newLine();
+			
+			for (int i = 0; i < textBoxComponents.size(); ++i)
+			{
+				bw.write(i + "," + textBoxComponents.get(i).serialize());
+				bw.newLine();
+			}
 			
 			bw.write("#Hinges: Hinge Index:<Index> x,y,hasNub,isMovable,isInternal,isInverted,location,name");
 			bw.newLine();
@@ -589,6 +640,7 @@ public final class ProjectPersistenceUtilities
 						case GATE:         bw.write(String.valueOf(gateComponents.indexOf(innerComponent)));break;
 						case BLACK_BOX:    bw.write(String.valueOf(blackBoxComponents.indexOf(innerComponent)));break;
 						case WHITE_BOX:    bw.write(String.valueOf(whiteBoxComponents.indexOf(innerComponent)));break;
+						case TEXT_BOX:     bw.write(String.valueOf(textBoxComponents.indexOf(innerComponent)));break;
 					}
 					
 					if (innerComponentsIter.hasNext())

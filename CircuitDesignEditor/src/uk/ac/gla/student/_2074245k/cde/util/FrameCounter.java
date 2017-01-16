@@ -39,6 +39,7 @@ public final class FrameCounter
 			int nGates  = 0;
 			int nBBs    = 0;
 			int nWBs    = 0;
+			int nTBs    = 0;
 			
 			for (Component component: components)
 			{
@@ -49,13 +50,15 @@ public final class FrameCounter
 					case GATE:         nGates++; break;
 					case BLACK_BOX:    nBBs++; break;
 					case WHITE_BOX:    nWBs++; break;
+					case TEXT_BOX:     nTBs++; break;
 				}				
 			}
 			frame.setTitle(MainFrame.WINDOW_TITLE + " - " +
 			               (selFile == null ? "New Canvas" : selFile.getName()) + 
 			               (hasTakenActionSinceLastSave ? "*" : "") + 
-					       " -  FPS: " + frameCounter + 
-					       "   | BBs: " + nBBs +
+					       " -  FPS: " + frameCounter +
+					       "  | TBs: " + nTBs + 
+					       ", BBs: " + nBBs +
 					       ", WBs: " + nWBs +
 					       ", Gates: " + nGates +
 					       ", LS: " + nLses +

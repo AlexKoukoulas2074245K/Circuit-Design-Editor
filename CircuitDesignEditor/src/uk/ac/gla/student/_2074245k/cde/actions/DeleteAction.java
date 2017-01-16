@@ -32,11 +32,12 @@ public class DeleteAction implements Action
 				Component selComp = selector.getFirstComponent();
 				switch (selComp.getComponentType())
 				{
-				case HINGE: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
-				case LINE_SEGMENT: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
-				case GATE: canvas.addChildrenAndParentsToSelection(); break;
-				case BLACK_BOX: canvas.addChildrenAndParentsToSelection(); break;
-				case WHITE_BOX: canvas.addChildrenAndParentsToSelection(); break;
+					case HINGE: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
+					case LINE_SEGMENT: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
+					case GATE: canvas.addChildrenAndParentsToSelection(); break;
+					case BLACK_BOX: canvas.addChildrenAndParentsToSelection(); break;
+					case WHITE_BOX: canvas.addChildrenAndParentsToSelection(); break;
+					case TEXT_BOX: break;
 				}
 			}
 			else

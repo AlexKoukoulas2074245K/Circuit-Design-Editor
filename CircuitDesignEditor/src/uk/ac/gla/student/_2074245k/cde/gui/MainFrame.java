@@ -220,10 +220,11 @@ public final class MainFrame extends JFrame
     	    	
         menuPanel = new JPanel(new WrapLayout());        
                         
-    	final Image bbImage     = ImageIO.read(getClass().getResourceAsStream("/icons/blackbox_icon.png"));
-    	final Image gateImage   = ImageIO.read(getClass().getResourceAsStream("/icons/lg_icon.png"));
-    	final Image wiresImage  = ImageIO.read(getClass().getResourceAsStream("/icons/wire_icon.png"));
-    	final Image nubImage    = ImageIO.read(getClass().getResourceAsStream("/icons/nub_icon.png"));
+    	final Image bbImage      = ImageIO.read(getClass().getResourceAsStream("/icons/blackbox_icon.png"));
+    	final Image gateImage    = ImageIO.read(getClass().getResourceAsStream("/icons/lg_icon.png"));
+    	final Image wiresImage   = ImageIO.read(getClass().getResourceAsStream("/icons/wire_icon.png"));
+    	final Image nubImage     = ImageIO.read(getClass().getResourceAsStream("/icons/nub_icon.png"));
+        final Image textboxImage = ImageIO.read(getClass().getResourceAsStream("/icons/textbox_icon.png"));
         
         JButton bbButton = new JButton(new ImageIcon(bbImage));
         bbButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
@@ -236,6 +237,10 @@ public final class MainFrame extends JFrame
         JButton wireButton = new JButton(new ImageIcon(wiresImage));
         wireButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
         wireButton.setToolTipText("Create a mutable wire segment");
+        
+        JButton textboxButton = new JButton(new ImageIcon(textboxImage));
+        textboxButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
+        textboxButton.setToolTipText("Drag and drop an editable textbox");
         
         JButton nubButton = new JButton(new ImageIcon(nubImage));
         nubButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
@@ -329,6 +334,7 @@ public final class MainFrame extends JFrame
         menuPanel.add(bbButton);        
         menuPanel.add(gateButton);
         menuPanel.add(wireButton); 
+        menuPanel.add(textboxButton);
         menuPanel.add(nubButton);        
         menuPanel.add(componentMovementPanel);
         menuPanel.add(wireMovementPanel);        
@@ -337,6 +343,7 @@ public final class MainFrame extends JFrame
                 
         canvasPanel = new MainCanvas(this);            
         canvasPanel.setPreferredSize(canvasDimension);
+        canvasPanel.setFocusable(true);
               
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.add(canvasPanel, new GridBagConstraints());
@@ -901,7 +908,48 @@ public final class MainFrame extends JFrame
         		canvasPanel.finalizeWirePosition(targetX, targetY);                
         	}
         });
-       
+        
+        textboxButton.addMouseMotionListener(new MouseMotionListener()
+        {
+        	@Override
+			public void mouseDragged(MouseEvent e) 
+			{				
+				canvasPanel.setTextboxCreationPosition(canvasScrollPane.getViewport().getViewPosition().x -canvasPanel.getLocation().x + e.getX() + textboxButton.getLocation().x,
+						                               canvasScrollPane.getViewport().getViewPosition().y -canvasPanel.getLocation().y + e.getY() + textboxButton.getLocation().y - menuPanel.getHeight());
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent __) { } 
+        });
+        
+        textboxButton.addMouseListener(new MouseListener()
+        {
+
+			@Override
+			public void mouseClicked(MouseEvent __) { }							
+
+			@Override
+			public void mouseEntered(MouseEvent __) { }
+
+			@Override
+			public void mouseExited(MouseEvent __) { }
+
+			@Override
+			public void mousePressed(MouseEvent e) 
+			{
+				canvasPanel.startCreatingTextbox(-canvasPanel.getLocation().x + e.getX() + textboxButton.getLocation().x,
+                        					     -canvasPanel.getLocation().y + e.getY() + textboxButton.getLocation().y - menuPanel.getHeight());
+			} 								
+
+			@Override
+			public void mouseReleased(MouseEvent e) 
+			{
+				canvasPanel.finalizeTextboxPosition(-canvasPanel.getLocation().x + e.getX() + textboxButton.getLocation().x,
+                        						    -canvasPanel.getLocation().y + e.getY() + textboxButton.getLocation().y - menuPanel.getHeight());
+			}
+        
+        });
+        
         nubButton.addMouseMotionListener(new MouseMotionListener()
         {
 
