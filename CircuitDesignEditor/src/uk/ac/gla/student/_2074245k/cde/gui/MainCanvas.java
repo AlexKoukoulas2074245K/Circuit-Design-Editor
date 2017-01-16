@@ -985,7 +985,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private Component getHoveredComponent(final int mouseX, final int mouseY)
 	{		
 		List<Component> componentsList = new ArrayList<Component>(components);
-		componentsList.sort(new ComponentRectangleComparator(false));
+		componentsList.sort(new ComponentRectangleComparator(WhiteBoxComponent.WHITE_BOX_OPACITY ? true : false));
 		return getHoveredComponentInBucket(mouseX, mouseY, componentsList);
 	}
 	

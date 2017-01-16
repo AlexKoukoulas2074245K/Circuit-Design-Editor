@@ -86,6 +86,7 @@ public final class MainFrame extends JFrame
     {
     	try 
     	{     		
+    		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
     		setContentPane(createComponents(this, canvasDimension));
     		changeLookAndFeel(lookAndFeelClassName);
             setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -93,7 +94,7 @@ public final class MainFrame extends JFrame
             setMinimumSize(DEFAULT_WINDOW_MIN_DIM);
             setLocationRelativeTo(null);
             setVisible(true);   
-            System.out.println(getContentPane().getComponents().length);
+            
     		addWindowListener(new WindowAdapter()
     		{
     			@Override

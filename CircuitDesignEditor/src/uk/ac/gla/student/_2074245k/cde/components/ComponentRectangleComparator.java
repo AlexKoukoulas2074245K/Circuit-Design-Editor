@@ -18,32 +18,21 @@ public class ComponentRectangleComparator implements Comparator<Component>
 	   be based on that comparison */
 	@Override
 	public int compare(Component a, Component b) 
-	{
-		if (b.getRectangle().contains(a.getRectangle()))
-		{
-			return reversed ? 1 : -1;
+	{		
+		long aArea = a.getRectangle().width * a.getRectangle().height;
+		long bArea = b.getRectangle().width * b.getRectangle().height;
+		
+		if (aArea < bArea)
+		{			
+			return reversed ? 1 : -1;				
 		}
-		else if (a.getRectangle().contains(b.getRectangle()))
-		{
+		else if (aArea > bArea)
+		{			
 			return reversed ? -1 : 1;
 		}
 		else
-		{
-			long aArea = a.getRectangle().width * a.getRectangle().height;
-			long bArea = b.getRectangle().width * b.getRectangle().height;
-			
-			if (aArea < bArea)
-			{
-				return reversed ? 1 : -1;				
-			}
-			else if (aArea > bArea)
-			{
-				return reversed ? -1 : 1;
-			}
-			else
-			{
-				return 0;
-			}
-		}
+		{				
+			return 0;
+		}		
 	}		
 }
