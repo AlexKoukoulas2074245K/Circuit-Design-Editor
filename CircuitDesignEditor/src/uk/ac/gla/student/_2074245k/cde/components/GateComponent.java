@@ -35,7 +35,7 @@ public final class GateComponent extends ConcreteComponent
 			           final boolean selected, 
 			           final boolean isInMultiSelectionMovement) 
 	{			
-		g.setColor(selected ? Colors.SELECTION_COLOR : Colors.DEFAULT_COLOR);
+		g.setColor(selected ? Colors.SELECTION_COLOR : customColor);
 		for (Component internalHinge: internalHorHinges)
 		{
 			((HingeComponent)internalHinge).calculateNamePosition(g);
@@ -52,7 +52,8 @@ public final class GateComponent extends ConcreteComponent
 				     ((HingeComponent)internalHinge).getNameY());
 		}
 		
-		g.drawGate(gateType, getRectangle(), selected ? Colors.SELECTION_COLOR : Colors.DEFAULT_COLOR);
+		g.setColor(selected ? Colors.SELECTION_COLOR : customColor);				
+		g.drawGate(gateType, getRectangle(), g.getCanvasContext().getColor());
 	}
 	
 	@Override
@@ -88,7 +89,8 @@ public final class GateComponent extends ConcreteComponent
 	@Override
 	public String serialize() 
 	{		
-		return gateType + "," + componentRect.x + "," + componentRect.y;	
+		return gateType + "," + componentRect.x + "," + componentRect.y + "," + 
+	           customColor.getRed() + "," + customColor.getGreen() + "," + customColor.getBlue() + "," + customColor.getAlpha();	
 	}
 	
 	@Override

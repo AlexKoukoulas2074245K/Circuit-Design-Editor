@@ -1,6 +1,7 @@
 package uk.ac.gla.student._2074245k.cde.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -30,6 +31,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -75,6 +77,7 @@ public final class MainFrame extends JFrame
 	private JPanel masterPanel;    
 	private JPanel menuPanel;
     private MainCanvas canvasPanel;
+    private Color lastChosenColor;
     
     public MainFrame()
     {
@@ -86,6 +89,7 @@ public final class MainFrame extends JFrame
     {
     	try 
     	{     		
+    		lastChosenColor = null;
     		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
     		setContentPane(createComponents(this, canvasDimension));
     		changeLookAndFeel(lookAndFeelClassName);
@@ -94,7 +98,6 @@ public final class MainFrame extends JFrame
             setMinimumSize(DEFAULT_WINDOW_MIN_DIM);
             setLocationRelativeTo(null);
             setVisible(true);   
-            
     		addWindowListener(new WindowAdapter()
     		{
     			@Override
@@ -225,6 +228,7 @@ public final class MainFrame extends JFrame
     	final Image wiresImage   = ImageIO.read(getClass().getResourceAsStream("/icons/wire_icon.png"));
     	final Image nubImage     = ImageIO.read(getClass().getResourceAsStream("/icons/nub_icon.png"));
         final Image textboxImage = ImageIO.read(getClass().getResourceAsStream("/icons/textbox_icon.png"));
+        final Image paletteImage = ImageIO.read(getClass().getResourceAsStream("/icons/palette_icon.png"));
         
         JButton bbButton = new JButton(new ImageIcon(bbImage));
         bbButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
@@ -238,14 +242,18 @@ public final class MainFrame extends JFrame
         wireButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
         wireButton.setToolTipText("Create a mutable wire segment");
         
-        JButton textboxButton = new JButton(new ImageIcon(textboxImage));
-        textboxButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
-        textboxButton.setToolTipText("Drag and drop an editable textbox");
-        
         JButton nubButton = new JButton(new ImageIcon(nubImage));
         nubButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
         nubButton.setToolTipText("Drag and drop a nub denoting electrical connection between components");
         
+        JButton textboxButton = new JButton(new ImageIcon(textboxImage));
+        textboxButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
+        textboxButton.setToolTipText("Drag and drop an editable textbox");
+        
+        JButton paletteButton = new JButton(new ImageIcon(paletteImage));
+        paletteButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
+        paletteButton.setToolTipText("Select a custom color for the selected component(s)");
+                
         // Component Movement Panel        
         JRadioButton componentAxisResMove = new JRadioButton("Axis Res.");               
         JRadioButton componentUnrestrictedMove    = new JRadioButton("Unrestricted");
@@ -334,8 +342,9 @@ public final class MainFrame extends JFrame
         menuPanel.add(bbButton);        
         menuPanel.add(gateButton);
         menuPanel.add(wireButton); 
-        menuPanel.add(textboxButton);
         menuPanel.add(nubButton);        
+        menuPanel.add(textboxButton);
+        menuPanel.add(paletteButton);
         menuPanel.add(componentMovementPanel);
         menuPanel.add(wireMovementPanel);        
         menuPanel.add(hingeMovementPanel);
@@ -909,6 +918,48 @@ public final class MainFrame extends JFrame
         	}
         });
         
+        nubButton.addMouseMotionListener(new MouseMotionListener()
+        {
+
+			@Override
+			public void mouseDragged(MouseEvent e) 
+			{				
+				canvasPanel.setNubCreationPosition(canvasScrollPane.getViewport().getViewPosition().x -canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+						                           canvasScrollPane.getViewport().getViewPosition().y -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent __) { }        
+        });
+        
+        nubButton.addMouseListener(new MouseListener()
+        {
+
+			@Override
+			public void mouseClicked(MouseEvent __) { }							
+
+			@Override
+			public void mouseEntered(MouseEvent __) { }
+
+			@Override
+			public void mouseExited(MouseEvent __) { }
+
+			@Override
+			public void mousePressed(MouseEvent e) 
+			{
+				canvasPanel.startCreatingNub(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+                        					 -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
+			} 								
+
+			@Override
+			public void mouseReleased(MouseEvent e) 
+			{
+				canvasPanel.finalizeNubPosition(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
+                        						-canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
+			}
+        
+        });
+        
         textboxButton.addMouseMotionListener(new MouseMotionListener()
         {
         	@Override
@@ -950,46 +1001,23 @@ public final class MainFrame extends JFrame
         
         });
         
-        nubButton.addMouseMotionListener(new MouseMotionListener()
+        paletteButton.addActionListener(new ActionListener()
         {
-
-			@Override
-			public void mouseDragged(MouseEvent e) 
-			{				
-				canvasPanel.setNubCreationPosition(canvasScrollPane.getViewport().getViewPosition().x -canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
-						                           canvasScrollPane.getViewport().getViewPosition().y -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
-			}
-
-			@Override
-			public void mouseMoved(MouseEvent __) { }        
-        });
-        
-        nubButton.addMouseListener(new MouseListener()
-        {
-
-			@Override
-			public void mouseClicked(MouseEvent __) { }							
-
-			@Override
-			public void mouseEntered(MouseEvent __) { }
-
-			@Override
-			public void mouseExited(MouseEvent __) { }
-
-			@Override
-			public void mousePressed(MouseEvent e) 
-			{
-				canvasPanel.startCreatingNub(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
-                        					 -canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
-			} 								
-
-			@Override
-			public void mouseReleased(MouseEvent e) 
-			{
-				canvasPanel.finalizeNubPosition(-canvasPanel.getLocation().x + e.getX() + nubButton.getLocation().x,
-                        						-canvasPanel.getLocation().y + e.getY() + nubButton.getLocation().y - menuPanel.getHeight());
-			}
-        
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		if (canvasPanel.getNumberOfSelectedComponents() == 0)
+        		{	
+        			JOptionPane.showMessageDialog(null, "No components have been selected!\nPlease select one or more components in order to color them.", "Color Selection Error", JOptionPane.ERROR_MESSAGE);
+        		}
+        		else
+        		{        		        			        		
+        			lastChosenColor = JColorChooser.showDialog(frame, "Choose custom color", lastChosenColor != null ? lastChosenColor : Colors.DEFAULT_COLOR);
+        			if (lastChosenColor != null)
+        			{
+        				canvasPanel.colorSelectedComponents(lastChosenColor);
+        			}
+        		}        		        		
+        	}
         });
         
         componentAxisResMove.addActionListener(new ActionListener() 

@@ -42,7 +42,7 @@ public final class BlackBoxComponent extends ConcreteComponent
 		g.setColor(Color.white);
 		g.fillRect(componentRect.x, componentRect.y, componentRect.width, componentRect.height);					
 		
-		g.setColor(selected ? Colors.SELECTION_COLOR : Colors.DEFAULT_COLOR);
+		g.setColor(selected ? Colors.SELECTION_COLOR : customColor);		
 		g.drawRect(componentRect.x, componentRect.y, componentRect.width, componentRect.height);
 		
 		for (Component internalHinge: internalHorHinges)
@@ -104,6 +104,10 @@ public final class BlackBoxComponent extends ConcreteComponent
 	           componentRect.y + "," + 
 			   componentRect.width + "," + 
 			   componentRect.height + "," +
+			   customColor.getRed() + "," +
+			   customColor.getGreen() + "," +
+			   customColor.getBlue() + "," + 
+			   customColor.getAlpha() + "," + 
 			   name + "," + 
 			   nameXOffset + "," + 
 			   nameYOffset;

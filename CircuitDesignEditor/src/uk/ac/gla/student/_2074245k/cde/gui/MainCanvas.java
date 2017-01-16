@@ -1,6 +1,7 @@
 package uk.ac.gla.student._2074245k.cde.gui;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -34,6 +35,7 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
 import uk.ac.gla.student._2074245k.cde.actions.Action;
+import uk.ac.gla.student._2074245k.cde.actions.ColorComponentsAction;
 import uk.ac.gla.student._2074245k.cde.actions.DeleteAction;
 import uk.ac.gla.student._2074245k.cde.actions.MoveAction;
 import uk.ac.gla.student._2074245k.cde.actions.MultiMoveAction;
@@ -678,6 +680,18 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 	}
 	
+	public void colorSelectedComponents(final Color selColor)
+	{
+		synchronized (componentSelector)
+		{																
+			Action colorComponentsAction = new ColorComponentsAction(componentSelector, selColor);
+			colorComponentsAction.execute();
+			executedActionHistory.add(colorComponentsAction);
+			hasTakenActionSinceLastSave = true;
+			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
+		}
+	}
+	
 	public void toggleOpacity()
 	{
 		WhiteBoxComponent.WHITE_BOX_OPACITY = !WhiteBoxComponent.WHITE_BOX_OPACITY;
@@ -885,7 +899,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		renderPathSegments(gfx);
 		renderComponents(gfx, ComponentType.GATE);
 		renderComponents(gfx, ComponentType.BLACK_BOX);
-		renderComponents(gfx, ComponentType.HINGE);
+		renderComponents(gfx, ComponentType.HINGE);		
 		renderWhiteBoxes(gfx);
 		
 		if (isCreatingNub)

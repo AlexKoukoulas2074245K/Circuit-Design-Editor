@@ -75,7 +75,7 @@ public final class TextBoxComponent extends Component
 		if (selected)
 		{
 			g.setStroke(Strokes.THIN_STROKE);
-			g.setColor(Colors.SELECTION_COLOR);			
+			g.setColor(Colors.SELECTION_COLOR);							
 			g.drawRect(rect.x, rect.y, rect.width, rect.height);
 		}		
 		else
@@ -89,8 +89,9 @@ public final class TextBoxComponent extends Component
 			}					
 		}
 		
-		g.setColor(Colors.DEFAULT_COLOR);	
-
+		g.setColor(customColor);	
+		
+		
 		for (String text: texts)
 		{
 			Rectangle2D textRect = g.getFontMetrics().getStringBounds(text, g.getCanvasContext());
@@ -159,7 +160,9 @@ public final class TextBoxComponent extends Component
 	@Override
 	public String serialize() 
 	{
-		String serialString = rect.x + "," + rect.y + "," + rect.width + "," + rect.height + "," + "[";
+		String serialString = rect.x + "," + rect.y + "," + rect.width + "," + rect.height + "," + 
+				              customColor.getRed() + "," + customColor.getGreen() + "," + customColor.getBlue() + "," + customColor.getAlpha() + 
+				              "," + "[";
 		for (int i = 0; i < texts.size(); ++i)
 		{
 			serialString += texts.get(i).replaceAll(" ", "@");

@@ -88,7 +88,7 @@ public final class ComponentSelector
 		gfx.setColor(Colors.SELECTION_COLOR);
 		gfx.drawRect(absRect.x, absRect.y, absRect.width, absRect.height);
 		gfx.setColor(Colors.SELECTION_TRANSP_COLOR);
-		gfx.fillRect(absRect.x, absRect.y, absRect.width, absRect.height);
+		gfx.fillRect(absRect.x, absRect.y, absRect.width, absRect.height);		
 	}
 	
 	public boolean isEnabled() { return isEnabled; }

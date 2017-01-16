@@ -152,23 +152,12 @@ public final class LineSegmentComponent extends Component
 		}
 		
 		if (isSelected)
-		{
-			if (isMovable || isInMultiSelectionMovement)
-			{
-				g.setColor(Colors.SELECTION_COLOR);			
-			}
-			else
-			{
-				if ((startPoint.isMovable && !endPoint.isMovable) ||
-					(!startPoint.isMovable && endPoint.isMovable))
-					g.setColor(Colors.EFFECTIVE_IMMOVABLE_COLOR);
-				else
-					g.setColor(Colors.IMMOVABLE_COLOR);
-			}
+		{			
+			g.setColor(Colors.SELECTION_COLOR);						
 		}
 		else
 		{
-			g.setColor(Colors.DEFAULT_COLOR);
+			g.setColor(customColor);
 		}
 		
 		g.drawLine(getRectangle().x, 
@@ -242,7 +231,7 @@ public final class LineSegmentComponent extends Component
 	@Override
 	public String serialize()
 	{
-		return "" + isMovable;
+		return "" + isMovable + "," + customColor.getRed() + "," + customColor.getGreen() + "," + customColor.getBlue() + "," + customColor.getAlpha();
 	}
 	
 	@Override

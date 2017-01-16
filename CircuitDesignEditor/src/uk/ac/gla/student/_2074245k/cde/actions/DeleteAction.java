@@ -58,7 +58,7 @@ public class DeleteAction implements Action
 		}
 		else
 		{
-			throw new InvalidActionStateException("PasteAction: " + this.toString() + " attempted to do an execute on state: " + state);
+			throw new InvalidActionStateException("DeleteAction: " + this.toString() + " attempted to do an execute on state: " + state);
 		}
 	}
 	
@@ -74,7 +74,7 @@ public class DeleteAction implements Action
 		}
 		else
 		{
-			throw new InvalidActionStateException("PasteMoveAction: " + this.toString() + " attempted to do an undo on state: " + state);
+			throw new InvalidActionStateException("DeleteAction: " + this.toString() + " attempted to do an undo on state: " + state);
 		}
 	}
 }

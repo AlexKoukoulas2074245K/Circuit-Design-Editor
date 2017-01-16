@@ -102,9 +102,9 @@ public final class HingeComponent extends Component
 					case BOTTOM: yOffset = +HINGE_DIAMETER/2; break;
 				}
 				g.setColor(Color.white);
-				g.setStroke(Strokes.THIN_STROKE);
-				g.fillRect(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
-				g.setColor(Colors.DEFAULT_COLOR);
+				g.setStroke(Strokes.THIN_STROKE);				
+				g.fillRect(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);							
+				g.setColor(customColor);				
 				g.drawOval(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
 			}			
 			return;
@@ -142,13 +142,13 @@ public final class HingeComponent extends Component
 		{			
 			if (isSelected)
 			{
-				g.setColor(isMovable || isInMultiSelection ? Colors.SELECTION_COLOR : Colors.IMMOVABLE_COLOR);
+				g.setColor(Colors.SELECTION_COLOR);				
 				g.setStroke(Strokes.BOLD_STROKE);
 				drawCross(g);
 			}
 			else if (isHighlighted)
 			{						
-				g.setColor(Colors.DEFAULT_COLOR);
+				g.setColor(customColor);				
 				g.setStroke(Strokes.BOLD_STROKE);
 				drawCross(g);
 			}		
@@ -158,11 +158,11 @@ public final class HingeComponent extends Component
 		{		
 			if (isSelected)
 			{
-				g.setColor(isMovable || isInMultiSelection ? Colors.SELECTION_COLOR: Colors.IMMOVABLE_COLOR);				
+				g.setColor(Colors.SELECTION_COLOR);					
 			}
 			else
 			{
-				g.setColor(Colors.DEFAULT_COLOR);
+				g.setColor(customColor);								
 			}
 						
 			g.fillOval((int)getRectangle().getCenterX() - NUB_DIAMETER/2, (int)getRectangle().getCenterY() - NUB_DIAMETER/2, NUB_DIAMETER, NUB_DIAMETER);
@@ -174,7 +174,7 @@ public final class HingeComponent extends Component
 	{
 		if (isInternalHinge)
 			return;
-		g.setColor(Colors.DEFAULT_COLOR);
+		g.setColor(customColor);		
 		g.setStroke(Strokes.BOLD_STROKE);
 		drawCross(g);
 	}
@@ -231,6 +231,10 @@ public final class HingeComponent extends Component
 	{	
 		return rect.x + "," + 
 	           rect.y + "," + 
+			   customColor.getRed() + "," + 
+	           customColor.getGreen() + "," + 
+			   customColor.getBlue() + "," + 
+	           customColor.getAlpha() + "," +
 			   hasNub + "," + 
 	           isMovable + "," + 
 			   isInternalHinge + "," + 

@@ -1,5 +1,6 @@
 package uk.ac.gla.student._2074245k.cde.util;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.BufferedReader;
@@ -18,11 +19,11 @@ import javax.swing.JOptionPane;
 import uk.ac.gla.student._2074245k.cde.Main;
 import uk.ac.gla.student._2074245k.cde.components.BlackBoxComponent;
 import uk.ac.gla.student._2074245k.cde.components.Component;
+import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
 import uk.ac.gla.student._2074245k.cde.components.GateComponent;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
 import uk.ac.gla.student._2074245k.cde.components.TextBoxComponent;
-import uk.ac.gla.student._2074245k.cde.components.ComponentRectangleComparator;
 import uk.ac.gla.student._2074245k.cde.components.WhiteBoxComponent;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.gui.PortView;
@@ -103,8 +104,13 @@ public final class ProjectPersistenceUtilities
 				    			                              Integer.parseInt(lineComponents[2]),
 				    			                              Integer.parseInt(lineComponents[3]),
 				    			                              Integer.parseInt(lineComponents[4]));
+				    			                             
+				    	Color tbColor = new Color(Integer.parseInt(lineComponents[5]),
+									    		  Integer.parseInt(lineComponents[6]),
+									    		  Integer.parseInt(lineComponents[7]),
+									    		  Integer.parseInt(lineComponents[8]));
 				    	
-				    	String textsString = lineComponents[5];
+				    	String textsString = lineComponents[9];
 				    	textsString = textsString.substring(1, textsString.length() - 1);
 				    	String[] texts = textsString.split("-");
 				    	List<String> correctedTexts = new ArrayList<String>();
@@ -116,6 +122,7 @@ public final class ProjectPersistenceUtilities
 				    	TextBoxComponent tb = new TextBoxComponent(canvas, "", 0, 0);
 				    	tb.setRectangle(textBoxRect);
 				    	tb.setTexts(correctedTexts);
+				    	tb.setColor(tbColor);
 				    	textBoxComponents.add(tb);
 				    } break;
 				    
@@ -127,22 +134,29 @@ public final class ProjectPersistenceUtilities
 							continue;
 						}
 						
-						String[] lineComponents = (line.split("\\s+")[2]).split(",");
+						String[] lineComponents = line.split(",");
 						
-						int x = Integer.parseInt(lineComponents[0]);
-						int y = Integer.parseInt(lineComponents[1]);
-						boolean hasNub = lineComponents[2].equals("true");
-						boolean isMovable = lineComponents[3].equals("true");
-						boolean isInternal = lineComponents[4].equals("true");
-						boolean isInverted = lineComponents[5].equals("true");
+						int x = Integer.parseInt(lineComponents[1]);
+						int y = Integer.parseInt(lineComponents[2]);
 						
-						PortView.PortLocation loc = PortView.PortLocation.valueOf(lineComponents[6]);
+						Color hingeColor = new Color(Integer.parseInt(lineComponents[3]),
+					    		                     Integer.parseInt(lineComponents[4]),
+					    		                     Integer.parseInt(lineComponents[5]),
+					    		                     Integer.parseInt(lineComponents[6]));
 						
-						String name = lineComponents[7].replaceAll("@", " ");
+						boolean hasNub = lineComponents[7].equals("true");
+						boolean isMovable = lineComponents[8].equals("true");
+						boolean isInternal = lineComponents[9].equals("true");
+						boolean isInverted = lineComponents[10].equals("true");
+						
+						PortView.PortLocation loc = PortView.PortLocation.valueOf(lineComponents[11]);
+						
+						String name = lineComponents[12].replaceAll("@", " ");
 						
 						HingeComponent hingeComponent = new HingeComponent(canvas, x, y, isMovable);								                                           					
 						hingeComponent.setHasNub(hasNub);
 						hingeComponent.setIsInverted(isInverted);
+						hingeComponent.setColor(hingeColor);
 						if (isInternal)
 						{								
 							hingeComponent.addInternalHingeInfo(loc, name);
@@ -163,13 +177,20 @@ public final class ProjectPersistenceUtilities
 							continue;
 						}
 						
-						String[] lineComponents = (line.split("\\s+")[3]).split(",");
-						HingeComponent startPoint = hingeComponents.get(Integer.parseInt(lineComponents[0]));
-						HingeComponent endPoint = hingeComponents.get(Integer.parseInt(lineComponents[1]));
+						String[] lineComponents = line.split(",");
+						HingeComponent startPoint = hingeComponents.get(Integer.parseInt(lineComponents[1]));
+						HingeComponent endPoint = hingeComponents.get(Integer.parseInt(lineComponents[2]));
 																		
-						boolean isMovable = lineComponents[2].equals("true");
+						boolean isMovable = lineComponents[3].equals("true");
 						
-						lineSegmentComponents.add(new LineSegmentComponent(canvas, startPoint, endPoint, isMovable));
+						Color lsColor = new Color(Integer.parseInt(lineComponents[4]),
+									    		  Integer.parseInt(lineComponents[5]),
+									    		  Integer.parseInt(lineComponents[6]),
+									    		  Integer.parseInt(lineComponents[7]));
+						
+						LineSegmentComponent ls = new LineSegmentComponent(canvas, startPoint, endPoint, isMovable);
+						ls.setColor(lsColor);
+						lineSegmentComponents.add(ls);
 					} break;
 					
 					case GATE:
@@ -184,13 +205,19 @@ public final class ProjectPersistenceUtilities
 						}											
 						
 						
-						String[] posComponents = line.split(",");						
-						GateComponent.GateType gateType = GateComponent.GateType.valueOf(posComponents[1]);
-						int x = Integer.parseInt(posComponents[2]);
-						int y = Integer.parseInt(posComponents[3]);
+						String[] lineComponents = line.split(",");						
+						GateComponent.GateType gateType = GateComponent.GateType.valueOf(lineComponents[1]);
+						int x = Integer.parseInt(lineComponents[2]);
+						int y = Integer.parseInt(lineComponents[3]);
+						
+						Color gateColor = new Color(Integer.parseInt(lineComponents[4]),
+									      		    Integer.parseInt(lineComponents[5]),
+									    		    Integer.parseInt(lineComponents[6]),
+									    		    Integer.parseInt(lineComponents[7]));
 						
 						GateComponent gateComponent = new GateComponent(canvas, gateType, true, x, y);
-												
+						gateComponent.setColor(gateColor);
+						
 						line = br.readLine();
 						if (line.length() > 0)
 						{							
@@ -240,11 +267,18 @@ public final class ProjectPersistenceUtilities
 								                                Integer.parseInt(coreComponentInfo[2]),
 								                                Integer.parseInt(coreComponentInfo[3]),
 								                                Integer.parseInt(coreComponentInfo[4]));
-						String componentName = coreComponentInfo[5];
-						int nameXOffset = Integer.parseInt(coreComponentInfo[6]);
-						int nameYOffset = Integer.parseInt(coreComponentInfo[7]);
+						
+						Color bbColor = new Color(Integer.parseInt(coreComponentInfo[5]),
+									    		  Integer.parseInt(coreComponentInfo[6]),
+									    		  Integer.parseInt(coreComponentInfo[7]),
+									    		  Integer.parseInt(coreComponentInfo[8]));
+						
+						String componentName = coreComponentInfo[9];
+						int nameXOffset = Integer.parseInt(coreComponentInfo[10]);
+						int nameYOffset = Integer.parseInt(coreComponentInfo[11]);
 						
 						BlackBoxComponent blackBox = new BlackBoxComponent(canvas, componentRect, componentName, nameXOffset, nameYOffset);
+						blackBox.setColor(bbColor);
 						
 						line = br.readLine();
 						if (line.length() > 0)
@@ -291,11 +325,18 @@ public final class ProjectPersistenceUtilities
 								                                Integer.parseInt(coreComponentInfo[2]),
 								                                Integer.parseInt(coreComponentInfo[3]),
 								                                Integer.parseInt(coreComponentInfo[4]));
-						String componentName = coreComponentInfo[5];
-						int nameXOffset = Integer.parseInt(coreComponentInfo[6]);
-						int nameYOffset = Integer.parseInt(coreComponentInfo[7]);
+						
+						Color wbColor = new Color(Integer.parseInt(coreComponentInfo[5]),
+									    		  Integer.parseInt(coreComponentInfo[6]),
+									    		  Integer.parseInt(coreComponentInfo[7]),
+									    		  Integer.parseInt(coreComponentInfo[8]));
+									    		  
+						String componentName = coreComponentInfo[9];
+						int nameXOffset = Integer.parseInt(coreComponentInfo[10]);
+						int nameYOffset = Integer.parseInt(coreComponentInfo[11]);
 						
 						WhiteBoxComponent whiteBox = new WhiteBoxComponent(canvas, componentRect, null, componentName, nameXOffset, nameYOffset);
+						whiteBox.setColor(wbColor);
 						
 						line = br.readLine();
 						if (line.length() > 0)
@@ -407,7 +448,8 @@ public final class ProjectPersistenceUtilities
 			}					
 		}
 		catch (Exception __)
-		{					
+		{			
+			__.printStackTrace();
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
@@ -456,7 +498,7 @@ public final class ProjectPersistenceUtilities
 			bw.write(canvasDimension.width + "," + canvasDimension.height);
 			bw.newLine();
 			
-			bw.write("#TextBoxes: textboxIndex,textboxX,textboxY,textboxWidth,textboxHeight,[textboxText1-textboxText2-...-textboxTextN-1]");
+			bw.write("#TextBoxes: textboxIndex,textboxX,textboxY,textboxWidth,textboxHeight,red,green,blue,alpha,[textboxText1-textboxText2-...-textboxTextN-1]");
 			bw.newLine();
 			
 			for (int i = 0; i < textBoxComponents.size(); ++i)
@@ -465,28 +507,28 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();
 			}
 			
-			bw.write("#Hinges: Hinge Index:<Index> x,y,hasNub,isMovable,isInternal,isInverted,location,name");
+			bw.write("#Hinges: hingeIndex,x,y,red,green,blue,alpha,hasNub,isMovable,isInternal,isInverted,location,name");
 			bw.newLine();
 			
 			for (int i = 0; i < hingeComponents.size(); ++i)
 			{				
-				bw.write("Hinge Index:" + i + " " + hingeComponents.get(i).serialize()); 
+				bw.write(i + "," + hingeComponents.get(i).serialize()); 
 				bw.newLine();				
 			}
 			
-			bw.write("#Line Segments: Line Segment Index:<Index> startHingeIndex,endHingeIndex,isMovable");
+			bw.write("#Line Segments: lineSegmentIndex,startHingeIndex,endHingeIndex,isMovable,red,green,blue,alpha");
 			bw.newLine();
 			
 			for (int i = 0; i < lineSegmentComponents.size(); ++i)
 			{	
-				bw.write("Line Segment Index:" + i + " " + 
+				bw.write(i + "," + 
 			             hingeComponents.indexOf(lineSegmentComponents.get(i).getChildren().get(0)) + "," +
 						 hingeComponents.indexOf(lineSegmentComponents.get(i).getChildren().get(1)) + "," + 
 			             lineSegmentComponents.get(i).serialize());
 				bw.newLine();
 			}
 			
-			bw.write("#Gate First Line: gateIndex,gateType,x,y\n" + 
+			bw.write("#Gate First Line: gateIndex,gateType,x,y,red,green,blue,alpha\n" + 
 					 "#Gate Second Line:  port0Index,port1Index,port2Index, ... ,portN-1Index\n" +
 					 "#Gate Thrid Line: internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +
 					 "#Gate Fourth Line:  internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index");
@@ -533,7 +575,7 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();										
 			}
 			
-			bw.write("#Black Box First Line:  blackBoxIndex,x,y,width,height,name,nameXOffset,nameYOffset\n"                                +					 
+			bw.write("#Black Box First Line:  blackBoxIndex,x,y,width,height,red,green,blue,alpha,name,nameXOffset,nameYOffset\n" +					 
 					 "#Black Box Second Line: port0Index,port1Index,port2Index, ... ,portN-1Index\n"                          +
 					 "#Black Box Third Line:  internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +					 					 
 					 "#Black Box Fourth Line: internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index");			
@@ -579,7 +621,7 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();				
 			}
 			
-			bw.write("#White Box First Line:  whiteBoxIndex,x,y,width,height,name,nameXOffset,nameYOffset\n"                                +					 
+			bw.write("#White Box First Line:  whiteBoxIndex,x,y,width,height,red,green,blue,alpha,name,nameXOffset,nameYOffset\n" +					 
 					 "#White Box Second Line: port0Index,port1Index,port2Index, ... ,portN-1Index\n"                          +
 					 "#White Box Third Line:  internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +					 					 
 					 "#White Box Fourth Line: internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index\n" +

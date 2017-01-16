@@ -1,8 +1,10 @@
 package uk.ac.gla.student._2074245k.cde.components;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.List;
 
+import uk.ac.gla.student._2074245k.cde.gui.Colors;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
@@ -31,13 +33,15 @@ public abstract class Component
 	public static boolean globalAlignmentEnabled = true;	
 	public static final int ALIGNMENT_THRESHOLD = 10;
 	
+	protected Color customColor;
 	protected boolean isMovable;
 	protected MainCanvas canvas;
 	
 	public Component(final MainCanvas canvas, final boolean movable)
 	{		
-		this.isMovable = movable;
-		this.canvas    = canvas;
+		this.isMovable   = movable;
+		this.canvas      = canvas;
+		this.customColor = Colors.DEFAULT_COLOR;
 	}
 		
 	public abstract AlignedComponentsList moveTo(final int x, final int y);
@@ -56,5 +60,12 @@ public abstract class Component
 	
 	public void setMovable(final boolean movable) { this.isMovable = movable; }	
 	public boolean isMovable() { return isMovable; }
-	
+	public Color getColor() { return customColor; }
+	public void setColor(final Color color) 
+	{
+		if (color.equals(Colors.DEFAULT_COLOR))
+			this.customColor = Colors.DEFAULT_COLOR;
+		else
+			this.customColor = color; 
+	}	
 }
