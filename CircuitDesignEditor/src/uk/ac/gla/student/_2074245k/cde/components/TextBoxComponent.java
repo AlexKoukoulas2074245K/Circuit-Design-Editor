@@ -91,11 +91,10 @@ public final class TextBoxComponent extends Component
 		
 		g.setColor(customColor);	
 		
-		
-		for (String text: texts)
+		for (int i = 0; i < texts.size(); ++i)
 		{
-			Rectangle2D textRect = g.getFontMetrics().getStringBounds(text, g.getCanvasContext());
-			g.drawString(text, rect.x + 10, (int)textRect.getHeight() + rect.y + (texts.indexOf(text) * (int)textRect.getHeight()));			
+			Rectangle2D textRect = g.getFontMetrics().getStringBounds(texts.get(i), g.getCanvasContext());
+			g.drawString(texts.get(i), rect.x + 10, (int)textRect.getHeight() + rect.y + (i * (int)textRect.getHeight()));
 		}
 		
 		if (editMode)

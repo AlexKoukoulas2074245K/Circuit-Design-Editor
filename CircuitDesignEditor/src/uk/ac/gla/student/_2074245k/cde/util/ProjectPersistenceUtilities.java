@@ -448,8 +448,7 @@ public final class ProjectPersistenceUtilities
 			}					
 		}
 		catch (Exception __)
-		{			
-			__.printStackTrace();
+		{					
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		

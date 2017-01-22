@@ -29,6 +29,7 @@ public final class FrameCounter
 			           final File selFile,
 			           final boolean hasTakenActionSinceLastSave)
 	{
+		
 		frameCounter++;
 		long timeNow = System.nanoTime();
 		if (timeNow - startTime >= 1000000000)
@@ -52,10 +53,11 @@ public final class FrameCounter
 					case WHITE_BOX:    nWBs++; break;
 					case TEXT_BOX:     nTBs++; break;
 				}				
-			}
+			} 
+			
 			frame.setTitle(MainFrame.WINDOW_TITLE + " - " +
-			               (selFile == null ? "New Canvas" : selFile.getName()) + 
-			               (hasTakenActionSinceLastSave ? "*" : "") + 
+		                   (selFile == null ? "New Canvas" : selFile.getName()) + 
+		                   (hasTakenActionSinceLastSave ? "*" : "") + 
 					       " -  FPS: " + frameCounter +
 					       "  | TBs: " + nTBs + 
 					       ", BBs: " + nBBs +
@@ -66,9 +68,9 @@ public final class FrameCounter
 					       ", Sel: " + selector.getNumberOfSelectedComponents() +
 					       " | Exec: " + execActionLength + 
 					       " Undo: " + undoneActionLength +
-					       " | Mem: " + (((runtime.totalMemory() - runtime.freeMemory())/1024L)/1024L) + "MB");
+					       " | Mem: " + (((runtime.totalMemory() - runtime.freeMemory())/1024L)/1024L) + "MB"); 
 			
 			frameCounter = 0;				
-		}	
+		} 	
 	}
 }

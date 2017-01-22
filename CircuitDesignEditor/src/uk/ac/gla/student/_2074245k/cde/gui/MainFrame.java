@@ -118,7 +118,11 @@ public final class MainFrame extends JFrame
     						File tempFile = new File(".temp");
     						if (tempFile.exists()) tempFile.delete();
     						System.exit(0);                			
-    					}    				
+    					}    
+    					else if (selOption == JOptionPane.CANCEL_OPTION)
+    					{
+    						return;
+    					}
     				}
     				System.exit(0);
     			}
