@@ -105,9 +105,9 @@ public final class GateComponent extends ConcreteComponent
 		Component endPointIn1   = new HingeComponent(canvas, componentRect.x - HingeComponent.HINGE_DIAMETER/2 - 1, componentRect.y + componentRect.height/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component in1Port       = new LineSegmentComponent(canvas, startPointIn1, endPointIn1, false);
 		
-		((HingeComponent)endPointIn1).addInternalHingeInfo(PortLocation.LEFT, "a");
 		addInternalHorHinge(endPointIn1);
 		addPort(in1Port);		
+		((HingeComponent)endPointIn1).addInternalHingeInfo(PortLocation.LEFT, "a");
 		canvas.addComponentToCanvas(startPointIn1);
 		canvas.addComponentToCanvas(endPointIn1);
 		canvas.addComponentToCanvas(in1Port);
@@ -116,9 +116,9 @@ public final class GateComponent extends ConcreteComponent
 		Component endPointIn2   = new HingeComponent(canvas, componentRect.x - HingeComponent.HINGE_DIAMETER/2 - 1, componentRect.y + (componentRect.height * 3)/4 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component in2Port       = new LineSegmentComponent(canvas, startPointIn2, endPointIn2, false);
 		
-		((HingeComponent)endPointIn2).addInternalHingeInfo(PortLocation.LEFT, "b");
 		addInternalHorHinge(endPointIn2);
 		addPort(in2Port);
+		((HingeComponent)endPointIn2).addInternalHingeInfo(PortLocation.LEFT, "b");
 		canvas.addComponentToCanvas(startPointIn2);
 		canvas.addComponentToCanvas(endPointIn2);
 		canvas.addComponentToCanvas(in2Port);
@@ -127,9 +127,9 @@ public final class GateComponent extends ConcreteComponent
 		Component endPointOut   = new HingeComponent(canvas, componentRect.x + componentRect.width + PORT_LENGTH - HingeComponent.HINGE_DIAMETER/2, componentRect.y + componentRect.height/2 - HingeComponent.HINGE_DIAMETER/2, false);
 		Component outPort       = new LineSegmentComponent(canvas, startPointOut, endPointOut, false);
 		
-		((HingeComponent)startPointOut).addInternalHingeInfo(PortLocation.RIGHT, "out");
 		addInternalHorHinge(startPointOut);
 		addPort(outPort);
+		((HingeComponent)startPointOut).addInternalHingeInfo(PortLocation.RIGHT, "out");
 		canvas.addComponentToCanvas(startPointOut);
 		canvas.addComponentToCanvas(endPointOut);
 		canvas.addComponentToCanvas(outPort);

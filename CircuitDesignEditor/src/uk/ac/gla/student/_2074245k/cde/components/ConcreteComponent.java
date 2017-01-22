@@ -259,8 +259,8 @@ public abstract class ConcreteComponent extends Component
 	public boolean hasInternalVerHinge(final Component component) { return internalVerHinges.contains(component); }
 	
 	public void addPort(final Component port) { ports.add(port); }	
-	public void addInternalHorHinge(final Component component) { internalHorHinges.add(component); }	
-	public void addInternalVerHinge(final Component component) { internalVerHinges.add(component); }
+	public void addInternalHorHinge(final Component component) { internalHorHinges.add(component); ((HingeComponent)component).setIsInternalOfWhiteBox(getComponentType() == ComponentType.WHITE_BOX); }	
+	public void addInternalVerHinge(final Component component) { internalVerHinges.add(component); ((HingeComponent)component).setIsInternalOfWhiteBox(getComponentType() == ComponentType.WHITE_BOX); }
 	
 	public void removePort(final Component port) { ports.remove(port); }
 	public void removeHorHinge(final Component hinge) { internalHorHinges.remove(hinge); }
@@ -275,14 +275,14 @@ public abstract class ConcreteComponent extends Component
 	public int indexOfInternalVerHinge(final Component component) { return internalVerHinges.indexOf(component); }
 	
 	public void setPort(final int index, final Component port) { ports.set(index, port); }
-	public void setInternalHorHinge(final int index, final Component comp) { internalHorHinges.set(index, comp); }
-	public void setInternalVerHinge(final int index, final Component comp) { internalVerHinges.set(index, comp); }
+	public void setInternalHorHinge(final int index, final Component comp) { internalHorHinges.set(index, comp); ((HingeComponent)comp).setIsInternalOfWhiteBox(getComponentType() == ComponentType.WHITE_BOX); }
+	public void setInternalVerHinge(final int index, final Component comp) { internalVerHinges.set(index, comp); ((HingeComponent)comp).setIsInternalOfWhiteBox(getComponentType() == ComponentType.WHITE_BOX); }
 	
 	public int getNPorts() { return ports.size(); }
 	public int getNInternalHorHinges() { return internalHorHinges.size(); }
 	public int getNInternalVerHinges() { return internalVerHinges.size(); }
 	
-	private boolean isPointOfPort(final Component component)
+	protected boolean isPointOfPort(final Component component)
 	{
 		for (Component port: ports)
 		{

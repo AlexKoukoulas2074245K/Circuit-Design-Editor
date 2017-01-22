@@ -28,6 +28,7 @@ public final class HingeComponent extends Component
 	private boolean shouldFinalizeMovement;
 	private boolean isMousePerformingHorizontalMotion;
 	private boolean isInternalHinge;
+	private boolean isInternalHingeOfWhiteBox;
 	private boolean isInverted;
 	private String name;
 	private PortView.PortLocation internalHingeLocation;
@@ -38,7 +39,7 @@ public final class HingeComponent extends Component
 		rect = new Rectangle(x, y, HINGE_DIAMETER, HINGE_DIAMETER);		
 		shouldFinalizeMovement = false;
 		isMousePerformingHorizontalMotion = true;
-		isInternalHinge = false;
+		isInternalHinge = isInternalHingeOfWhiteBox = false;
 		isInverted = false;
 		name = " ";
 		internalHingeLocation = PortView.PortLocation.BOTTOM;
@@ -76,7 +77,7 @@ public final class HingeComponent extends Component
 	@Override
 	public boolean mouseIntersection(final int mouseX, final int mouseY) 
 	{		
-		if (isInternalHinge)
+		if (isInternalHinge && !isInternalHingeOfWhiteBox)
 			return false;
 		return Math.hypot(mouseX - rect.x - HINGE_DIAMETER/2, mouseY - rect.y - HINGE_DIAMETER/2) <= HINGE_DIAMETER/2;
 	}
@@ -87,7 +88,7 @@ public final class HingeComponent extends Component
 			           final boolean isSelected,
 			           final boolean isInMultiSelection) 
 	{			
-		if (isInternalHinge)		
+		if (isInternalHinge && !isInternalHingeOfWhiteBox)		
 		{
 			if (isInverted)
 			{
@@ -172,7 +173,7 @@ public final class HingeComponent extends Component
 	@Override
 	public void renderAligned(final GraphicsGenerator g)
 	{
-		if (isInternalHinge)
+		if (isInternalHinge && !isInternalHingeOfWhiteBox)
 			return;
 		g.setColor(customColor);		
 		g.setStroke(Strokes.BOLD_STROKE);
@@ -297,6 +298,11 @@ public final class HingeComponent extends Component
 	public void setIsInverted(final boolean isInverted)
 	{
 		this.isInverted = isInverted;
+	}
+	
+	public void setIsInternalOfWhiteBox(final boolean isInternalOfWhiteBox)
+	{
+		this.isInternalHingeOfWhiteBox = isInternalOfWhiteBox;
 	}
 	
 	private AlignedComponentsList moveHinge(final int x, final int y)

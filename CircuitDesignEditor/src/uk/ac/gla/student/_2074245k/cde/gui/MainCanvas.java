@@ -291,8 +291,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					internalHinge = new HingeComponent(this, rect.x - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);						
 					
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.LEFT, portView.portName);
 					concComp.addInternalHorHinge(internalHinge);
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.LEFT, portView.portName);
 					
 				} break;
 				
@@ -302,8 +302,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					internalHinge = new HingeComponent(this, rect.x + rect.width - HingeComponent.HINGE_DIAMETER/2, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, false);
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.RIGHT, portView.portName);
 					concComp.addInternalHorHinge(internalHinge);						
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.RIGHT, portView.portName);
 					
 				} break;
 				
@@ -313,8 +313,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					internalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y - HingeComponent.HINGE_DIAMETER/2, false);
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.TOP, portView.portName);
 					concComp.addInternalVerHinge(internalHinge);						
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.TOP, portView.portName);
 					
 				} break;
 				
@@ -324,8 +324,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					internalHinge = new HingeComponent(this, portView.actualPosition - HingeComponent.HINGE_DIAMETER/2, rect.y + rect.height - HingeComponent.HINGE_DIAMETER/2, false);
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
 					concComp.addInternalVerHinge(internalHinge);								
+					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
 				}  break;
 			}
 			

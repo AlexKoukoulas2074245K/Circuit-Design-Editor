@@ -249,6 +249,10 @@ public class WhiteBoxComponent extends ConcreteComponent
 	
 	private void addComponentChildrenAndParents(final Component component)
 	{
+		if (ports.contains(component) || 
+		    isPointOfPort(component))
+			return;
+		
 		innerComponents.add(component);
 		for (Component child: component.getChildren())
 		{
