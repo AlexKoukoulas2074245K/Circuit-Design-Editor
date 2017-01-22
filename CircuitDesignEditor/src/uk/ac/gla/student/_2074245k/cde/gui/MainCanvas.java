@@ -1079,7 +1079,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 				List<Component> whiteBoxChildren = comp.getChildren();
 				for (Component child: whiteBoxChildren)
 				{
-					componentsList.remove(child);
+					if (((ConcreteComponent)comp).indexOfPort(child) == -1)
+					{
+						componentsList.remove(child);						
+					}
 				}
 			}
 		}
