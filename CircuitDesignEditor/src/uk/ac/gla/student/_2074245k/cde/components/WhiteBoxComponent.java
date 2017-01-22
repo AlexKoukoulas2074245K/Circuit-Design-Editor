@@ -15,12 +15,11 @@ import uk.ac.gla.student._2074245k.cde.gui.Strokes;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
 
 public class WhiteBoxComponent extends ConcreteComponent
-{
-	public static boolean WHITE_BOX_OPACITY = false;
-	
+{	
 	private final String name;
 	private final int nameXOffset;
 	private final int nameYOffset;
+	private boolean isOpaque;
 	
 	public WhiteBoxComponent(final MainCanvas canvas,
 			                 final Rectangle componentRect,
@@ -30,10 +29,11 @@ public class WhiteBoxComponent extends ConcreteComponent
 			                 final int nameYOffset)
 	{
 		super(canvas, true);		
-		this.componentRect   = componentRect;
-		this.name            = name;
-		this.nameXOffset     = nameXOffset;
-		this.nameYOffset     = nameYOffset;
+		this.componentRect = componentRect;
+		this.name          = name;
+		this.nameXOffset   = nameXOffset;
+		this.nameYOffset   = nameYOffset;
+		this.isOpaque      = false;
 		
 		if (selComponents == null || selComponents.size() == 0)
 			this.innerComponents = new HashSet<Component>();
@@ -128,7 +128,7 @@ public class WhiteBoxComponent extends ConcreteComponent
 	{
 		g.setStroke(Strokes.THIN_STROKE);
 		
-		if (WHITE_BOX_OPACITY)
+		if (isOpaque)
 		{
 			g.setColor(Color.white);
 			g.fillRect(componentRect.x, componentRect.y, componentRect.width, componentRect.height);								
@@ -137,7 +137,7 @@ public class WhiteBoxComponent extends ConcreteComponent
 		g.setColor(selected ? Colors.SELECTION_COLOR : customColor);		
 		g.drawRect(componentRect.x, componentRect.y, componentRect.width, componentRect.height);
 		
-		if (WHITE_BOX_OPACITY)
+		if (isOpaque)
 		{			
 			for (Component internalHinge: internalHorHinges)
 			{
@@ -202,13 +202,29 @@ public class WhiteBoxComponent extends ConcreteComponent
 			   customColor.getAlpha() + "," +
 			   name + "," + 
 			   nameXOffset + "," + 
-			   nameYOffset;
+			   nameYOffset + "," + 
+			   isOpaque;
 	}
 
 	@Override
 	public ComponentType getComponentType() 
 	{
 		return ComponentType.WHITE_BOX;
+	}
+	
+	public void toggleOpacity()
+	{
+		isOpaque = !isOpaque;
+	}
+	
+	public void setOpaque(final boolean isOpaque)
+	{
+		this.isOpaque = isOpaque;
+	}
+
+	public boolean isOpaque()
+	{
+		return isOpaque;		
 	}
 	
 	public Iterator<Component> getInnerComponentsIter()

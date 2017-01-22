@@ -335,8 +335,17 @@ public final class ProjectPersistenceUtilities
 						int nameXOffset = Integer.parseInt(coreComponentInfo[10]);
 						int nameYOffset = Integer.parseInt(coreComponentInfo[11]);
 						
+						boolean isOpaque = false;
+						
+						if (coreComponentInfo.length > 12)
+						{	
+							isOpaque = coreComponentInfo[12].equals("true");							
+						}
+							
+						
 						WhiteBoxComponent whiteBox = new WhiteBoxComponent(canvas, componentRect, null, componentName, nameXOffset, nameYOffset);
 						whiteBox.setColor(wbColor);
+						whiteBox.setOpaque(isOpaque);
 						
 						line = br.readLine();
 						if (line.length() > 0)
@@ -620,7 +629,7 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();				
 			}
 			
-			bw.write("#White Box First Line:  whiteBoxIndex,x,y,width,height,red,green,blue,alpha,name,nameXOffset,nameYOffset\n" +					 
+			bw.write("#White Box First Line:  whiteBoxIndex,x,y,width,height,red,green,blue,alpha,name,nameXOffset,nameYOffset,isOpaque\n" +					 
 					 "#White Box Second Line: port0Index,port1Index,port2Index, ... ,portN-1Index\n"                          +
 					 "#White Box Third Line:  internalHorHinge0Index,internalHorHinge1Index, ... ,internalHorHingeN-1Index\n" +					 					 
 					 "#White Box Fourth Line: internalVerHinge0Index,internalVerHinge1Index, ... ,internalVerHingeN-1Index\n" +

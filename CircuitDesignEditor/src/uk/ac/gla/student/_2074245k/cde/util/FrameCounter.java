@@ -22,9 +22,7 @@ public final class FrameCounter
 	}
 	
 	public void update(final Set<Component> components, 
-			           final ComponentSelector selector, 
-			           final int execActionLength, 
-			           final int undoneActionLength, 
+			           final ComponentSelector selector, 			           
 			           final JFrame frame,
 			           final File selFile,
 			           final boolean hasTakenActionSinceLastSave)
@@ -65,9 +63,7 @@ public final class FrameCounter
 					       ", Gates: " + nGates +
 					       ", LS: " + nLses +
 					       ", Hinges: " + nHinges + 					      
-					       ", Sel: " + selector.getNumberOfSelectedComponents() +
-					       " | Exec: " + execActionLength + 
-					       " Undo: " + undoneActionLength +
+					       ", Sel: " + selector.getNumberOfSelectedComponents() +					       
 					       " | Mem: " + (((runtime.totalMemory() - runtime.freeMemory())/1024L)/1024L) + "MB"); 
 			
 			frameCounter = 0;				

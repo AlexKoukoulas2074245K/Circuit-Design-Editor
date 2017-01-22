@@ -94,8 +94,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private AlignedComponentsList alignedComponents, prevAlignedComponents;
 	private boolean isCreatingNub, isCreatingTextbox, isNubInContact, movingComponents;
 	
-	private List<Action> executedActionHistory;
-	private List<Action> undoneActionHistory;
+	private Action executedAction;
+	private Action undoneAction;
+	
 	private List<int[]> startPositions;
 	private List<int[]> targetPositions;		
 	
@@ -119,8 +120,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 		nubPlacementIncidentComponents  = new ArrayList<Component>();		
 		componentsToAdd       = new ArrayList<Component>();
 		componentsToRemove    = new ArrayList<Component>();
-		executedActionHistory = new ArrayList<Action>();
-		undoneActionHistory   = new ArrayList<Action>();
+		executedAction        = null;
+		undoneAction          = null;
 		startPositions        = new ArrayList<int[]>();
 		targetPositions       = new ArrayList<int[]>();				
 		componentSelector     = new ComponentSelector(0, 0);
@@ -165,9 +166,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			inputUpdates();			
 			repaint();
 			frameCounter.update(components, 
-					            componentSelector, 
-					            executedActionHistory.size(),
-					            undoneActionHistory.size(),
+					            componentSelector, 					            
 					            window,
 					            lastSaveLocation,
 					            hasTakenActionSinceLastSave);
@@ -587,22 +586,22 @@ public final class MainCanvas extends JPanel implements Runnable,
 
 	public void undo()
 	{
-		if (executedActionHistory.size() > 0)
+		if (executedAction != null)
 		{
-			Action lastAction = executedActionHistory.remove(executedActionHistory.size() - 1);			
-			lastAction.undo();
-			undoneActionHistory.add(lastAction);
+			executedAction.undo();
+			undoneAction = executedAction;
+			executedAction = null;			
 			hasTakenActionSinceLastSave = true;
 		}
 	}
 	
 	public void redo()
 	{
-		if (undoneActionHistory.size() > 0)
+		if (undoneAction != null)
 		{
-			Action lastUndoneAction = undoneActionHistory.remove(undoneActionHistory.size() - 1);
-			lastUndoneAction.execute();
-			executedActionHistory.add(lastUndoneAction);
+			undoneAction.execute();
+			executedAction = undoneAction;
+			undoneAction = null;			
 			hasTakenActionSinceLastSave = true;
 		}
 	}
@@ -663,7 +662,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		componentSelector.enable();		
 		Action pasteAction = new PasteAction(this, componentSelector);
 		pasteAction.execute();
-		executedActionHistory.add(pasteAction);
+		executedAction = pasteAction;
 		componentSelector.disable();
 		hasTakenActionSinceLastSave = true;
 	}
@@ -674,7 +673,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{																
 			Action deleteAction = new DeleteAction(this, componentSelector);
 			deleteAction.execute();
-			executedActionHistory.add(deleteAction);
+			executedAction = deleteAction;
 			hasTakenActionSinceLastSave = true;
 			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 		}
@@ -686,7 +685,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		{																
 			Action colorComponentsAction = new ColorComponentsAction(componentSelector, selColor);
 			colorComponentsAction.execute();
-			executedActionHistory.add(colorComponentsAction);
+			executedAction = colorComponentsAction;
 			hasTakenActionSinceLastSave = true;
 			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 		}
@@ -694,8 +693,21 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	public void toggleOpacity()
 	{
-		WhiteBoxComponent.WHITE_BOX_OPACITY = !WhiteBoxComponent.WHITE_BOX_OPACITY;
-		hasTakenActionSinceLastSave = true;
+		synchronized (componentSelector)
+		{
+			
+			Iterator<Component> selCompsIter = componentSelector.getSelectedComponentsIterator();
+			while (selCompsIter.hasNext())
+			{
+				Component comp = selCompsIter.next();
+				if (comp.getComponentType() == ComponentType.WHITE_BOX)
+				{
+					((WhiteBoxComponent)comp).toggleOpacity();
+				}
+			}
+			
+			hasTakenActionSinceLastSave = true;
+		}
 	}
 	
 	private void inputUpdates()
@@ -1005,15 +1017,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 		}
 		
 		if (whiteBoxes.size() > 0)
-		{
-			if (WhiteBoxComponent.WHITE_BOX_OPACITY)
-			{
-				whiteBoxes.sort(new ComponentRectangleComparator(false));
-			}
-			else
-			{
-				whiteBoxes.sort(new ComponentRectangleComparator(true));
-			}
+		{			
+			whiteBoxes.sort(new ComponentRectangleComparator(false));
 			
 			for (Component comp: whiteBoxes)			
 			{
@@ -1062,7 +1067,24 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private Component getHoveredComponent(final int mouseX, final int mouseY)
 	{		
 		List<Component> componentsList = new ArrayList<Component>(components);
-		componentsList.sort(new ComponentRectangleComparator(WhiteBoxComponent.WHITE_BOX_OPACITY ? true : false));
+		
+		// Remove white box children
+		Iterator<Component> compsIter = components.iterator();
+		while (compsIter.hasNext())
+		{
+			Component comp = compsIter.next();
+			if (comp.getComponentType() == ComponentType.WHITE_BOX && 
+				((WhiteBoxComponent)comp).isOpaque())
+			{
+				List<Component> whiteBoxChildren = comp.getChildren();
+				for (Component child: whiteBoxChildren)
+				{
+					componentsList.remove(child);
+				}
+			}
+		}
+		
+		componentsList.sort(new ComponentRectangleComparator(false));
 		return getHoveredComponentInBucket(mouseX, mouseY, componentsList);
 	}
 	
@@ -1225,7 +1247,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			if (startPositions.get(0)[0] != componentSelector.getFirstComponent().getRectangle().x ||
 				startPositions.get(0)[1] != componentSelector.getFirstComponent().getRectangle().y)
 			{
-				executedActionHistory.add(currentAction);								
+				executedAction = currentAction;								
 			}		
 		}
 		else if (componentSelector.getNumberOfSelectedComponents() > 1)
@@ -1249,7 +1271,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 				if (startPositions.get(0)[0] != targetPositions.get(0)[0] ||
 						startPositions.get(0)[1] != targetPositions.get(0)[1])
 				{
-					executedActionHistory.add(currentAction);								
+					executedAction = currentAction;								
 				}						
 			}
 		}	

@@ -70,8 +70,8 @@ public final class MainFrame extends JFrame
 	private static final long serialVersionUID            = 7475614725428306744L;	
 	private static final String DEFAULT_LAF_CLASS_NAME    = "javax.swing.plaf.metal.MetalLookAndFeel";
 	private static final Dimension DEFAULT_WINDOW_MIN_DIM = new Dimension(500, 500);
-	private static final Dimension DEFAULT_WINDOW_DIM     = new Dimension((int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 0.666f),
-			                                                              (int)(Toolkit.getDefaultToolkit().getScreenSize().getHeight() * 0.666f));	
+	private static final Dimension DEFAULT_WINDOW_DIM     = new Dimension((int)(Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 0.75f),
+			                                                              (int)(Toolkit.getDefaultToolkit().getScreenSize().getHeight() * 0.75f));	
 	private static final Dimension DEFAULT_CANVAS_DIM     = new Dimension((int)(DEFAULT_WINDOW_DIM.getWidth() * 0.75f),
                                                                           (int)(DEFAULT_WINDOW_DIM.getHeight() * 0.75f));
 	private JPanel masterPanel;    
@@ -203,12 +203,22 @@ public final class MainFrame extends JFrame
 		deleteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 		deleteItem.getAccessibleContext().setAccessibleDescription("Delete the selected component(s)");
 		
+		JMenuItem opacityItem = new JMenuItem("Toggle Opacity", KeyEvent.VK_7);
+		opacityItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.SHIFT_MASK));
+		opacityItem.getAccessibleContext().setAccessibleDescription("Toggles the opacity of the selected white box component(s)");
+		
+		JMenuItem createWhiteBoxItem = new JMenuItem("Create White Box", KeyEvent.VK_8);
+		createWhiteBoxItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.SHIFT_MASK));
+		createWhiteBoxItem.getAccessibleContext().setAccessibleDescription("Creates a white box out of the selected component(s)");
+		
 		editTab.add(undoItem);
 		editTab.add(redoItem);
 		editTab.add(selectAllMenuItem);
 		editTab.add(copyItem);
 		editTab.add(pasteItem);
 		editTab.add(deleteItem);
+		editTab.add(opacityItem);
+		editTab.add(createWhiteBoxItem);
 		
 		JMenu windowTab = new JMenu("Window");
 		windowTab.setMnemonic(KeyEvent.VK_W);
@@ -231,6 +241,7 @@ public final class MainFrame extends JFrame
     	final Image gateImage    = ImageIO.read(getClass().getResourceAsStream("/icons/lg_icon.png"));
     	final Image wiresImage   = ImageIO.read(getClass().getResourceAsStream("/icons/wire_icon.png"));
     	final Image nubImage     = ImageIO.read(getClass().getResourceAsStream("/icons/nub_icon.png"));
+    	final Image opacityImage = ImageIO.read(getClass().getResourceAsStream("/icons/opacity_icon.png"));
         final Image textboxImage = ImageIO.read(getClass().getResourceAsStream("/icons/textbox_icon.png"));
         final Image paletteImage = ImageIO.read(getClass().getResourceAsStream("/icons/palette_icon.png"));
         
@@ -249,6 +260,10 @@ public final class MainFrame extends JFrame
         JButton nubButton = new JButton(new ImageIcon(nubImage));
         nubButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
         nubButton.setToolTipText("Drag and drop a nub denoting electrical connection between components");
+        
+        JButton opacityButton = new JButton(new ImageIcon(opacityImage));
+        opacityButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
+        opacityButton.setToolTipText("Toggles on and off the opacity of the selected white box(es)");
         
         JButton textboxButton = new JButton(new ImageIcon(textboxImage));
         textboxButton.setBorder(BorderFactory.createLineBorder(Colors.DEFAULT_COLOR));
@@ -333,20 +348,16 @@ public final class MainFrame extends JFrame
         JCheckBox hingeVisibilityCheckbox = new JCheckBox("Hinge Visibility");
         hingeVisibilityCheckbox.setSelected(true);
         
-        // White Box opacity checkbox
-        JCheckBox whiteBoxOpacityCheckbox = new JCheckBox("White Box Opacity");
-        whiteBoxOpacityCheckbox.setSelected(false);
-        
         JPanel checkBoxPanel = new JPanel(new BorderLayout());
         checkBoxPanel.add(alignmentCheckbox, BorderLayout.NORTH);
         checkBoxPanel.add(hingeVisibilityCheckbox, BorderLayout.CENTER);
-        checkBoxPanel.add(whiteBoxOpacityCheckbox, BorderLayout.SOUTH);
         
         // Add components to the menu panel
         menuPanel.add(bbButton);        
         menuPanel.add(gateButton);
         menuPanel.add(wireButton); 
-        menuPanel.add(nubButton);        
+        menuPanel.add(nubButton);    
+        menuPanel.add(opacityButton);
         menuPanel.add(textboxButton);
         menuPanel.add(paletteButton);
         menuPanel.add(componentMovementPanel);
@@ -666,6 +677,49 @@ public final class MainFrame extends JFrame
         	}
         });
         
+        opacityItem.addActionListener(new ActionListener()
+        {
+	        public void actionPerformed(ActionEvent __)
+	    	{
+	    		if (canvasPanel.getNumberOfSelectedComponents() == 0)
+	    		{	
+	    			JOptionPane.showMessageDialog(null, "No components have been selected!\nPlease select at least one white box component in order to toggle their opacity.", "Opacity Selection Error", JOptionPane.ERROR_MESSAGE);
+	    		}
+	    		else
+	    		{        		        			        		
+	    			canvasPanel.toggleOpacity();
+	    		}        		        		
+	    	}
+        });
+        
+        createWhiteBoxItem.addActionListener(new ActionListener()
+        {
+        	public void actionPerformed(ActionEvent __)
+        	{        		
+        		if (canvasPanel.getNumberOfSelectedComponents() > 0)
+        		{        			        			
+        			canvasPanel.addChildrenAndParentsToSelection();
+        			JDialog jDialog = new JDialog(frame, "White Box specification", ModalityType.APPLICATION_MODAL);
+            		jDialog.setResizable(true);
+            		
+            		ConcreteComponentBuilderPanel builderPanel = new ConcreteComponentBuilderPanel(canvasPanel, true, canvasPanel.getSelectedComponentsIterator(), jDialog);
+            		builderPanel.subscribeToConcreteComponentCreationEvent(canvasPanel);        		
+            		JScrollPane scrollPane = new JScrollPane(builderPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);        		 
+            		scrollPane.getVerticalScrollBar().setUnitIncrement(15);
+            		
+            		jDialog.setIconImage(bbImage);
+            		jDialog.setContentPane(scrollPane);        		
+            		jDialog.pack();
+            		jDialog.setLocationRelativeTo(frame);        	
+            		jDialog.setVisible(true);
+        		}
+        		else
+        		{	
+        			JOptionPane.showMessageDialog(null, "No components have been selected!\nPlease select at least one component in order to create a white box.", "White box creation error", JOptionPane.ERROR_MESSAGE);
+        		}        			        		
+        	}
+        });
+        
         changeLF.addActionListener(new ActionListener()
 		{
         	public void actionPerformed(ActionEvent __)
@@ -964,6 +1018,21 @@ public final class MainFrame extends JFrame
         
         });
         
+        opacityButton.addActionListener(new ActionListener()
+        {
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		if (canvasPanel.getNumberOfSelectedComponents() == 0)
+        		{	
+        			JOptionPane.showMessageDialog(null, "No components have been selected!\nPlease select at least one white box component in order to toggle their opacity.", "Opacity Selection Error", JOptionPane.ERROR_MESSAGE);
+        		}
+        		else
+        		{        		        			        		
+        			canvasPanel.toggleOpacity();
+        		}        		        		
+        	}
+        });
+        
         textboxButton.addMouseMotionListener(new MouseMotionListener()
         {
         	@Override
@@ -1103,15 +1172,7 @@ public final class MainFrame extends JFrame
         	{
         		HingeComponent.globalHingeVisibility = !HingeComponent.globalHingeVisibility;
         	}
-        });        
-        
-        whiteBoxOpacityCheckbox.addActionListener(new ActionListener()
-        {
-        	public void actionPerformed(ActionEvent __)
-        	{
-        		canvasPanel.toggleOpacity();
-        	}
-        });
+        });                
         
         try 
         {
