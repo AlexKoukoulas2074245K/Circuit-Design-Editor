@@ -1,6 +1,11 @@
 package uk.ac.gla.student._2074245k.cde.actions;
 
+import java.util.Iterator;
+
 import uk.ac.gla.student._2074245k.cde.components.Component;
+import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
+import uk.ac.gla.student._2074245k.cde.util.LoadingResult;
+import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
 public final class MoveAction implements Action
 {
@@ -10,9 +15,11 @@ public final class MoveAction implements Action
 	private final int[] targetPos;
 		
 	private ActionState state; 
+	private MainCanvas canvas;
 	
-	public MoveAction(final Component component, final int[] startPos, final int[] targetPos)
+	public MoveAction(final MainCanvas canvas, final Component component, final int[] startPos, final int[] targetPos)
 	{
+		this.canvas    = canvas;
 		this.component = component;
 		this.startPos  = new int[]{ startPos[0], startPos[1] };
 		this.targetPos = new int[]{ targetPos[0], targetPos[1] };
@@ -23,8 +30,9 @@ public final class MoveAction implements Action
 	public void execute() 
 	{
 		if (state == ActionState.IDLE)
-		{			
+		{									
 			component.moveTo(targetPos[0], targetPos[1]);
+			System.out.println("Executed single move");
 			state = ActionState.EXECUTED;
 		}
 		else
@@ -39,6 +47,11 @@ public final class MoveAction implements Action
 		if (state == ActionState.EXECUTED)
 		{
 			component.moveTo(startPos[0], startPos[1]);
+			Iterator<Component> componentsIter = canvas.getComponentsIterator();
+			while (componentsIter.hasNext()) canvas.removeComponentFromCanvas(componentsIter.next());
+			LoadingResult result = ProjectPersistenceUtilities.openProjectNonPersistent(canvas);
+			for (Component component: result.loadedComponents) canvas.addComponentToCanvas(component);
+			System.out.println("Undone single move");
 			state = ActionState.IDLE;
 		}
 		else

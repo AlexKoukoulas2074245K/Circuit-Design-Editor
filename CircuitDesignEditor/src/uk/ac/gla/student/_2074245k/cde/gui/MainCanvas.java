@@ -718,6 +718,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 		if (mouse.isButtonTapped(Mouse.LEFT_BUTTON))
 		{	
 			grabFocus();
+			Iterator<Component> componentsIter = getComponentsIterator();
+			Set<Component> components = new HashSet<Component>();
+			while (componentsIter.hasNext()) components.add(componentsIter.next());			
+			ProjectPersistenceUtilities.saveProjectNonPersistent(components, getSize());			
+			
 			synchronized (lineSegmentPath)
 			{
 				lineSegmentPath.clear();					
@@ -1240,10 +1245,11 @@ public final class MainCanvas extends JPanel implements Runnable,
 			componentSelector.getFirstComponent().finalizeMovement(alignedComponents);						
 			alignedComponents = null;
 			
-			Action currentAction = new MoveAction(componentSelector.getFirstComponent(),
-					startPositions.get(0),
-					new int[]{ componentSelector.getFirstComponent().getRectangle().x,
-							   componentSelector.getFirstComponent().getRectangle().y });
+			Action currentAction = new MoveAction(this,
+					                              componentSelector.getFirstComponent(),
+    					                          startPositions.get(0),
+					                              new int[]{ componentSelector.getFirstComponent().getRectangle().x,
+							                      componentSelector.getFirstComponent().getRectangle().y });
 			currentAction.execute();
 			
 			// Differentiate between a simple click and an actual move
@@ -1251,7 +1257,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 				startPositions.get(0)[1] != componentSelector.getFirstComponent().getRectangle().y)
 			{
 				executedAction = currentAction;								
-			}		
+			}
+			
+			// Force execution on segment spawn
+			if (HingeComponent.globalHingeDraggingMode == Component.HingeDraggingMode.SPAWN_SEGMENT_AXIS_RES ||
+				HingeComponent.globalHingeDraggingMode == Component.HingeDraggingMode.SPAWN_SEGMENT_UNRES)
+			{
+				executedAction = currentAction;
+			}
 		}
 		else if (componentSelector.getNumberOfSelectedComponents() > 1)
 		{				
