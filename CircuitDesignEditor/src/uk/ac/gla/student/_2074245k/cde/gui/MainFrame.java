@@ -791,7 +791,7 @@ public final class MainFrame extends JFrame
         	@Override
 			public void actionPerformed(ActionEvent __) 
 			{
-        		if (ProjectPersistenceUtilities.LIB_DIR.listFiles().length == 0)
+        		if (!ProjectPersistenceUtilities.LIB_DIR.exists() || ProjectPersistenceUtilities.LIB_DIR.listFiles().length == 0)
         		{
         			JOptionPane.showMessageDialog(null, "No libraries were found!", "Library loading error", JOptionPane.ERROR_MESSAGE);
         			return;
@@ -1394,7 +1394,12 @@ public final class MainFrame extends JFrame
 		{
 			@Override
 			public void actionPerformed(ActionEvent __) 
-			{        								
+			{        
+				if (!ProjectPersistenceUtilities.LIB_DIR.exists())
+				{
+					ProjectPersistenceUtilities.LIB_DIR.mkdirs();
+				}
+				
 				File libFile = new File(ProjectPersistenceUtilities.LIB_DIR.getAbsolutePath() + "/" + libNameField.getText() + ".lib");
 				
 				if (libFile.exists())
