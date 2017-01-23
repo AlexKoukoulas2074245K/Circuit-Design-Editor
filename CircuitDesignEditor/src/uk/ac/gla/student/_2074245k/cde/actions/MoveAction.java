@@ -31,8 +31,7 @@ public final class MoveAction implements Action
 	{
 		if (state == ActionState.IDLE)
 		{									
-			component.moveTo(targetPos[0], targetPos[1]);
-			System.out.println("Executed single move");
+			component.moveTo(targetPos[0], targetPos[1]);			
 			state = ActionState.EXECUTED;
 		}
 		else
@@ -50,8 +49,7 @@ public final class MoveAction implements Action
 			Iterator<Component> componentsIter = canvas.getComponentsIterator();
 			while (componentsIter.hasNext()) canvas.removeComponentFromCanvas(componentsIter.next());
 			LoadingResult result = ProjectPersistenceUtilities.openProjectNonPersistent(canvas);
-			for (Component component: result.loadedComponents) canvas.addComponentToCanvas(component);
-			System.out.println("Undone single move");
+			for (Component component: result.loadedComponents) canvas.addComponentToCanvas(component);			
 			state = ActionState.IDLE;
 		}
 		else

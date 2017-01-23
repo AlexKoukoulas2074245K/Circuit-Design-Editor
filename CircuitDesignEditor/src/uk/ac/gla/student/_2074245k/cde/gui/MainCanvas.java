@@ -526,7 +526,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void openProjectFromFile(final File file)	
 	{
 		init(file);
-		LoadingResult result = ProjectPersistenceUtilities.openProject(file, this);
+		LoadingResult result = ProjectPersistenceUtilities.openProject(file, false, this);
 		setPreferredSize(result.canvasDimension);			
 		revalidate();
 		repaint();
@@ -538,13 +538,13 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	public void saveProject()
 	{
-		ProjectPersistenceUtilities.saveProject(lastSaveLocation, components, getSize(), false);	
+		ProjectPersistenceUtilities.saveProject(lastSaveLocation, false, components, getSize(), false);	
 		hasTakenActionSinceLastSave = false;
 	}
 	
 	public void saveProjectToFile(final File file)
 	{
-		ProjectPersistenceUtilities.saveProject(file, components, getSize(), true);				
+		ProjectPersistenceUtilities.saveProject(file, false, components, getSize(), true);				
 		lastSaveLocation = file;
 		hasTakenActionSinceLastSave = false;
 	}
@@ -711,8 +711,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 	}
 	
 	private void inputUpdates()
-	{						
-		highlightedComponent = getHoveredComponent(isCreatingNub ? dragNubX : mouse.getX(), isCreatingNub ? dragNubY : mouse.getY());		
+	{	
+		try { highlightedComponent = getHoveredComponent(isCreatingNub ? dragNubX : mouse.getX(), isCreatingNub ? dragNubY : mouse.getY()); }
+		catch (Exception e) {}
 		
 		// On Left Mouse Button Tap
 		if (mouse.isButtonTapped(Mouse.LEFT_BUTTON))
@@ -1023,7 +1024,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		if (whiteBoxes.size() > 0)
 		{			
-			whiteBoxes.sort(new ComponentRectangleComparator(false));
+			try { whiteBoxes.sort(new ComponentRectangleComparator(false)); }
+			catch (Exception e){}
 			
 			for (Component comp: whiteBoxes)			
 			{
@@ -1092,7 +1094,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 			}
 		}
 		
-		componentsList.sort(new ComponentRectangleComparator(false));
+		try {componentsList.sort(new ComponentRectangleComparator(false));}
+		catch(Exception e){}
+		
 		return getHoveredComponentInBucket(mouseX, mouseY, componentsList);
 	}
 	

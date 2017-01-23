@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -46,6 +49,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -62,6 +66,8 @@ import uk.ac.gla.student._2074245k.cde.components.GateComponent.GateType;
 import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.components.LineSegmentComponent;
 import uk.ac.gla.student._2074245k.cde.util.GraphicsGenerator;
+import uk.ac.gla.student._2074245k.cde.util.LoadingResult;
+import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
 
 public final class MainFrame extends JFrame
@@ -82,15 +88,14 @@ public final class MainFrame extends JFrame
     public MainFrame()
     {
     	super(WINDOW_TITLE);
-    	init(DEFAULT_CANVAS_DIM, DEFAULT_LAF_CLASS_NAME);
+    	init(DEFAULT_CANVAS_DIM, DEFAULT_LAF_CLASS_NAME);    	
     }
         
     private void init(final Dimension canvasDimension, final String lookAndFeelClassName)
     {
     	try 
     	{     		
-    		lastChosenColor = null;
-    		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+    		lastChosenColor = null;    		
     		setContentPane(createComponents(this, canvasDimension));
     		changeLookAndFeel(lookAndFeelClassName);
             setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -108,15 +113,13 @@ public final class MainFrame extends JFrame
     					int selOption = JOptionPane.showConfirmDialog (null, "The program is exiting, would you like to save your progress?", "Exiting Option", JOptionPane.YES_NO_CANCEL_OPTION);
     					if (selOption == JOptionPane.YES_OPTION)
     					{            			
-    						displaySaveProjectDialog();
-    						File tempFile = new File(".temp");
-    						if (tempFile.exists()) tempFile.delete();
+    						displaySaveProjectDialog();    						
+    						if (ProjectPersistenceUtilities.TEMP_FILE.exists()) ProjectPersistenceUtilities.TEMP_FILE.delete();
     						System.exit(0);
     					}
     					else if (selOption == JOptionPane.NO_OPTION)
-    					{
-    						File tempFile = new File(".temp");
-    						if (tempFile.exists()) tempFile.delete();
+    					{    						
+    						if (ProjectPersistenceUtilities.TEMP_FILE.exists()) ProjectPersistenceUtilities.TEMP_FILE.delete();
     						System.exit(0);                			
     					}    
     					else if (selOption == JOptionPane.CANCEL_OPTION)
@@ -220,6 +223,26 @@ public final class MainFrame extends JFrame
 		editTab.add(opacityItem);
 		editTab.add(createWhiteBoxItem);
 		
+		JMenu libraryTab = new JMenu("Library");
+		libraryTab.setMnemonic(KeyEvent.VK_L);
+		libraryTab.getAccessibleContext().setAccessibleDescription("Library related options");
+		
+		JMenuItem exportProjectAsLibraryItem = new JMenuItem("Save Project as library", KeyEvent.VK_1);
+		exportProjectAsLibraryItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.SHIFT_MASK));
+		exportProjectAsLibraryItem.getAccessibleContext().setAccessibleDescription("Saves the entre project as library");
+		
+		JMenuItem exportSelectionAsLibraryItem = new JMenuItem("Save Selection as library", KeyEvent.VK_2);
+		exportSelectionAsLibraryItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.SHIFT_MASK | ActionEvent.CTRL_MASK));
+		exportSelectionAsLibraryItem.getAccessibleContext().setAccessibleDescription("Saves the current selection as library");
+		
+		JMenuItem loadLibraryItem = new JMenuItem("Load Library", KeyEvent.VK_3);
+		loadLibraryItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.SHIFT_MASK));
+		loadLibraryItem.getAccessibleContext().setAccessibleDescription("Loads a library into the project");
+		
+		libraryTab.add(exportProjectAsLibraryItem);
+		libraryTab.add(exportSelectionAsLibraryItem);
+		libraryTab.add(loadLibraryItem);
+		
 		JMenu windowTab = new JMenu("Window");
 		windowTab.setMnemonic(KeyEvent.VK_W);
 		windowTab.getAccessibleContext().setAccessibleDescription("Window related options");
@@ -232,6 +255,7 @@ public final class MainFrame extends JFrame
 		
     	menuBar.add(fileMenuTab);
     	menuBar.add(editTab);
+    	menuBar.add(libraryTab);
     	menuBar.add(windowTab);
     	frame.setJMenuBar(menuBar);
     	    	
@@ -718,6 +742,127 @@ public final class MainFrame extends JFrame
         			JOptionPane.showMessageDialog(null, "No components have been selected!\nPlease select at least one component in order to create a white box.", "White box creation error", JOptionPane.ERROR_MESSAGE);
         		}        			        		
         	}
+        });
+        
+        exportProjectAsLibraryItem.addActionListener(new ActionListener()
+        {
+			@Override
+			public void actionPerformed(ActionEvent __) 
+			{
+				// Make sure there are components in the canvas
+				if (canvasPanel.getComponentsIterator().hasNext())
+				{		
+					Iterator<Component> compsIter = canvasPanel.getComponentsIterator();
+					Set<Component> components = new HashSet<Component>();
+					while (compsIter.hasNext()) components.add(compsIter.next());					
+					exportLibraryModal(components);		
+				}
+				else
+				{
+					JOptionPane.showMessageDialog(null, "No components found in canvas!\nPlease create at least one component in order to export the project as a library.", "Library creation error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+        	
+        });
+        
+        exportSelectionAsLibraryItem.addActionListener(new ActionListener()        		
+        {
+        	@Override
+			public void actionPerformed(ActionEvent __) 
+			{
+        		if (canvasPanel.getNumberOfSelectedComponents() != 0)
+        		{
+        			canvasPanel.addChildrenAndParentsToSelection();
+        			Iterator<Component> selCompsIter = canvasPanel.getSelectedComponentsIterator();
+					Set<Component> components = new HashSet<Component>();
+					while (selCompsIter.hasNext()) components.add(selCompsIter.next());
+					
+					exportLibraryModal(components);
+        		}
+        		else
+        		{
+        			JOptionPane.showMessageDialog(null, "No components have been selected!\nPlease select at least one component in order to export as a library.", "Library creation error", JOptionPane.ERROR_MESSAGE);        			
+        		}
+			}
+        });
+        
+        loadLibraryItem.addActionListener(new ActionListener()
+        {
+        	@Override
+			public void actionPerformed(ActionEvent __) 
+			{
+        		if (ProjectPersistenceUtilities.LIB_DIR.listFiles().length == 0)
+        		{
+        			JOptionPane.showMessageDialog(null, "No libraries were found!", "Library loading error", JOptionPane.ERROR_MESSAGE);
+        			return;
+        		}
+        		
+        		JDialog jDialog = new JDialog(frame, "Library selection", ModalityType.APPLICATION_MODAL);
+        		JPanel libraryListPanel = new JPanel();        		
+        		
+        		File[] libFiles = ProjectPersistenceUtilities.LIB_DIR.listFiles();
+        		String[] libFileNames = new String[libFiles.length];
+        		
+        		for (int i = 0; i < libFiles.length; ++i)
+        		{
+        			libFileNames[i] = libFiles[i].getName();
+        		}
+        		
+        		Arrays.sort(libFileNames);
+        		
+        		JComboBox<String> cb = new JComboBox<String>(libFileNames);
+        		
+        		libraryListPanel.add(cb);        		      	        		
+        		cb.setFont(cb.getFont().deriveFont(15.0f));        		
+        		
+        		JButton loadLibraryButton = new JButton("Load Library");
+        		loadLibraryButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent arg0) 
+        			{
+        				File libraryFile = new File(ProjectPersistenceUtilities.LIB_DIR.getAbsolutePath() + "/" + (String)cb.getSelectedItem());
+        				LoadingResult lr = ProjectPersistenceUtilities.openProject(libraryFile, true, canvasPanel);
+        				
+        				for (Component comp: lr.loadedComponents)
+        				{
+        					canvasPanel.addComponentToCanvas(comp);        					
+        				}
+        				        				
+        				jDialog.dispose();
+        			}			
+        		});
+        		
+        		JButton cancelButton = new JButton("Cancel");
+        		cancelButton.addActionListener(new ActionListener()
+        		{
+        			@Override
+        			public void actionPerformed(ActionEvent __) 
+        			{
+        				jDialog.dispose();
+        			}			
+        		});
+        		
+        		JPanel optionsPanel = new JPanel();
+        		optionsPanel.add(loadLibraryButton);
+        		optionsPanel.add(cancelButton);
+        		
+        		JPanel libraryOptionsPanel = new JPanel(new BorderLayout());
+        		libraryOptionsPanel.add(optionsPanel, BorderLayout.EAST);        		
+        		
+        		JPanel modalPanel = new JPanel(new BorderLayout());        		
+        		modalPanel.setPreferredSize(new Dimension(200, 200));        		
+        		modalPanel.add(libraryListPanel, BorderLayout.NORTH);        		
+        		modalPanel.add(libraryOptionsPanel, BorderLayout.SOUTH);
+        		        		
+        		jDialog.setContentPane(modalPanel);
+        		jDialog.getRootPane().setDefaultButton(loadLibraryButton);
+        		jDialog.pack();
+        		jDialog.setIconImage(gateImage);
+        		jDialog.setResizable(false);
+        		jDialog.setLocationRelativeTo(frame);
+        		jDialog.setVisible(true);     
+			}
         });
         
         changeLF.addActionListener(new ActionListener()
@@ -1220,6 +1365,83 @@ public final class MainFrame extends JFrame
         		canvasPanel.saveProjectToFile(adjustedFile);
         	}
         }
+    }
+    
+    private void exportLibraryModal(final Set<Component> components)
+    {
+    	JDialog jDialog = new JDialog(this, "Export as Library", ModalityType.APPLICATION_MODAL);
+				
+		JPanel exportLibSpecsPanel = new JPanel();
+		exportLibSpecsPanel.setLayout(new BoxLayout(exportLibSpecsPanel, BoxLayout.Y_AXIS));
+		
+		JLabel libNameLabel = new JLabel("Library Name: ");
+		
+		JTextField libNameField = new JTextField();		
+		libNameField.setName("Enter a name here");
+		libNameField.setColumns(20);
+		libNameField.addFocusListener(new SelectAllFocusListener(libNameField));		
+		
+		JLabel libExtLabel = new JLabel(".lib");
+		
+		JPanel libNamePanel = new JPanel();
+		libNamePanel.add(libNameLabel);
+		libNamePanel.add(libNameField);
+		libNamePanel.add(libExtLabel);
+		exportLibSpecsPanel.add(libNamePanel);
+		
+		JButton exportButton = new JButton("Export");          		
+		exportButton.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent __) 
+			{        								
+				File libFile = new File(ProjectPersistenceUtilities.LIB_DIR.getAbsolutePath() + "/" + libNameField.getText() + ".lib");
+				
+				if (libFile.exists())
+				{
+					int selOption = JOptionPane.showConfirmDialog (null, "Overwrite existing library file?", "Export Option", JOptionPane.YES_NO_OPTION);
+            		if (selOption == JOptionPane.NO_OPTION)
+            		{            			            		                
+            			jDialog.dispose();
+            			return;	    	                		
+            		}
+				}
+				else
+				
+				ProjectPersistenceUtilities.saveAsLibrary(libFile, components, canvasPanel.getSize());
+				JOptionPane.showMessageDialog(null, "Exported library: " + libNameField.getText() + ".lib" + " successfully");		                		
+				jDialog.dispose();
+			}			
+		});
+		
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent __) 
+			{
+				jDialog.dispose();
+			}			
+		});
+		
+		JPanel optionsPanel = new JPanel();
+		optionsPanel.add(exportButton);
+		optionsPanel.add(cancelButton);
+		
+		JPanel exportLibOptionsPanel = new JPanel(new BorderLayout());
+		exportLibOptionsPanel.add(optionsPanel, BorderLayout.EAST);  
+			        		
+		JPanel lfPanel = new JPanel(new BorderLayout());
+		lfPanel.add(exportLibSpecsPanel, BorderLayout.NORTH);
+		lfPanel.add(exportLibOptionsPanel, BorderLayout.SOUTH);
+		
+		jDialog.setContentPane(lfPanel);
+		jDialog.getRootPane().setDefaultButton(exportButton);        		
+		jDialog.pack();        		
+		jDialog.setResizable(false);
+		jDialog.setLocationRelativeTo(this);
+		jDialog.setVisible(true);              
+		jDialog.setFocusable(true); 
     }
     
     private void changeLookAndFeel(final String lookAndFeelClassName)

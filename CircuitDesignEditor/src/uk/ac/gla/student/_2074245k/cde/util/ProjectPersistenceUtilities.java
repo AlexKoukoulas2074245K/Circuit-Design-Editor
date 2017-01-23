@@ -30,6 +30,11 @@ import uk.ac.gla.student._2074245k.cde.gui.PortView;
 
 public final class ProjectPersistenceUtilities 
 {		
+	public static final String HOME_DIR_PATH = System.getProperty("user.home") + "/CircuitDesignEditor/";	
+	public static final File HOME_DIR        = new File(HOME_DIR_PATH);
+	public static final File TEMP_FILE       = new File(HOME_DIR_PATH + ".temp");
+	public static final File LIB_DIR         = new File(HOME_DIR_PATH + "lib/");
+	
 	private static enum LoadingMode
 	{
 		TEXT_BOX, HINGE, LINE_SEGMENT, GATE, BLACK_BOX, WHITE_BOX
@@ -37,12 +42,11 @@ public final class ProjectPersistenceUtilities
 	
 	public static LoadingResult openProjectNonPersistent(final MainCanvas canvas)
 	{
-		File tempFile = new File(".temp");
 		
-		if (tempFile.exists())
+		if (TEMP_FILE.exists())
 		{			
-			LoadingResult result = openProject(new File(".temp"), canvas);
-			tempFile.delete();
+			LoadingResult result = openProject(TEMP_FILE, true, canvas);
+			TEMP_FILE.delete();
 			return result;		
 		}
 		else
@@ -51,10 +55,11 @@ public final class ProjectPersistenceUtilities
 		}
 	}
 	
-	public static LoadingResult openProject(final File file, final MainCanvas canvas)
-	{		
-		boolean nonPersistMode = file.getName().equals(".temp");
-		
+	public static LoadingResult openProject(final File file, final boolean nonPersistMode, final MainCanvas canvas)
+	{
+		if (!HOME_DIR.exists())
+			HOME_DIR.mkdir();
+				
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
 		List<GateComponent> gateComponents               = new ArrayList<GateComponent>();
@@ -466,12 +471,19 @@ public final class ProjectPersistenceUtilities
 	
 	public static void saveProjectNonPersistent(final Set<Component> components, final Dimension canvasDimension)
 	{
-		saveProject(new File(".temp"), components, canvasDimension, false);
+		saveProject(TEMP_FILE, true, components, canvasDimension, false);
 	}
 	
-	public static void saveProject(final File file, final Set<Component> components, final Dimension canvasDimension, final boolean promptOnCompletion)
+	public static void saveAsLibrary(final File libFile, final Set<Component> components, final Dimension canvasDimension)
 	{
-		boolean nonPersistMode = file.getName().equals(".temp");
+		saveProject(libFile, false, components, canvasDimension, false);
+	}
+	
+	public static void saveProject(final File file, final boolean nonPersistMode, final Set<Component> components, final Dimension canvasDimension, final boolean promptOnCompletion)
+	{				
+		if (!HOME_DIR.exists())
+			HOME_DIR.mkdir();
+						
 		List<LineSegmentComponent> lineSegmentComponents = new ArrayList<LineSegmentComponent>();
 		List<HingeComponent> hingeComponents             = new ArrayList<HingeComponent>();
 		List<GateComponent> gateComponents               = new ArrayList<GateComponent>();
@@ -636,7 +648,8 @@ public final class ProjectPersistenceUtilities
 					 "#White Box Fifth Line:  innerComponent0Index,innerComponent1Index, ... ,innerComponentN-1Index");			
 			bw.newLine();
 			
-			whiteBoxComponents.sort(new ComponentRectangleComparator(false));
+			try { whiteBoxComponents.sort(new ComponentRectangleComparator(false)); }
+			catch (Exception e) {}
 			
 			for (int i = 0; i < whiteBoxComponents.size(); ++i)
 			{
