@@ -162,11 +162,10 @@ public final class MainCanvas extends JPanel implements Runnable,
 		while (true)
 		{						
 			checkAndAddNewComponents();
-			checkAndRemoveMarkedComponents();
+			checkAndRemoveMarkedComponents();			
 			inputUpdates();			
 			repaint();
-			frameCounter.update(components, 
-					            componentSelector, 					            
+			frameCounter.update(componentSelector, 					            
 					            window,
 					            lastSaveLocation,
 					            hasTakenActionSinceLastSave);
@@ -204,9 +203,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	}
 
 	@Override
-	public void keyReleased(KeyEvent __) 
-	{		
-	}
+	public void keyReleased(KeyEvent __) {}
 	
 	@Override
 	public void keyTyped(KeyEvent __) {}

@@ -13,8 +13,8 @@ public final class AlignedComponentsList
 		verAlignedComponents = new ArrayList<Component>();
 	}
 	
-	public void addHorAlignedComponent(final Component component) { horAlignedComponents.add(component); }
-	public void addVerAlignedComponent(final Component component) { verAlignedComponents.add(component); }
+	public void addHorAlignedComponent(final Component component) { addHorAlignedComponentOrReplaceFirst(component); }
+	public void addVerAlignedComponent(final Component component) { addVerAlignedComponentOrReplaceFirst(component); }
 	
 	public void addHorAlignedComponentOrReplaceFirst(final Component component)
 	{

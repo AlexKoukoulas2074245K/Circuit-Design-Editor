@@ -48,9 +48,9 @@ public class WhiteBoxComponent extends ConcreteComponent
 		
 		int prevX = componentRect.x;
 		int prevY = componentRect.y;
+		
 		AlignedComponentsList alignedComponents = super.moveTo(x, y);
-//		alignedComponents.getHorAlignedComponents().clear();
-//		alignedComponents.getVerAlignedComponents().clear();
+
 		Iterator<Component> horAlignedComponentsIter = alignedComponents.getHorAlignedComponents().iterator();
 		while (horAlignedComponentsIter.hasNext())
 		{

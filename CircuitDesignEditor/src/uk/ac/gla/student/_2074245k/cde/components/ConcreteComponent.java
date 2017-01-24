@@ -41,26 +41,15 @@ public abstract class ConcreteComponent extends Component
 		
 		if (Component.globalAlignmentEnabled)
 		{			
+			
 			Iterator<Component> compIter = canvas.getComponentsIterator();
 			while (compIter.hasNext())
 			{
 				Component component = compIter.next();			
 		
-				if (component.getComponentType() != ComponentType.HINGE)
-					continue;
-				
-				if (internalHorHinges.contains(component))
-					continue;
-				
-				if (internalVerHinges.contains(component))
-					continue;
-				
-				if (isPointOfPort(component))
-					continue;
-				
-				if (((HingeComponent)component).isInternal())
-					continue;
-				
+				if (component.getComponentType() != ComponentType.HINGE || isPointOfPort(component))
+					continue;								
+								
 				for (Component p: ports)
 				{					
 					Component portStartPoint = p.getChildren().get(0);
@@ -72,13 +61,13 @@ public abstract class ConcreteComponent extends Component
 						{
 							alignedComponents.addVerAlignedComponent(component);
 							alignedComponents.addVerAlignedComponent(portStartPoint);
-							alignmentDy = component.getRectangle().y - portStartPoint.getRectangle().y; 
+							alignmentDy = component.getRectangle().y - portStartPoint.getRectangle().y; 							
 						}
 						if (Math.abs(component.getRectangle().x - portStartPoint.getRectangle().x) < ALIGNMENT_THRESHOLD)
 						{
 							alignedComponents.addHorAlignedComponent(component);
 							alignedComponents.addVerAlignedComponent(portStartPoint);
-							alignmentDx = component.getRectangle().x - portStartPoint.getRectangle().x;
+							alignmentDx = component.getRectangle().x - portStartPoint.getRectangle().x;							
 						}
 					}
 					if (!internalHorHinges.contains(portEndPoint) && !internalVerHinges.contains(portEndPoint))
@@ -87,17 +76,17 @@ public abstract class ConcreteComponent extends Component
 						{
 							alignedComponents.addVerAlignedComponent(component);
 							alignedComponents.addVerAlignedComponent(portEndPoint);
-							alignmentDy = component.getRectangle().y - portEndPoint.getRectangle().y; 
+							alignmentDy = component.getRectangle().y - portEndPoint.getRectangle().y;							
 						}
 						if (Math.abs(component.getRectangle().x - portEndPoint.getRectangle().x) < ALIGNMENT_THRESHOLD)
 						{
 							alignedComponents.addHorAlignedComponent(component);
 							alignedComponents.addVerAlignedComponent(portEndPoint);
-							alignmentDx = component.getRectangle().x - portEndPoint.getRectangle().x;
+							alignmentDx = component.getRectangle().x - portEndPoint.getRectangle().x;							
 						}
 					}					
 				}
-			}			
+			}						
 		}
 		
 		int prevBBx = this.componentRect.x;

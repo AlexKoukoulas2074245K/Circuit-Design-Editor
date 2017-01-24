@@ -422,41 +422,37 @@ public final class HingeComponent extends Component
 		}
 		
 		HingeComponent endPoint = new HingeComponent(canvas, endPointX, endPointY, true);		
-	    
-	    Rectangle startPointRect = getRectangle();
-	    Rectangle endPointRect   = endPoint.getRectangle();
-	    
-	    if (!startPointRect.intersects(endPointRect))
-	    {	    	
-	    	Component identicalHinge = null;
-	    	
-	    	Iterator<Component> compIter = canvas.getComponentsIterator();
-			while (compIter.hasNext())
-			{
-				Component component = compIter.next();	    	
-	    		if (component.getComponentType() != ComponentType.HINGE)
-	    			continue;
-	    		
-	    		if (component.getRectangle().intersects(endPoint.getRectangle()))
-	    		{
-	    			identicalHinge = component;
-	    			break;
-	    		}	    		
-	    	}
-	    	
-	    	LineSegmentComponent lineSegment = new LineSegmentComponent(canvas, this, endPoint, true);
-	    	if (identicalHinge != null)
-	    	{
-	    		lineSegment = new LineSegmentComponent(canvas, this, identicalHinge, true);
-	    	}
-	    	else
-	    	{
-	    		lineSegment = new LineSegmentComponent(canvas, this, endPoint, true);
-	    		canvas.addComponentToCanvas(endPoint);	    		
-	    	}
-	    	
-	    	canvas.addComponentToCanvas(lineSegment);	    	
-	    }
+	   
+	    System.out.println("End point created");
+	    // Check for attempts to finalize the line segment's end point on top of 
+	    // another hinge
+    	Component identicalHinge = null;    	
+    	Iterator<Component> compIter = canvas.getComponentsIterator();
+		while (compIter.hasNext())
+		{
+			Component component = compIter.next();	    	
+    		if (component.getComponentType() != ComponentType.HINGE)
+    			continue;
+    		
+    		if (component.getRectangle().intersects(endPoint.getRectangle()))
+    		{
+    			identicalHinge = component;
+    			break;
+    		}	    		
+    	}
+    	
+    	LineSegmentComponent lineSegment = new LineSegmentComponent(canvas, this, endPoint, true);
+    	if (identicalHinge != null)
+    	{
+    		lineSegment = new LineSegmentComponent(canvas, this, identicalHinge, true);
+    	}
+    	else
+    	{
+    		lineSegment = new LineSegmentComponent(canvas, this, endPoint, true);
+    		canvas.addComponentToCanvas(endPoint);	    		
+    	}
+    	
+    	canvas.addComponentToCanvas(lineSegment);	    		    
 	}
 	
 	private void drawCross(final GraphicsGenerator g)

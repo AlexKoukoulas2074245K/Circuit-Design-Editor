@@ -33,7 +33,7 @@ public class DeleteAction implements Action
 				switch (selComp.getComponentType())
 				{
 					case HINGE: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
-					case LINE_SEGMENT: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
+					case LINE_SEGMENT: if (!selComp.getChildren().get(0).isMovable() && !selComp.getChildren().get(1).isMovable()) canvas.addChildrenAndParentsToSelection(); break;
 					case GATE: canvas.addChildrenAndParentsToSelection(); break;
 					case BLACK_BOX: canvas.addChildrenAndParentsToSelection(); break;
 					case WHITE_BOX: canvas.addChildrenAndParentsToSelection(); break;

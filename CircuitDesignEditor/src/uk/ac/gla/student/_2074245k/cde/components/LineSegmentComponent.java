@@ -182,11 +182,11 @@ public final class LineSegmentComponent extends Component
 	public void delete()
 	{
 		if (getParents().size() > 0 && !allParentsAreWhiteBoxes())
-		{	
+		{				
 			return;
 		}
 		
-		canvas.removeComponentFromCanvas(this);			
+		canvas.removeComponentFromCanvas(this);		
 		startPoint.delete();
 		endPoint.delete();
 		
