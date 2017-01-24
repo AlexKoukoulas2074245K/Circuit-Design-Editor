@@ -206,11 +206,19 @@ public final class MainFrame extends JFrame
 		deleteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 		deleteItem.getAccessibleContext().setAccessibleDescription("Delete the selected component(s)");
 		
-		JMenuItem opacityItem = new JMenuItem("Toggle Opacity", KeyEvent.VK_7);
+		JMenuItem zoomInItem = new JMenuItem("Zoom In", KeyEvent.VK_7);
+		zoomInItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, ActionEvent.CTRL_MASK));
+		zoomInItem.getAccessibleContext().setAccessibleDescription("Zoom in canvas");
+		
+		JMenuItem zoomOutItem = new JMenuItem("Zoom out", KeyEvent.VK_8);
+		zoomOutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ActionEvent.CTRL_MASK));
+		zoomOutItem.getAccessibleContext().setAccessibleDescription("Zoom out from canvas");
+		
+		JMenuItem opacityItem = new JMenuItem("Toggle Opacity", KeyEvent.VK_8);
 		opacityItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.SHIFT_MASK));
 		opacityItem.getAccessibleContext().setAccessibleDescription("Toggles the opacity of the selected white box component(s)");
 		
-		JMenuItem createWhiteBoxItem = new JMenuItem("Create White Box", KeyEvent.VK_8);
+		JMenuItem createWhiteBoxItem = new JMenuItem("Create White Box", KeyEvent.VK_9);
 		createWhiteBoxItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.SHIFT_MASK));
 		createWhiteBoxItem.getAccessibleContext().setAccessibleDescription("Creates a white box out of the selected component(s)");
 		
@@ -220,6 +228,8 @@ public final class MainFrame extends JFrame
 		editTab.add(copyItem);
 		editTab.add(pasteItem);
 		editTab.add(deleteItem);
+		editTab.add(zoomInItem);
+		editTab.add(zoomOutItem);
 		editTab.add(opacityItem);
 		editTab.add(createWhiteBoxItem);
 		
@@ -391,6 +401,7 @@ public final class MainFrame extends JFrame
                 
         canvasPanel = new MainCanvas(this);            
         canvasPanel.setPreferredSize(canvasDimension);
+        canvasPanel.setOriginalSize(canvasDimension.width, canvasDimension.height);
         canvasPanel.setFocusable(true);
               
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
@@ -457,7 +468,8 @@ public final class MainFrame extends JFrame
                 			displaySaveProjectDialog();   	
                 		}      
                 		canvasPanel.init(null);
-                		canvasPanel.setPreferredSize(new Dimension((int)widthField.getValue(), (int)heightField.getValue()));                		
+                		canvasPanel.setPreferredSize(new Dimension((int)widthField.getValue(), (int)heightField.getValue()));
+                        canvasPanel.setOriginalSize((int)widthField.getValue(), (int)heightField.getValue());
                         jDialog.dispose();                        
         			}			
         		});
@@ -573,7 +585,8 @@ public final class MainFrame extends JFrame
         			@Override
         			public void actionPerformed(ActionEvent __) 
         			{        				
-                		canvasPanel.setPreferredSize(new Dimension((int)widthField.getValue(), (int)heightField.getValue()));                		
+                		canvasPanel.setPreferredSize(new Dimension((int)widthField.getValue(), (int)heightField.getValue()));
+                		canvasPanel.setOriginalSize((int)widthField.getValue(), (int)heightField.getValue());
                 		canvasPanel.revalidate();
                 		canvasPanel.repaint();
                 		jDialog.dispose();
@@ -698,6 +711,25 @@ public final class MainFrame extends JFrame
         	public void actionPerformed(ActionEvent __)
         	{
         		canvasPanel.delete();
+        	}
+        });
+        
+        zoomInItem.addActionListener(new ActionListener()
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent __)
+        	{        		
+        		canvasPanel.zoomIn();
+        	}
+        });
+        
+        zoomOutItem.addActionListener(new ActionListener()
+        {
+        	@Override
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		
+        		canvasPanel.zoomOut();
         	}
         });
         

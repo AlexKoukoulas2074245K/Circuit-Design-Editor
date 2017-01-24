@@ -18,7 +18,7 @@ public final class ComponentSelector
 	private Rectangle absRect;
 	
 	public ComponentSelector(final int startX, final int startY)
-	{
+	{		
 		this.startX = this.endX = startX;
 		this.startY = this.endY = startY;		
 		selectedComponents = new HashSet<Component>();

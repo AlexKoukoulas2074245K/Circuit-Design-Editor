@@ -2,6 +2,7 @@ package uk.ac.gla.student._2074245k.cde.gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -12,6 +13,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -62,6 +65,7 @@ import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 public final class MainCanvas extends JPanel implements Runnable,											                                                          
                                                         MouseListener,
                                                         MouseMotionListener,
+                                                        MouseWheelListener,
                                                         KeyListener,
                                                         ComponentListener,
                                                         ConcreteComponentCreationObserver
@@ -90,7 +94,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	private DOMImplementation domImpl;
 	private Document document;
 	
-	private int selectionDx, selectionDy, dragNubX, dragNubY, dragTextboxX, dragTextboxY, incidentNubX, incidentNubY;			
+	private int selectionDx, selectionDy, dragNubX, dragNubY, dragTextboxX, dragTextboxY, incidentNubX, incidentNubY, canvasOrigWidth, canvasOrigHeight;	
 	private AlignedComponentsList alignedComponents, prevAlignedComponents;
 	private boolean isCreatingNub, isCreatingTextbox, isNubInContact, movingComponents;
 	
@@ -126,7 +130,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 		targetPositions       = new ArrayList<int[]>();				
 		componentSelector     = new ComponentSelector(0, 0);
 		mouse                 = new Mouse();	
-		
+		canvasOrigWidth       = getWidth();
+		canvasOrigHeight      = getHeight();
 		isCreatingNub = isNubInContact = movingComponents = isCreatingTextbox = false;		
 		
 		alignedComponents = prevAlignedComponents = null;
@@ -147,6 +152,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 			mainCanvasThread = new Thread(this);			
 			addMouseListener(this);
 			addMouseMotionListener(this);			
+			addMouseWheelListener(this);
 			addComponentListener(this);
 			addKeyListener(this);
 			mainCanvasThread.start();
@@ -155,7 +161,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 	@Override
 	public void run() 
-	{
+	{		
 		requestFocus();
 		FrameCounter frameCounter = new FrameCounter();
 		
@@ -174,11 +180,28 @@ public final class MainCanvas extends JPanel implements Runnable,
 
 	@Override
 	public void paintComponent(final Graphics g)
-	{
+	{		
 		Graphics2D gfxCopy = (Graphics2D)g.create();
 		GraphicsGenerator gfxGen = new GraphicsGenerator(gfxCopy);
-		display(gfxGen);
+		display(gfxGen);		
 		gfxCopy.dispose();
+	}
+	
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent evt) 
+	{
+		int prevScale = mouse.getScalePercent();
+		mouse.updateOnMouseWheelMoved(evt);		
+		
+		if (mouse.getScalePercent() != prevScale)
+		{			
+			setPreferredSize(new Dimension((int)(canvasOrigWidth * (mouse.getScalePercent()/100.0D)),
+					                       (int)(canvasOrigHeight * (mouse.getScalePercent()/100.0D))));
+		}
+		
+		revalidate();
+		repaint();
 	}
 	
 	@Override
@@ -260,7 +283,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	
 	@Override
 	public void componentResized(ComponentEvent __) 
-	{
+	{				
 		repaint();
 	}
 	
@@ -402,7 +425,13 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 		ConcreteComponent.globalConcreteComponentMovementType = prevMT;	
 	}
-
+	
+	public void setOriginalSize(final int origWidth, final int origHeight)
+	{
+		canvasOrigWidth  = origWidth;
+		canvasOrigHeight = origHeight;
+	}
+	
 	public void setScrollPane(final JScrollPane scrollPane)
 	{
 		this.scrollPane = scrollPane;
@@ -524,7 +553,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 	{
 		init(file);
 		LoadingResult result = ProjectPersistenceUtilities.openProject(file, false, this);
-		setPreferredSize(result.canvasDimension);			
+		setPreferredSize(result.canvasDimension);
+		canvasOrigWidth = result.canvasDimension.width;
+		canvasOrigHeight = result.canvasDimension.height;
 		revalidate();
 		repaint();
 		
@@ -564,12 +595,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 	    
 		try (Writer outputWriter = new OutputStreamWriter(new FileOutputStream(svgOutput), "UTF-8"))
 		{			
+			int prevScale = mouse.getScalePercent();
+			mouse.setScalePercent(100);
 			SVGGraphics2D svgGraphics = new SVGGraphics2D(document);
 		    GraphicsGenerator svgGen = new GraphicsGenerator(svgGraphics);
-		    clear(svgGen);
+		    clear(svgGen);		    
 		    display(svgGen);
 		    svgGraphics.stream(outputWriter, useCSS);
-		    
+		    mouse.setScalePercent(prevScale);
 		    highlightedComponent = null;
 			componentSelector = new ComponentSelector(0, 0);
 			
@@ -674,6 +707,27 @@ public final class MainCanvas extends JPanel implements Runnable,
 			hasTakenActionSinceLastSave = true;
 			componentSelector = new ComponentSelector(mouse.getX(), mouse.getY());
 		}
+	}
+	
+	public void zoomIn()
+	{
+		mouse.addZoom(20);			
+		setPreferredSize(new Dimension((int)(canvasOrigWidth * (mouse.getScalePercent()/100.0D)),
+					                   (int)(canvasOrigHeight * (mouse.getScalePercent()/100.0D))));
+		
+		revalidate();
+		repaint();
+	}
+		
+	public void zoomOut()
+	{
+		
+		mouse.addZoom(-20);
+		setPreferredSize(new Dimension((int)(canvasOrigWidth * (mouse.getScalePercent()/100.0D)),
+					                   (int)(canvasOrigHeight * (mouse.getScalePercent()/100.0D))));
+		
+		revalidate();
+		repaint();
 	}
 	
 	public void colorSelectedComponents(final Color selColor)
@@ -895,8 +949,9 @@ public final class MainCanvas extends JPanel implements Runnable,
 		synchronized (componentSelector)
 		{
 			synchronized (components)
-			{				
-				render(gfx);					
+			{					
+				((Graphics2D)gfx.getCanvasContext()).scale(mouse.getScalePercent()/100.0D, mouse.getScalePercent()/100.0D);				
+				render(gfx);	
 			}
 		}
 	}
