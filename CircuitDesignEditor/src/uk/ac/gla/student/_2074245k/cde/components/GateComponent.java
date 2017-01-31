@@ -52,7 +52,7 @@ public final class GateComponent extends ConcreteComponent
 				     ((HingeComponent)internalHinge).getNameY());
 		}
 		
-		g.setColor(selected ? Colors.SELECTION_COLOR : customColor);				
+		g.setColor(selected || isInMultiSelectionMovement ? Colors.SELECTION_COLOR : customColor);				
 		g.drawGate(gateType, getRectangle(), g.getCanvasContext().getColor());
 	}
 	

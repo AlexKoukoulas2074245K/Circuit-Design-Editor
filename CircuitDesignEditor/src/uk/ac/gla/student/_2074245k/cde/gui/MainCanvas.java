@@ -347,7 +347,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
 				}  break;
 			}
-			
+						
 			((HingeComponent)internalHinge).setIsInverted(portView.isInverted);
 			
 			concComp.addPort(port);

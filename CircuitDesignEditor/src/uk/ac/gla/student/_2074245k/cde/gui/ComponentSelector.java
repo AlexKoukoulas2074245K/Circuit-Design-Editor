@@ -80,7 +80,7 @@ public final class ComponentSelector
 	}
 	
 	public void render(final GraphicsGenerator gfx)
-	{
+	{		
 		if (!isEnabled)
 			return;
 				

@@ -88,7 +88,7 @@ public final class HingeComponent extends Component
 			           final boolean isSelected,
 			           final boolean isInMultiSelection) 
 	{			
-		if (isInternalHinge && !isInternalHingeOfWhiteBox)		
+		if (isInternalHinge)		
 		{
 			if (isInverted)
 			{
@@ -105,7 +105,7 @@ public final class HingeComponent extends Component
 				g.setColor(Color.white);
 				g.setStroke(Strokes.THIN_STROKE);				
 				g.fillRect(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);							
-				g.setColor(customColor);				
+				g.setColor(isSelected || isInMultiSelection ? Colors.SELECTION_COLOR : customColor);				
 				g.drawOval(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
 			}			
 			return;
@@ -422,8 +422,7 @@ public final class HingeComponent extends Component
 		}
 		
 		HingeComponent endPoint = new HingeComponent(canvas, endPointX, endPointY, true);		
-	   
-	    System.out.println("End point created");
+	   	    
 	    // Check for attempts to finalize the line segment's end point on top of 
 	    // another hinge
     	Component identicalHinge = null;    	
