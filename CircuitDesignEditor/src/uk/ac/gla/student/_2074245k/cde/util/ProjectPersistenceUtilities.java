@@ -155,8 +155,19 @@ public final class ProjectPersistenceUtilities
 						boolean isInverted = lineComponents[10].equals("true");
 						
 						PortView.PortLocation loc = PortView.PortLocation.valueOf(lineComponents[11]);
+						PortView.PortResultDirectionality resultDir = PortView.PortResultDirectionality.NEUTRAL;
+						String name = "";
 						
-						String name = lineComponents[12].replaceAll("@", " ");
+						// Backwards compatibility assert
+						if (lineComponents.length > 13)
+						{							
+							resultDir = PortView.PortResultDirectionality.valueOf(lineComponents[12]);
+							name = lineComponents[13].replaceAll("@", " ");
+						}
+						else
+						{
+							name = lineComponents[12].replaceAll("@", " ");
+						}
 						
 						HingeComponent hingeComponent = new HingeComponent(canvas, x, y, isMovable);								                                           					
 						hingeComponent.setHasNub(hasNub);
@@ -166,7 +177,7 @@ public final class ProjectPersistenceUtilities
 						{								
 							hingeComponent.addInternalHingeInfo(loc, name);
 						}
-							
+						hingeComponent.addExternalHingeInfo(loc, resultDir);
 						hingeComponents.add(hingeComponent);
 						
 					} break;
@@ -342,6 +353,7 @@ public final class ProjectPersistenceUtilities
 						
 						boolean isOpaque = false;
 						
+						// Backwards compatibility assert
 						if (coreComponentInfo.length > 12)
 						{	
 							isOpaque = coreComponentInfo[12].equals("true");							
@@ -527,7 +539,7 @@ public final class ProjectPersistenceUtilities
 				bw.newLine();
 			}
 			
-			bw.write("#Hinges: hingeIndex,x,y,red,green,blue,alpha,hasNub,isMovable,isInternal,isInverted,location,name");
+			bw.write("#Hinges: hingeIndex,x,y,red,green,blue,alpha,hasNub,isMovable,isInternal,isInverted,location,resultDir,name");
 			bw.newLine();
 			
 			for (int i = 0; i < hingeComponents.size(); ++i)

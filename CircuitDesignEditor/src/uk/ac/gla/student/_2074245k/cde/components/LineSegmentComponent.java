@@ -272,12 +272,8 @@ public final class LineSegmentComponent extends Component
 		
 		if (startPoint.isMovable && endPoint.isMovable)
 			g.setColor(Colors.SELECTION_COLOR);
-		else if (startPoint.isMovable && !endPoint.isMovable)
-			g.setColor(Colors.EFFECTIVE_IMMOVABLE_COLOR);
-		else if (!startPoint.isMovable && endPoint.isMovable)
-			g.setColor(Colors.EFFECTIVE_IMMOVABLE_COLOR);
 		else
-			g.setColor(Colors.IMMOVABLE_COLOR);
+			g.setColor(Colors.DEFAULT_COLOR);
 		
 		g.drawLine(getRectangle().x, 
 				   getRectangle().y, 

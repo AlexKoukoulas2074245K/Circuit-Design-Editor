@@ -60,8 +60,8 @@ public final class ConcreteComponentBuilderPanel extends JPanel implements PortM
 	private int numRightPorts = 0;
 	private int numTopPorts = 0;
 	private int numBotPorts = 0;
-	private int minComponentWidth = 80;
-	private int minComponentHeight = 80;
+	private int minComponentWidth = 100;
+	private int minComponentHeight = 100;
 	
 	public ConcreteComponentBuilderPanel(final MainCanvas canvas,
 			                             final boolean shouldBuildWhiteBox,
@@ -411,7 +411,8 @@ public final class ConcreteComponentBuilderPanel extends JPanel implements PortM
 		finalOptionsPanel.add(optionsPanel, BorderLayout.EAST);
 		
 		add(concreteComponentOptionsPanel, BorderLayout.NORTH);
-		add(finalOptionsPanel, BorderLayout.SOUTH);	
+		add(finalOptionsPanel, BorderLayout.SOUTH);
+				
 	}
 
 	@Override
@@ -448,7 +449,49 @@ public final class ConcreteComponentBuilderPanel extends JPanel implements PortM
 			}			
 		});
 		
+		JCheckBox outPortCheckBox = new JCheckBox("Out");        
+        JCheckBox inPortCheckBox  = new JCheckBox("In");
+        
+		outPortCheckBox.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent __) 
+			{
+				if (portView.portResultDir == PortView.PortResultDirectionality.OUTPUT)
+				{
+					portView.portResultDir = PortView.PortResultDirectionality.NEUTRAL;				
+				}
+				else
+				{
+					portView.portResultDir = PortView.PortResultDirectionality.OUTPUT;
+					inPortCheckBox.setSelected(false);
+				}
+				concreteComponentView.repaint();				
+			}			
+		});
+		
+		inPortCheckBox.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent __)
+			{
+				if (portView.portResultDir == PortView.PortResultDirectionality.INPUT)
+				{
+					portView.portResultDir = PortView.PortResultDirectionality.NEUTRAL;				
+				}
+				else
+				{
+					
+					portView.portResultDir = PortView.PortResultDirectionality.INPUT;
+					outPortCheckBox.setSelected(false);
+				}
+				concreteComponentView.repaint();	
+			}
+		});
+		
 		portPanel.add(invertedCheckbox);
+		portPanel.add(outPortCheckBox);
+		portPanel.add(inPortCheckBox);
 		
 		NumberFormatter portPositionFormatter = new NumberFormatter(NumberFormat.getInstance());
 		portPositionFormatter.setValueClass(Integer.class);

@@ -311,7 +311,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);						
 					
 					concComp.addInternalHorHinge(internalHinge);
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.LEFT, portView.portName);
+					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
 					
 				} break;
 				
@@ -322,7 +323,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					concComp.addInternalHorHinge(internalHinge);						
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.RIGHT, portView.portName);
+					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
 					
 				} break;
 				
@@ -333,7 +335,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					concComp.addInternalVerHinge(internalHinge);						
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.TOP, portView.portName);
+					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
 					
 				} break;
 				
@@ -344,7 +347,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					concComp.addInternalVerHinge(internalHinge);								
-					((HingeComponent)internalHinge).addInternalHingeInfo(PortView.PortLocation.BOTTOM, portView.portName);
+					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
 				}  break;
 			}
 						

@@ -24,6 +24,7 @@ import uk.ac.gla.student._2074245k.cde.util.Mouse;
 public final class ConcreteComponentBuilderViewPanel extends JPanel implements MouseListener, MouseMotionListener, PortModificationObservable
 {	
 	private static final long serialVersionUID = -1384668565961127584L;	
+	
 	private Color backgroundColor = Colors.CANVAS_BKG_COLOR;
 	private Mouse panelMouse;
 	private boolean isInsidePanel = false;
@@ -169,7 +170,7 @@ public final class ConcreteComponentBuilderViewPanel extends JPanel implements M
 		// Render Grid
 		if (isInsidePanel && gridVisibility && !componentRect.contains(panelMouse.getX(), panelMouse.getY()))
 		{
-			g.setColor(new Color(220, 220, 220));
+			g.setColor(Colors.CONC_VIEW_PANEL_GRID_COLOR);
 			
 			int nRows = getHeight() / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
 			int nCols = getWidth() / ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR;
@@ -199,93 +200,9 @@ public final class ConcreteComponentBuilderViewPanel extends JPanel implements M
 		
 		// Render ports
 		for (PortView portView: portViews)
-		{				
-			switch (portView.portLocation)
-			{
-				case LEFT:
-				{
-					g.drawLine(0,
-							   (int)(portView.normalizedPosition * getHeight()), 
-							   componentRect.x - (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0),  
-							   (int)(portView.normalizedPosition * getHeight()));
-					
-					if (portView.isInverted)
-					{						
-						g.drawOval(componentRect.x - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR,
-								   (int)(portView.normalizedPosition * getHeight()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
-							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
-								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
-					}
-					
-					g.drawString(portView.portName, 
-							     componentRect.x + 5, 
-							     (int)(portView.normalizedPosition * getHeight()) + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2);
-				} break;
-				
-				case RIGHT:
-				{
-					g.drawLine(componentRect.x + componentRect.width + (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0),
-							   (int)(portView.normalizedPosition * getHeight()), 
-							   getWidth(), 
-							   (int)(portView.normalizedPosition * getHeight()));
-					
-					if (portView.isInverted)
-					{						
-						g.drawOval(componentRect.x + componentRect.width,
-								   (int)(portView.normalizedPosition * getHeight()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
-							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
-								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
-					}
-					
-					Rectangle2D nameBounds = g.getFontMetrics().getStringBounds(portView.portName, g);
-					g.drawString(portView.portName, 
-							     componentRect.x + componentRect.width - 5 - (int)nameBounds.getWidth(),
-							     (int)(portView.normalizedPosition * getHeight()) + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2);
-				} break;
-				
-				case TOP:
-				{
-					g.drawLine((int)(portView.normalizedPosition * getWidth()),
-							   0, 
-							   (int)(portView.normalizedPosition * getWidth()), 
-							   componentRect.y - (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0));
-					
-					if (portView.isInverted)
-					{						
-						g.drawOval((int)(portView.normalizedPosition * getWidth()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
-								   componentRect.y - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR,
-							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
-								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
-					}
-					
-					Rectangle2D nameBounds = g.getFontMetrics().getStringBounds(portView.portName, g);
-					g.drawString(portView.portName,
-							     (int)(portView.normalizedPosition * getWidth()) - (int)nameBounds.getWidth()/2,
-							     componentRect.y + ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR + 5);
-				} break;
-				
-				case BOTTOM:
-				{
-					g.drawLine((int)(portView.normalizedPosition * getWidth()),
-							   componentRect.y + componentRect.height + (portView.isInverted ? ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR : 0), 
-							   (int)(portView.normalizedPosition * getWidth()), 
-							   getHeight());
-					
-					if (portView.isInverted)
-					{						
-						g.drawOval((int)(portView.normalizedPosition * getWidth()) - ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR/2,
-								   componentRect.y + componentRect.height,
-							       ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR, 
-								   ConcreteComponentBuilderPanel.MARGIN_DENOMINATOR);
-					}
-					
-					Rectangle2D nameBounds = g.getFontMetrics().getStringBounds(portView.portName, g);
-					g.drawString(portView.portName, 
-							(int)(portView.normalizedPosition * getWidth()) - (int)nameBounds.getWidth()/2,
-							     componentRect.y + componentRect.height - 5);							     							     
-				} break;
-			}			
-		}						
+		{
+			portView.render(g, getWidth(), getHeight(), componentRect);
+		}
 	}
 
 	@Override

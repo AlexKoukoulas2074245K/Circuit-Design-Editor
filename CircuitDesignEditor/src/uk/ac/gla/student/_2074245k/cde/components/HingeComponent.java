@@ -31,6 +31,7 @@ public final class HingeComponent extends Component
 	private boolean isInternalHingeOfWhiteBox;
 	private boolean isInverted;
 	private String name;
+	private PortView.PortResultDirectionality internalHingeResultDir; 
 	private PortView.PortLocation internalHingeLocation;
 	
 	public HingeComponent(final MainCanvas canvas, final int x, final int y, final boolean movable)
@@ -43,6 +44,7 @@ public final class HingeComponent extends Component
 		isInverted = false;
 		name = " ";
 		internalHingeLocation = PortView.PortLocation.BOTTOM;
+		internalHingeResultDir = PortView.PortResultDirectionality.NEUTRAL;
 	}
 	
 	@Override
@@ -104,14 +106,110 @@ public final class HingeComponent extends Component
 				}
 				g.setColor(Color.white);
 				g.setStroke(Strokes.THIN_STROKE);				
-				g.fillRect(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);							
+				g.fillRect(rect.x + xOffset + 1, rect.y + yOffset + 1, HINGE_DIAMETER - 2, HINGE_DIAMETER - 2);							
 				g.setColor(isSelected || isInMultiSelection ? Colors.SELECTION_COLOR : customColor);				
 				g.drawOval(rect.x + xOffset, rect.y + yOffset, HINGE_DIAMETER, HINGE_DIAMETER);
 			}			
 			return;
 		}
 			
-		
+		if (internalHingeResultDir != PortView.PortResultDirectionality.NEUTRAL)
+		{			
+			g.setColor(isSelected || isInMultiSelection ? Colors.SELECTION_COLOR : customColor);
+			g.setStroke(isSelected || isHighlighted || isInMultiSelection ? Strokes.BOLD_STROKE : Strokes.THIN_STROKE);
+			final int x0 = rect.x + HINGE_DIAMETER/2;
+			final int y0 = rect.y + HINGE_DIAMETER/2;
+			int x1 = 0;
+			int y1 = 0;
+			int x2 = 0;
+			int y2 = 0;
+			switch (internalHingeLocation)
+			{
+				case LEFT: 
+				{
+					if (internalHingeResultDir == PortView.PortResultDirectionality.INPUT)
+					{					
+						x1 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+					}
+					else
+					{						
+						x1 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+					}
+				} break;
+				
+				case RIGHT:
+				{
+					if (internalHingeResultDir == PortView.PortResultDirectionality.INPUT)
+					{					
+						x1 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+					}
+					else
+					{						
+						x1 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+					}
+				} break;
+				
+				case TOP: 
+				{
+					if (internalHingeResultDir == PortView.PortResultDirectionality.INPUT)
+					{					
+						x1 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+					}
+					else
+					{						
+						x1 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+					}
+				} break;
+				
+				case BOTTOM: 
+				{
+					if (internalHingeResultDir == PortView.PortResultDirectionality.INPUT)
+					{					
+						x1 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+					}
+					else
+					{						
+						x1 = rect.x + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						y1 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+						
+						x2 = rect.x + HINGE_DIAMETER/2 + 2 * PortView.ARROW_HALF_LEN;
+						y2 = rect.y + HINGE_DIAMETER/2 - 2 * PortView.ARROW_HALF_LEN;
+					}
+				} break;
+			}
+			
+			g.drawLine(x0, y0, x1, y1);
+			g.drawLine(x0, y0, x2, y2);
+		}
+					
 		if ((globalHingeDraggingMode == HingeDraggingMode.SPAWN_SEGMENT_UNRES ||
 			 globalHingeDraggingMode == HingeDraggingMode.SPAWN_SEGMENT_AXIS_RES) &&
 			 isSelected && 
@@ -241,6 +339,7 @@ public final class HingeComponent extends Component
 			   isInternalHinge + "," + 
 	           isInverted + "," + 
 			   internalHingeLocation + "," + 
+	           internalHingeResultDir + "," + 
 	           name.replace(" ", "@");
 	}
 
@@ -287,13 +386,18 @@ public final class HingeComponent extends Component
 		this.hasNub = hasNub;
 	}
 	
-	public void addInternalHingeInfo(final PortView.PortLocation location, 
-			                         final String portName)
+	public void addInternalHingeInfo(final PortView.PortLocation location, final String portName)
 	{	
-		this.internalHingeLocation = location;
+		this.internalHingeLocation = location;		
 		this.name = portName;				
 		this.isInternalHinge = true;
 	}	
+	
+	public void addExternalHingeInfo(final PortView.PortLocation location, final PortView.PortResultDirectionality resultDir)
+	{
+		this.internalHingeLocation = location;
+		this.internalHingeResultDir = resultDir;
+	}
 	
 	public void setIsInverted(final boolean isInverted)
 	{
