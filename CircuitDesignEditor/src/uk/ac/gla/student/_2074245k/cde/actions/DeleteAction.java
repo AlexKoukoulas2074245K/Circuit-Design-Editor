@@ -5,8 +5,11 @@ import java.util.Iterator;
 import java.util.Set;
 
 import uk.ac.gla.student._2074245k.cde.components.Component;
+import uk.ac.gla.student._2074245k.cde.components.Component.ComponentType;
+import uk.ac.gla.student._2074245k.cde.components.HingeComponent;
 import uk.ac.gla.student._2074245k.cde.gui.ComponentSelector;
 import uk.ac.gla.student._2074245k.cde.gui.MainCanvas;
+import uk.ac.gla.student._2074245k.cde.gui.PortView;
 import uk.ac.gla.student._2074245k.cde.util.LoadingResult;
 import uk.ac.gla.student._2074245k.cde.util.ProjectPersistenceUtilities;
 
@@ -32,8 +35,20 @@ public class DeleteAction implements Action
 				Component selComp = selector.getFirstComponent();
 				switch (selComp.getComponentType())
 				{
-					case HINGE: if (!selComp.isMovable()) canvas.addChildrenAndParentsToSelection(); break;
-					case LINE_SEGMENT: if (!selComp.getChildren().get(0).isMovable() && !selComp.getChildren().get(1).isMovable()) canvas.addChildrenAndParentsToSelection(); break;
+					case HINGE:
+					{
+						if (!selComp.isMovable() &&
+							!((HingeComponent)selComp).hasNub() &&
+							((HingeComponent)selComp).getPortResultDir() == PortView.PortResultDirectionality.NEUTRAL)
+							canvas.addChildrenAndParentsToSelection();						
+					} break;
+					
+					case LINE_SEGMENT:
+					{
+						if (!selComp.getChildren().get(0).isMovable() && !selComp.getChildren().get(1).isMovable()) 
+							canvas.addChildrenAndParentsToSelection(); 
+					} break;
+					
 					case GATE: canvas.addChildrenAndParentsToSelection(); break;
 					case BLACK_BOX: canvas.addChildrenAndParentsToSelection(); break;
 					case WHITE_BOX: canvas.addChildrenAndParentsToSelection(); break;
@@ -50,6 +65,26 @@ public class DeleteAction implements Action
 			while (componentsIter.hasNext()) components.add(componentsIter.next());
 			
 			ProjectPersistenceUtilities.saveProjectNonPersistent(components, canvas.getSize()); 
+			
+			if (selector.getNumberOfSelectedComponents() == 1 &&
+				selector.getFirstComponent().getComponentType() == ComponentType.HINGE)
+			{
+				HingeComponent hinge = (HingeComponent)selector.getFirstComponent();
+				
+				if (hinge.hasNub())
+				{
+					hinge.setHasNub(false);
+					state = ActionState.EXECUTED;
+					return;
+				}
+				
+				if (hinge.getPortResultDir() != PortView.PortResultDirectionality.NEUTRAL)
+				{
+					hinge.setExternalHingeInfo(hinge.getParentsPortLocation(), PortView.PortResultDirectionality.NEUTRAL);
+					state = ActionState.EXECUTED;
+					return;
+				}
+			}
 			
 			Iterator<Component> selComponentsIter = selector.getSelectedComponentsIterator();
 			while (selComponentsIter.hasNext()) selComponentsIter.next().delete();			

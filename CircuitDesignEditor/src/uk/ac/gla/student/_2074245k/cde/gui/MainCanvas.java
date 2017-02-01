@@ -240,6 +240,7 @@ public final class MainCanvas extends JPanel implements Runnable,
 	@Override
 	public void mousePressed(MouseEvent eventArgs) { mouse.updateOnMousePressed(eventArgs); }
 	
+	//TODO: should probably move to input updates along with the rest of the events
 	@Override
 	public void mouseReleased(MouseEvent eventArgs) 
 	{		
@@ -311,8 +312,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);						
 					
 					concComp.addInternalHorHinge(internalHinge);
-					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
-					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
+					((HingeComponent)internalHinge).setInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).setExternalHingeInfo(portView.portLocation, portView.portResultDir);
 					
 				} break;
 				
@@ -323,8 +324,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					concComp.addInternalHorHinge(internalHinge);						
-					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
-					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
+					((HingeComponent)internalHinge).setInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).setExternalHingeInfo(portView.portLocation, portView.portResultDir);
 					
 				} break;
 				
@@ -335,8 +336,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					concComp.addInternalVerHinge(internalHinge);						
-					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
-					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
+					((HingeComponent)internalHinge).setInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).setExternalHingeInfo(portView.portLocation, portView.portResultDir);
 					
 				} break;
 				
@@ -347,8 +348,8 @@ public final class MainCanvas extends JPanel implements Runnable,
 					port = new LineSegmentComponent(this, externalHinge, internalHinge, false);
 					
 					concComp.addInternalVerHinge(internalHinge);								
-					((HingeComponent)internalHinge).addInternalHingeInfo(portView.portLocation, portView.portName);
-					((HingeComponent)externalHinge).addExternalHingeInfo(portView.portLocation, portView.portResultDir);
+					((HingeComponent)internalHinge).setInternalHingeInfo(portView.portLocation, portView.portName);
+					((HingeComponent)externalHinge).setExternalHingeInfo(portView.portLocation, portView.portResultDir);
 				}  break;
 			}
 						

@@ -381,24 +381,39 @@ public final class HingeComponent extends Component
 		return nameY;
 	}
 	
+	public boolean hasNub()
+	{
+		return hasNub;
+	}
+		
 	public void setHasNub(final boolean hasNub)
 	{
 		this.hasNub = hasNub;
 	}
 	
-	public void addInternalHingeInfo(final PortView.PortLocation location, final String portName)
+	public void setInternalHingeInfo(final PortView.PortLocation location, final String portName)
 	{	
 		this.internalHingeLocation = location;		
 		this.name = portName;				
 		this.isInternalHinge = true;
 	}	
 	
-	public void addExternalHingeInfo(final PortView.PortLocation location, final PortView.PortResultDirectionality resultDir)
+	public PortView.PortLocation getParentsPortLocation()
+	{
+		return internalHingeLocation;
+	}
+	
+	public PortView.PortResultDirectionality getPortResultDir()
+	{
+		return internalHingeResultDir;
+	}
+	
+	public void setExternalHingeInfo(final PortView.PortLocation location, final PortView.PortResultDirectionality resultDir)
 	{
 		this.internalHingeLocation = location;
 		this.internalHingeResultDir = resultDir;
 	}
-	
+		
 	public void setIsInverted(final boolean isInverted)
 	{
 		this.isInverted = isInverted;

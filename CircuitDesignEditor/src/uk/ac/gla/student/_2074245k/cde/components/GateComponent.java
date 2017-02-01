@@ -107,7 +107,7 @@ public final class GateComponent extends ConcreteComponent
 		
 		addInternalHorHinge(endPointIn1);
 		addPort(in1Port);		
-		((HingeComponent)endPointIn1).addInternalHingeInfo(PortLocation.LEFT, "a");
+		((HingeComponent)endPointIn1).setInternalHingeInfo(PortLocation.LEFT, "a");
 		canvas.addComponentToCanvas(startPointIn1);
 		canvas.addComponentToCanvas(endPointIn1);
 		canvas.addComponentToCanvas(in1Port);
@@ -118,7 +118,7 @@ public final class GateComponent extends ConcreteComponent
 		
 		addInternalHorHinge(endPointIn2);
 		addPort(in2Port);
-		((HingeComponent)endPointIn2).addInternalHingeInfo(PortLocation.LEFT, "b");
+		((HingeComponent)endPointIn2).setInternalHingeInfo(PortLocation.LEFT, "b");
 		canvas.addComponentToCanvas(startPointIn2);
 		canvas.addComponentToCanvas(endPointIn2);
 		canvas.addComponentToCanvas(in2Port);
@@ -129,7 +129,7 @@ public final class GateComponent extends ConcreteComponent
 		
 		addInternalHorHinge(startPointOut);
 		addPort(outPort);
-		((HingeComponent)startPointOut).addInternalHingeInfo(PortLocation.RIGHT, "out");
+		((HingeComponent)startPointOut).setInternalHingeInfo(PortLocation.RIGHT, "out");
 		canvas.addComponentToCanvas(startPointOut);
 		canvas.addComponentToCanvas(endPointOut);
 		canvas.addComponentToCanvas(outPort);

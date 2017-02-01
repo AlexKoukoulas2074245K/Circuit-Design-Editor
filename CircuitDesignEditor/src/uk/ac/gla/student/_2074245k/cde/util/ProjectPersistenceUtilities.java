@@ -175,9 +175,9 @@ public final class ProjectPersistenceUtilities
 						hingeComponent.setColor(hingeColor);
 						if (isInternal)
 						{								
-							hingeComponent.addInternalHingeInfo(loc, name);
+							hingeComponent.setInternalHingeInfo(loc, name);
 						}
-						hingeComponent.addExternalHingeInfo(loc, resultDir);
+						hingeComponent.setExternalHingeInfo(loc, resultDir);
 						hingeComponents.add(hingeComponent);
 						
 					} break;
