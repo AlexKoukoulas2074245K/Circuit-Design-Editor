@@ -488,21 +488,22 @@ public final class MainCanvas extends JPanel implements Runnable,
 		
 	public void finalizeWirePosition(final int x, final int y)
 	{					
-		finalizeWireCreation(x, y);			
+		finalizeWireCreation((int)(x / (mouse.getScalePercent()/100.0D)),
+				             (int)(y / (mouse.getScalePercent()/100.0D)));			
 		grabFocus();
 	}
 	
 	public void startCreatingTextbox(final int x, final int y)
 	{
 		isCreatingTextbox = true;
-		dragTextboxX = x;
-		dragTextboxY = y;
+		dragTextboxX = (int)(x / (mouse.getScalePercent()/100.0D));
+		dragTextboxY = (int)(y / (mouse.getScalePercent()/100.0D));
 	}
 	
 	public void setTextboxCreationPosition(final int x, final int y)
 	{
-		dragTextboxX = x;
-		dragTextboxY = y;
+		dragTextboxX = (int)(x / (mouse.getScalePercent()/100.0D));
+		dragTextboxY = (int)(y / (mouse.getScalePercent()/100.0D));
 	}
 	
 	public void finalizeTextboxPosition(final int x, final int y)
@@ -513,14 +514,14 @@ public final class MainCanvas extends JPanel implements Runnable,
 	public void startCreatingNub(final int x, final int y)
 	{
 		isCreatingNub = true;
-		dragNubX = x;
-		dragNubY = y;
+		dragNubX = (int)(x / (mouse.getScalePercent()/100.0D));
+		dragNubY = (int)(y / (mouse.getScalePercent()/100.0D));
 	}
 	
 	public void setNubCreationPosition(final int x, final int y)
 	{		
-		dragNubX = x;
-		dragNubY = y;	
+		dragNubX = (int)(x / (mouse.getScalePercent()/100.0D));
+		dragNubY = (int)(y / (mouse.getScalePercent()/100.0D));	
 	}
 	
 	public void finalizeNubPosition(final int x, final int y)
