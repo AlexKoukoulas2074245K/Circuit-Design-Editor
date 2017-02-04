@@ -18,6 +18,7 @@ public final class HingeComponent extends Component
 {	
 	public static HingeDraggingMode globalHingeDraggingMode = HingeDraggingMode.MOVE_UNRES;
 	public static boolean globalHingeVisibility = true;
+	public static boolean arrowVisibility = true;
 	
 	public static final int HINGE_DIAMETER = 18;
 	public static final int NUB_DIAMETER  = 20;
@@ -113,7 +114,8 @@ public final class HingeComponent extends Component
 			return;
 		}
 			
-		if (internalHingeResultDir != PortView.PortResultDirectionality.NEUTRAL)
+		// Render input/output arrows 
+		if (internalHingeResultDir != PortView.PortResultDirectionality.NEUTRAL && arrowVisibility)
 		{			
 			g.setColor(isSelected || isInMultiSelection ? Colors.SELECTION_COLOR : customColor);
 			g.setStroke(isSelected || isHighlighted || isInMultiSelection ? Strokes.BOLD_STROKE : Strokes.THIN_STROKE);

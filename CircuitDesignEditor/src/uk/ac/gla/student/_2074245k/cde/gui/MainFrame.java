@@ -382,9 +382,14 @@ public final class MainFrame extends JFrame
         JCheckBox hingeVisibilityCheckbox = new JCheckBox("Hinge Visibility");
         hingeVisibilityCheckbox.setSelected(true);
         
+        // Port Arrow Visibility checkbox
+        JCheckBox arrowVisibilityCheckbox = new JCheckBox("Port Arrow Visibility");
+        arrowVisibilityCheckbox.setSelected(true);
+        
         JPanel checkBoxPanel = new JPanel(new BorderLayout());
         checkBoxPanel.add(alignmentCheckbox, BorderLayout.NORTH);
         checkBoxPanel.add(hingeVisibilityCheckbox, BorderLayout.CENTER);
+        checkBoxPanel.add(arrowVisibilityCheckbox, BorderLayout.SOUTH);
         
         // Add components to the menu panel
         menuPanel.add(bbButton);        
@@ -1350,6 +1355,14 @@ public final class MainFrame extends JFrame
         		HingeComponent.globalHingeVisibility = !HingeComponent.globalHingeVisibility;
         	}
         });                
+        
+        arrowVisibilityCheckbox.addActionListener(new ActionListener()
+        {
+        	public void actionPerformed(ActionEvent __)
+        	{
+        		HingeComponent.arrowVisibility = !HingeComponent.arrowVisibility;
+        	}
+        });        
         
         try 
         {
