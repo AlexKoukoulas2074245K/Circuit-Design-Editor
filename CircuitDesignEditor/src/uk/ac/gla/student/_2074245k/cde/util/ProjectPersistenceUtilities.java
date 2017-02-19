@@ -194,9 +194,14 @@ public final class ProjectPersistenceUtilities
 						}
 						
 						String[] lineComponents = line.split(",");
-						HingeComponent startPoint = hingeComponents.get(Integer.parseInt(lineComponents[1]));
-						HingeComponent endPoint = hingeComponents.get(Integer.parseInt(lineComponents[2]));
-																		
+						
+						// Use of Math.max to avoid negative indices in case of file corruption
+						int startPointIndex = Math.max(Integer.parseInt(lineComponents[1]), 0);
+						int endPointIndex   = Math.max(Integer.parseInt(lineComponents[2]), 0);
+												
+						HingeComponent startPoint = hingeComponents.get(startPointIndex);
+						HingeComponent endPoint = hingeComponents.get(endPointIndex);
+						
 						boolean isMovable = lineComponents[3].equals("true");
 						
 						Color lsColor = new Color(Integer.parseInt(lineComponents[4]),
@@ -475,6 +480,7 @@ public final class ProjectPersistenceUtilities
 		}
 		catch (Exception __)
 		{					
+			__.printStackTrace();
 			JOptionPane.showMessageDialog(null, "An error has occurred while loading project from file", "IO Error", JOptionPane.ERROR_MESSAGE);			
 		}	
 		
