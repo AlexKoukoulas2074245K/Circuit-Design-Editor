@@ -329,7 +329,7 @@ public final class HingeComponent extends Component
 	
 	@Override
 	public String serialize() 
-	{	
+	{			
 		return rect.x + "," + 
 	           rect.y + "," + 
 			   customColor.getRed() + "," + 
@@ -342,7 +342,7 @@ public final class HingeComponent extends Component
 	           isInverted + "," + 
 			   internalHingeLocation + "," + 
 	           internalHingeResultDir + "," + 
-	           name.replace(" ", "@");
+	           (name.length() == 0 ? "@" : name.replace(" ", "@"));
 	}
 
 	@Override

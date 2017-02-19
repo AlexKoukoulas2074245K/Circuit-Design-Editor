@@ -247,7 +247,7 @@ public final class TextBoxComponent extends Component
 		}
 		else
 		{
-			if (Character.isLetterOrDigit(evt.getKeyChar()))
+			if (Character.isLetterOrDigit(evt.getKeyChar()) || evt.getKeyChar() == '_')
 			{
 				if (texts.size() == 0)
 				{
