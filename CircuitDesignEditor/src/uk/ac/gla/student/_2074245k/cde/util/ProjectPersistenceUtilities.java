@@ -79,7 +79,7 @@ public final class ProjectPersistenceUtilities
 			{
 				JOptionPane.showMessageDialog(null, "The save file was saved with a previous version of the software (" + line + ").\n" +
 			                                        "The current version of the software is: " + Main.VERSION + ".\n"+
-						                            "Errors might occurr when using different versions of the software", "IO Error", JOptionPane.WARNING_MESSAGE);
+						                            "Errors might occur when using different versions of the software", "IO Error", JOptionPane.WARNING_MESSAGE);
 			}
 			
 			// Skip canvas dimensions comment
